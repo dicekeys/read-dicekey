@@ -32,3 +32,5 @@
 *.app
 
 Debug/
+/squares
+/.vs/dice-scanner/v16/Browse.VC.opendb
