@@ -27,33 +27,80 @@ static double angle(Point pt1, Point pt2, Point pt0)
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
+static Point2f getCenter(vector<Point> points)
+{
+	float x = 0;
+	float y = 0;
+	for (auto& point : points) {
+		x += point.x;
+		y += point.y;
+	}
+	x /= points.size();
+	y /= points.size();
+	return Point2f(x, y);
+}
+
+
+
 class Rectangle {
 public:
 	vector<Point> points;
+	Point topLeft;
+	Point topRight;
+	Point bottomLeft;
+	Point bottomRight;
 	double area;
 	double maxCos;
 	vector<double> sideLengths;
 	double maxSideLength;
 	double minSideLength;
-	Rectangle(vector<Point> points) {
-		this->points = points;
-		this->area = contourArea(points);
-		this->maxCos = 0;
-		this->sideLengths.push_back(
-			this->maxSideLength = this->minSideLength = norm(points[3] - points[0])
+	Point2f center;
+	// quality is used to determine which of two overlapping rectangles
+	// is better, prefering straighter corners and more area.
+	double qualityLowerIsBetter;
+
+	Rectangle(vector<Point> fromPoints) {
+		points = vector<Point>(fromPoints);
+		std::sort(points.begin(), points.end(), [](Point a, Point b) {return a.y < b.y; });
+		// The first two points are the top two.  Sort them top left and top right
+		if (points[0].x > points[1].x) {
+			swap(points[0], points[1]);
+		}
+		// The second set of two points are the bottom two.  Sort them right then left.
+		if (points[2].x < points[3].x) {
+			swap(points[2], points[3]);
+		}
+		topLeft = points[0];
+		topRight = points[1];
+		bottomRight = points[2];
+		bottomLeft = points[3];
+
+		center = getCenter(points);
+		area = contourArea(points);
+		maxCos = 0;
+		sideLengths.push_back(
+			maxSideLength = minSideLength = norm(points[3] - points[0])
 		);
-		for (int p = 0; p < 4; p++) {
+		for (int p = 1; p < 4; p++) {
 			double sideLength = norm(points[p] - points[(p + 1) % 4]);
-			this->maxSideLength = MAX(this->maxSideLength, sideLength);
-			this->minSideLength = MIN(this->minSideLength, sideLength);
-			this->sideLengths.push_back(sideLength);
+			maxSideLength = MAX(maxSideLength, sideLength);
+			minSideLength = MIN(minSideLength, sideLength);
+			sideLengths.push_back(sideLength);
 		}
 		for (int j = 2; j < 5; j++)
 		{
 			// find the maximum cosine of the angle between joint edges
 			double cosine = fabs(angle(points[j % 4], points[j - 2], points[j - 1]));
-			this->maxCos = MAX(this->maxCos, cosine);
+			maxCos = MAX(maxCos, cosine);
 		}
+		// qualityLowerIsBetter = area > 0 ? maxCos / area : 1;
+		qualityLowerIsBetter = area > 0 ? maxCos / pow(area, 5) : 1;
+	}
+
+	bool overlaps(Rectangle& otherRect) {
+		return
+			pointPolygonTest(otherRect.points, center, false) >= 0 ||
+			pointPolygonTest(points, otherRect.center, false) >= 0;
 	}
 };
 
@@ -74,9 +121,6 @@ static void help(const char* programName)
 int thresh = 50, N = 11;
 const char* wndname = "Square Detection Demo";
 
-bool sortRectByArea(Rectangle a, Rectangle b) {
-	return a.area < b.area;
-}
 
 // returns sequence of squares detected on the image.
 static void findSquares(const Mat & image, vector<vector<Point> > & squares)
@@ -153,19 +197,52 @@ static void findSquares(const Mat & image, vector<vector<Point> > & squares)
 					continue;
 
 				rects.push_back(rect);
-				// squares.push_back(approx);
 			}
 		}
 	}
-	// sort rectangles by area
-	std::sort(rects.begin(), rects.end(), sortRectByArea);
+	// sort rectangles by area and remove rectangles that stray from median
+	if (rects.size() == 0) {
+		// There are no squares, so return the empty vector
+		return;
+	}
+	std::sort(rects.begin(), rects.end(), [](Rectangle a, Rectangle b) {return a.area < b.area; });
 	double medianArea = rects[rects.size() / 2].area;
 	double minArea = 0.9 * medianArea;
 	double maxArea = 1.1 * medianArea;
+
+	vector<Rectangle> median_sized_rectangles;
 	for (auto& rect : rects) {
 		if (rect.area >= minArea && rect.area <= maxArea) {
-			squares.push_back(rect.points);
+			median_sized_rectangles.push_back(rect);
 		}
+	}
+
+	// remove overlapping rectangeles
+	vector<Rectangle> non_overlapping_rectangles;
+	for (auto& rect : median_sized_rectangles) {
+		int overlaps_with_index = -1;
+		for (int i = 0; i < non_overlapping_rectangles.size(); i++) {
+			if (rect.overlaps(non_overlapping_rectangles[i])) {
+				overlaps_with_index = i;
+				break;
+			}
+		}
+		if (overlaps_with_index == -1) {
+			// This rectangle doesn't overlap with others
+			non_overlapping_rectangles.push_back(rect);
+		}
+		else {
+			// This recangle overlaps with another. Pick which to keep
+			if (rect.qualityLowerIsBetter < non_overlapping_rectangles[overlaps_with_index].qualityLowerIsBetter) {
+				// Choose the rectangle with better quality
+				non_overlapping_rectangles[overlaps_with_index] = rect;
+			}
+		}
+	}
+
+
+	for (auto& rect : non_overlapping_rectangles) {
+		squares.push_back(rect.points);
 	}
 }
 
