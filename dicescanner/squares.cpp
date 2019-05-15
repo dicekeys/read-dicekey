@@ -3,6 +3,7 @@
 // It loads several images sequentially and tries to find squares in
 // each image
 
+#include <float.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -278,8 +279,8 @@ static vector<Rectangle> findSquares(const Mat & image)
 static double slope(const Point &a, const Point &b)
 {
 	return a.x == b.x ?
-		MAXFLOAT :
-		( ((double) (b.y - a.y)) / (double) (b.x - b.x) );
+		DBL_MAX :
+		((double)b.y - a.y) /((double)b.x - b.x);
 }
 
 static void processSquares(vector<Rectangle> &squares)
@@ -340,7 +341,8 @@ int main(int argc, char** argv)
 	vector<vector<Point> > squares;
 
 	for (auto& filename : names) {
-	string fname = "/Users/stuart/github/dice-scanner/img/" + filename;
+		// string fname = "img/" + filename;
+		string fname = "/Users/stuart/github/dice-scanner/img/" + filename;
 		Mat image = imread(fname, IMREAD_COLOR);
 		if (image.empty())
 		{
@@ -354,6 +356,7 @@ int main(int argc, char** argv)
 			return r.points;
 		});
 		writeSquares(image, squares, "/Users/stuart/github/dice-scanner/squares/" + filename);
+		// writeSquares(image, squares, "squares/" + filename);
 		// drawSquares(image, squares);
 
 		//int c = waitKey();
