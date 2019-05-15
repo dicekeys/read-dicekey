@@ -14,6 +14,34 @@
 using namespace std;
 using namespace cv;
 
+template <typename T, typename U>
+T vreduce(const std::vector<T>& vectorToReduce,
+         const std::function<U(U,T)>& reduceFn,
+		 const U initialValue) {
+	U result = initialValue;
+	for (auto e : vectorToReduce) {
+		result = reduceFn(result, e);
+	}
+	return result;
+}
+
+template <typename T, typename U>
+std::vector<U> vmap(const std::vector<T>& data, const std::function<U(T)> mapper) {
+    std::vector<U> result;
+	for (auto e : data) {
+        result.push_back(mapper(e));
+	};
+	return result;
+}
+
+template <typename T>
+std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(T)> filterFn) {
+    std::vector<T> result = data;
+	result.erase(remove_if(result.begin(), result.end(), [filterFn](T element){
+		return !filterFn(element);
+	}), result.end());
+    return result;
+}
 
 // helper function:
 // finds a cosine of angle between vectors
@@ -25,6 +53,19 @@ static double angle(Point pt1, Point pt2, Point pt0)
 	double dx2 = (double)pt2.x - pt0.x;
 	double dy2 = (double)pt2.y - pt0.y;
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
+}
+
+static double median(const vector<double> &numbers)
+{
+	vector<double> sorted = numbers;
+	std::sort(sorted.begin(), sorted.end(), [](double a, double b) { return a < b; });
+	if (sorted.size() == 0) {
+		return 0;
+	} else if (sorted.size() % 2 > 0) {
+		return sorted[sorted.size() / 2];
+	} else {
+		return (sorted[sorted.size() / 2] + sorted[1 + sorted.size() / 2]) / 2;
+	}
 }
 
 static Point2f getCenter(vector<Point> &points)
@@ -202,20 +243,15 @@ static vector<Rectangle> findSquares(const Mat & image)
 		return rects;
 	}
 
-	// sort rectangles by area and remove rectangles that stray from median
-
-	// Remove rectangles that 
-	std::sort(rects.begin(), rects.end(), [](Rectangle a, Rectangle b) {return a.area < b.area; });
-	double medianArea = rects[rects.size() / 2].area;
+	// Remove rectangles that stray from the median
+	double medianArea = median(vmap<Rectangle, double>(rects, [](Rectangle r) -> double { return r.area; }));
 	double minArea = 0.9 * medianArea;
 	double maxArea = 1.1 * medianArea;
-	rects.erase(remove_if(rects.begin(), rects.end(), [minArea, maxArea](Rectangle r) {
-		return  (r.area < minArea || r.area > maxArea);
-		}), rects.end());
+	auto median_rectangles = vfilter<Rectangle>(rects, [minArea, maxArea](Rectangle r) { return  (r.area >= minArea || r.area <= maxArea); });
 
 	// remove overlapping rectangeles
 	vector<Rectangle> non_overlapping_rectangles;
-	for (auto& rect : rects) {
+	for (auto& rect : median_rectangles) {
 		int overlaps_with_index = -1;
 		for (int i = 0; i < non_overlapping_rectangles.size(); i++) {
 			if (rect.overlaps(non_overlapping_rectangles[i])) {
@@ -237,6 +273,28 @@ static vector<Rectangle> findSquares(const Mat & image)
 	}
 
 	return non_overlapping_rectangles;
+}
+
+static double slope(const Point &a, const Point &b)
+{
+	return a.x == b.x ?
+		MAXFLOAT :
+		( ((double) (b.y - a.y)) / (double) (b.x - b.x) );
+}
+
+static void processSquares(vector<Rectangle> &squares)
+{
+	vector<Rectangle> sortedSquares = squares;
+	std::sort(sortedSquares.begin(), sortedSquares.end(), [](Rectangle a, Rectangle b) {
+		return (a.center.x + a.center.y) < (b.center.x + b.center.y); 
+	});
+	auto medianTopSlope = median(vmap<Rectangle, double>(sortedSquares, [](Rectangle r) { return slope(r.topLeft, r.topRight); } ));
+	auto medianBottomSlope = median(vmap<Rectangle, double>(sortedSquares, [](Rectangle r) { return slope(r.bottomLeft, r.bottomRight); } ));
+	auto medianLeftSlope = median(vmap<Rectangle, double>(sortedSquares, [](Rectangle r) { return slope(r.topLeft, r.bottomLeft); } ));
+	auto medianRightSlope = median(vmap<Rectangle, double>(sortedSquares, [](Rectangle r) { return slope(r.topRight, r.bottomRight); } ));
+	for (auto square : squares) {
+
+	}
 }
 
 

@@ -40,3 +40,5 @@ ipch/*
 Browse.VC.db
 *.bin
 .DS_Store
+*.xcuserdatad
+dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
