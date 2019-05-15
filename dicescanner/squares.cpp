@@ -282,7 +282,7 @@ int main(int argc, char** argv)
 	vector<vector<Point> > squares;
 
 	for (auto& filename : names) {
-		string fname = "img/" + filename;
+	string fname = "/Users/stuart/github/dice-scanner/img/" + filename;
 		Mat image = imread(fname, IMREAD_COLOR);
 		if (image.empty())
 		{
@@ -295,7 +295,7 @@ int main(int argc, char** argv)
 		std::transform(rects.begin(), rects.end(), std::back_inserter(squares), [](Rectangle r) {
 			return r.points;
 		});
-		writeSquares(image, squares, "squares/" + filename);
+		writeSquares(image, squares, "/Users/stuart/github/dice-scanner/squares/" + filename);
 		// drawSquares(image, squares);
 
 		//int c = waitKey();

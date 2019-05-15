@@ -38,3 +38,5 @@ Debug/
 Browse.VC.dylib
 ipch/*
 Browse.VC.db
+*.bin
+.DS_Store
