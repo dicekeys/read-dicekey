@@ -37,4 +37,4 @@ Debug/
 *.ipch
 Browse.VC.dylib
 ipch/*
-*/Browse.VC.db*
+Browse.VC.db
