@@ -34,3 +34,7 @@
 Debug/
 /squares
 /.vs/dice-scanner/v16/Browse.VC.opendb
+*.ipch
+Browse.VC.dylib
+ipch/*
+*/Browse.VC.db*

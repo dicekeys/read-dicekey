@@ -27,7 +27,7 @@ static double angle(Point pt1, Point pt2, Point pt0)
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
-static Point2f getCenter(vector<Point> points)
+static Point2f getCenter(vector<Point> &points)
 {
 	float x = 0;
 	float y = 0;
@@ -59,8 +59,8 @@ public:
 	// is better, prefering straighter corners and more area.
 	double qualityLowerIsBetter;
 
-	Rectangle(vector<Point> fromPoints) {
-		points = vector<Point>(fromPoints);
+	Rectangle(vector<Point> &fromPoints) {
+		points = fromPoints;
 		std::sort(points.begin(), points.end(), [](Point a, Point b) {return a.y < b.y; });
 		// The first two points are the top two.  Sort them top left and top right
 		if (points[0].x > points[1].x) {
@@ -123,10 +123,8 @@ const char* wndname = "Square Detection Demo";
 
 
 // returns sequence of squares detected on the image.
-static void findSquares(const Mat & image, vector<vector<Point> > & squares)
+static vector<Rectangle> findSquares(const Mat & image)
 {
-	squares.clear();
-
 	vector<Rectangle> rects;
 
 	Mat pyr, timg, gray0(image.size(), CV_8U), gray;
@@ -167,7 +165,6 @@ static void findSquares(const Mat & image, vector<vector<Point> > & squares)
 			findContours(gray, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
 
 			vector<Point> approx;
-
 			// test each contour
 			for (auto& contour : contours) {
 				// approximate contour with accuracy proportional
@@ -200,26 +197,25 @@ static void findSquares(const Mat & image, vector<vector<Point> > & squares)
 			}
 		}
 	}
-	// sort rectangles by area and remove rectangles that stray from median
-	if (rects.size() == 0) {
-		// There are no squares, so return the empty vector
-		return;
+	if (rects.size() <= 0) {
+		// There are not enough squares, so return the empty vector
+		return rects;
 	}
+
+	// sort rectangles by area and remove rectangles that stray from median
+
+	// Remove rectangles that 
 	std::sort(rects.begin(), rects.end(), [](Rectangle a, Rectangle b) {return a.area < b.area; });
 	double medianArea = rects[rects.size() / 2].area;
 	double minArea = 0.9 * medianArea;
 	double maxArea = 1.1 * medianArea;
-
-	vector<Rectangle> median_sized_rectangles;
-	for (auto& rect : rects) {
-		if (rect.area >= minArea && rect.area <= maxArea) {
-			median_sized_rectangles.push_back(rect);
-		}
-	}
+	rects.erase(remove_if(rects.begin(), rects.end(), [minArea, maxArea](Rectangle r) {
+		return  (r.area < minArea || r.area > maxArea);
+		}), rects.end());
 
 	// remove overlapping rectangeles
 	vector<Rectangle> non_overlapping_rectangles;
-	for (auto& rect : median_sized_rectangles) {
+	for (auto& rect : rects) {
 		int overlaps_with_index = -1;
 		for (int i = 0; i < non_overlapping_rectangles.size(); i++) {
 			if (rect.overlaps(non_overlapping_rectangles[i])) {
@@ -240,10 +236,7 @@ static void findSquares(const Mat & image, vector<vector<Point> > & squares)
 		}
 	}
 
-
-	for (auto& rect : non_overlapping_rectangles) {
-		squares.push_back(rect.points);
-	}
+	return non_overlapping_rectangles;
 }
 
 
@@ -297,7 +290,11 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		findSquares(image, squares);
+		auto rects = findSquares(image);
+		vector<vector<Point>> squares;
+		std::transform(rects.begin(), rects.end(), std::back_inserter(squares), [](Rectangle r) {
+			return r.points;
+		});
 		writeSquares(image, squares, "squares/" + filename);
 		// drawSquares(image, squares);
 
