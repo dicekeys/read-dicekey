@@ -56,6 +56,12 @@ static double angle(Point pt1, Point pt2, Point pt0)
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
+static double dist(const Point2d &a, const Point2d &b) {
+	double dx = a.x - b.x;
+	double dy = a.y - b.y;
+	return sqrt( dx * dx + dy * dy);
+}
+
 static double median(const vector<double> &numbers)
 {
 	vector<double> sorted = numbers;
@@ -69,7 +75,7 @@ static double median(const vector<double> &numbers)
 	}
 }
 
-static Point2f getCenter(vector<Point> &points)
+static Point2d getCenter(vector<Point> &points)
 {
 	float x = 0;
 	float y = 0;
@@ -79,7 +85,7 @@ static Point2f getCenter(vector<Point> &points)
 	}
 	x /= points.size();
 	y /= points.size();
-	return Point2f(x, y);
+	return Point2d(x, y);
 }
 
 
@@ -96,7 +102,7 @@ public:
 	vector<double> sideLengths;
 	double maxSideLength;
 	double minSideLength;
-	Point2f center;
+	Point2d center;
 	// quality is used to determine which of two overlapping rectangles
 	// is better, prefering straighter corners and more area.
 	double qualityLowerIsBetter;
@@ -139,10 +145,13 @@ public:
 		qualityLowerIsBetter = area > 0 ? maxCos / pow(area, 5) : 1;
 	}
 
-	bool overlaps(Rectangle& otherRect) {
+	bool contains(const Point2d &point) const {
+		return pointPolygonTest(points, point, false) >= 0;
+	}
+
+	bool overlaps(const Rectangle& otherRect) {
 		return
-			pointPolygonTest(otherRect.points, center, false) >= 0 ||
-			pointPolygonTest(points, otherRect.center, false) >= 0;
+			otherRect.contains(center) || contains(otherRect.center);
 	}
 };
 
@@ -254,7 +263,7 @@ static vector<Rectangle> findSquares(const Mat & image)
 	vector<Rectangle> non_overlapping_rectangles;
 	for (auto& rect : median_rectangles) {
 		int overlaps_with_index = -1;
-		for (int i = 0; i < non_overlapping_rectangles.size(); i++) {
+		for (uint i = 0; i < non_overlapping_rectangles.size(); i++) {
 			if (rect.overlaps(non_overlapping_rectangles[i])) {
 				overlaps_with_index = i;
 				break;
@@ -280,22 +289,106 @@ static double slope(const Point &a, const Point &b)
 {
 	return a.x == b.x ?
 		DBL_MAX :
-		((double)b.y - a.y) /((double)b.x - b.x);
+		((double)b.y - a.y) /((double)b.x - a.x);
 }
 
-static void processSquares(vector<Rectangle> &squares)
+static vector<Rectangle> filterAndOrderSquares(const vector<Rectangle> &squares)
 {
-	vector<Rectangle> sortedSquares = squares;
-	std::sort(sortedSquares.begin(), sortedSquares.end(), [](Rectangle a, Rectangle b) {
-		return (a.center.x + a.center.y) < (b.center.x + b.center.y); 
-	});
-	auto medianTopSlope = median(vmap<Rectangle, double>(sortedSquares, [](Rectangle r) { return slope(r.topLeft, r.topRight); } ));
-	auto medianBottomSlope = median(vmap<Rectangle, double>(sortedSquares, [](Rectangle r) { return slope(r.bottomLeft, r.bottomRight); } ));
-	auto medianLeftSlope = median(vmap<Rectangle, double>(sortedSquares, [](Rectangle r) { return slope(r.topLeft, r.bottomLeft); } ));
-	auto medianRightSlope = median(vmap<Rectangle, double>(sortedSquares, [](Rectangle r) { return slope(r.topRight, r.bottomRight); } ));
-	for (auto square : squares) {
+	const double dieSize = 8; // 8mm die size
+	const double gapBetweenDiceEdges = 1.8; // 1.8mm
+	const double dieSizeToDistBetweenDice = ((dieSize + gapBetweenDiceEdges) / dieSize);
+	auto medianTopSlope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.topLeft, r.topRight); }));
+	auto medianLineLength = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return (double)r.maxSideLength; }));
+	auto distanceBetweenDice = medianLineLength * dieSizeToDistBetweenDice;
+	double y_threshold = distanceBetweenDice  / 2;
 
+	vector<Rectangle> sortedSquares = squares;
+	std::sort(sortedSquares.begin(), sortedSquares.end(), [medianTopSlope, y_threshold](const Rectangle a, const Rectangle b) {
+		const auto a_adjusted_y = a.center.y + a.center.x * medianTopSlope;
+		const auto b_adjusted_y = b.center.y + b.center.x * medianTopSlope;
+		if (abs(a_adjusted_y - b_adjusted_y) > y_threshold) {
+			// After adjusting for slope, there's a big enough difference in the Y axis
+			// to sort based on the row (Y axis, or height from top to bottom)
+			return a_adjusted_y < b_adjusted_y;
+		} else {
+			// Within the same row, sort by column (x axis)
+			return a.center.x < b.center.x;
+		}
+	});
+
+	// auto medianBottomSlope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.bottomLeft, r.bottomRight); }));
+	// auto medianLeftSlope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.topLeft, r.bottomLeft); }));
+	// auto medianRightSlope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.topRight, r.bottomRight); }));
+	// auto topBottomLineSlope = (medianTopSlope + medianBottomSlope) / 2;
+	auto medianTopLineDeltaX = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return (double)r.topRight.x - r.topLeft.x; }));
+	auto medianTopLineDeltaY = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return (double)r.topRight.y - r.topLeft.y; }));
+	double delta_x = medianTopLineDeltaX * dieSizeToDistBetweenDice;
+	double delta_y = medianTopLineDeltaX * dieSizeToDistBetweenDice;
+
+	// n squared algorithm to count neighbors
+	std::vector<bool> hasLeft(squares.size());
+	std::vector<bool> hasRight(squares.size());
+	std::vector<bool> hasAbove(squares.size());
+	std::vector<bool> hasBelow(squares.size());
+	double dist_threshold = medianLineLength / 4; // 2mm threshold from center
+	for (uint i = 0; i < squares.size(); i++) {
+		// Search for neighbor to right
+		auto myCenter = squares[i].center;
+		auto right = Point2d(myCenter.x + delta_x, myCenter.y + delta_y);
+		auto below = Point2d(myCenter.x + delta_y, myCenter.y + delta_x);
+		for (uint j = 0; j < squares.size(); j++) {
+			if (j == i) continue;
+			auto rightDistance = dist(right, squares[j].center);
+			if (rightDistance < dist_threshold) {
+				hasRight[i] = hasLeft[j] = true;
+			}
+			auto belowDistance = dist(below, squares[j].center);
+			if (belowDistance < dist_threshold) {
+				hasBelow[i] = hasAbove[j] = true;
+			}	
+		}
 	}
+	return sortedSquares;
+
+	// vector<Rectangle> sortedSquares = squares;
+	// std::sort(sortedSquares.begin(), sortedSquares.end(), [](Rectangle a, Rectangle b) {
+	// 	return (a.center.x + a.center.y) < (b.center.x + b.center.y); 
+	// });
+	// vector<double> delta_xs;
+	// vector<double> delta_ys;
+	// for (uint i = 1; i < sortedSquares.size(); i++) {
+	// 	delta_xs.push_back(sortedSquares[i].center.x - sortedSquares[i - 1].center.x);
+	// 	delta_ys.push_back(sortedSquares[i].center.y - sortedSquares[i - 1].center.y);
+	// }
+	// const double median_delta_x = median(delta_xs);
+	// const double median_delta_y = median(delta_ys);
+	// const double max_delta_x = median_delta_x * 1.15;
+	// const double min_delta_x = median_delta_x / 1.15;
+	// const double max_delta_y = median_delta_x * 1.15;
+	// const double min_delta_y = median_delta_x / 1.15;
+	// bool atNewRow = true;
+	// int numSquaresReadInRow = 0;
+
+	// // Filter out squares that don't have at least one die to their right or left
+	// vector<Rectangle> squaresWithNeighbors;
+	// bool hasNeighborToLeft = false;
+	// for (uint i = 0; i < sortedSquares.size(); i++) {
+	// 	const auto center = sortedSquares[i].center;
+	// 	const bool hasNeighborToRight = (
+	// 		i + 1 < sortedSquares.size() &&
+	// 		sortedSquares[i + 1].center.x < center.x + max_delta_x &&
+	// 		sortedSquares[i + 1].center.x > center.x + min_delta_x &&
+	// 		sortedSquares[i + 1].center.y < center.y + max_delta_y &&
+	// 		sortedSquares[i + 1].center.y > center.y + min_delta_y
+	// 		);
+	// 	if (hasNeighborToLeft || hasNeighborToLeft) {
+	// 		squaresWithNeighbors.push_back(sortedSquares[i]);
+	// 	}
+	// 	hasNeighborToLeft = hasNeighborToRight;
+	// }
+	
+	// return squaresWithNeighbors;
+
 }
 
 
@@ -329,6 +422,8 @@ static void writeSquares(Mat& image, const vector<vector<Point> >& squares, stri
 
 int main(int argc, char** argv)
 {
+	string path = "";
+	// string path = "/Users/stuart/github/dice-scanner/squares/"
 	std::vector<std::string> names = { "1.jpg", "2.jpg", "3.jpg" };
 	help(argv[0]);
 
@@ -341,8 +436,7 @@ int main(int argc, char** argv)
 	vector<vector<Point> > squares;
 
 	for (auto& filename : names) {
-		// string fname = "img/" + filename;
-		string fname = "/Users/stuart/github/dice-scanner/img/" + filename;
+		string fname = path + "img/" + filename;
 		Mat image = imread(fname, IMREAD_COLOR);
 		if (image.empty())
 		{
@@ -350,13 +444,12 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		auto rects = findSquares(image);
+		auto rects = filterAndOrderSquares(findSquares(image));
 		vector<vector<Point>> squares;
 		std::transform(rects.begin(), rects.end(), std::back_inserter(squares), [](Rectangle r) {
 			return r.points;
 		});
-		writeSquares(image, squares, "/Users/stuart/github/dice-scanner/squares/" + filename);
-		// writeSquares(image, squares, "squares/" + filename);
+		writeSquares(image, squares, path + "squares/" + filename);
 		// drawSquares(image, squares);
 
 		//int c = waitKey();
