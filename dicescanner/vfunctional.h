@@ -45,6 +45,7 @@ static double median(const vector<double> &numbers)
 	} else if (sorted.size() % 2 > 0) {
 		return sorted[sorted.size() / 2];
 	} else {
-		return (sorted[sorted.size() / 2] + sorted[1 + sorted.size() / 2]) / 2;
+		auto c = sorted.size() / 2;
+		return (sorted[c] + sorted[c-1]) / 2;
 	}
 }

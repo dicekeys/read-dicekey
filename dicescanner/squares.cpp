@@ -25,6 +25,66 @@ static double distance2d(const Point2d &a, const Point2d &b) {
 	return sqrt( dx * dx + dy * dy);
 }
 
+class ValueCluster {
+	public:
+	std::vector<double> samples;
+	double median;
+
+	ValueCluster(double firstSample) {
+		samples.push_back(firstSample);
+	}
+
+	void addSample(double sample) {
+		samples.push_back(sample);
+		// Re-sort list
+		for (uint i = samples.size() - 2; i > 0 && samples[i+1] < samples[i]; i--) {
+			swap(samples[i], samples[i-1]);
+		}
+
+		if (samples.size() % 2 == 1) {
+			median = samples[samples.size()/2];
+		} else {
+			auto c = samples.size()/2;
+			median = (samples[c] + samples[c-1])/2;
+		}
+
+	}
+};
+
+class ValueClusters {
+	double proximityThreshold;
+
+	public:
+	std::list<ValueCluster> clusters;
+
+	ValueClusters(double proximityThreshold) {
+		this->proximityThreshold = proximityThreshold;
+	}
+
+	void addSample(double sample) {
+		for (auto it = clusters.begin(); it != clusters.end(); ++it) {
+			if (abs(sample - it->median) < proximityThreshold) {
+				// The sample is within close enough proximity to the mean for this
+				// cluster to include it in the mean
+				it->addSample(sample);
+				return;
+			} else {
+				if (sample < it->median) {
+					// The sample comes before this cluster,
+					// so we need to create a new cluster for it
+					clusters.insert(it, ValueCluster(sample));
+					return;
+				}
+			}
+		}
+		// The sample comes after all of the existing clusters,
+		// and so should in a new cluster at the end of the list.
+		if (clusters.empty()) {
+			clusters.push_back(ValueCluster(sample));
+		}
+	}
+};
+
 
 static void help(const char* programName)
 {
@@ -53,11 +113,12 @@ static vector<Rectangle> filterAndOrderSquares(const vector<Rectangle> &squares)
 	const double dieSize = 8; // 8mm die size
 	const double gapBetweenDiceEdges = 1.8; // 1.8mm
 	const double dieSizeToDistBetweenDice = ((dieSize + gapBetweenDiceEdges) / dieSize);
+
+	//
+	// Calculate the median slope, and create functions to remove and restore the slope
+	//
 	auto medianTopSlope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.topLeft, r.topRight); }));
 	auto theta = atan(medianTopSlope);
-	auto medianLineLength = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return (double)r.maxSideLength; }));
-	auto distanceBetweenDice = medianLineLength * dieSizeToDistBetweenDice;
-	double y_threshold = distanceBetweenDice  / 2;
 
 	auto removeSlope = [medianTopSlope](Point2d point) -> Point2d {
 		// y = mx + b => b = y - mx, where b is the y intercept and m is the slope
@@ -74,6 +135,15 @@ static vector<Rectangle> filterAndOrderSquares(const vector<Rectangle> &squares)
 		return Point2d(x, y);
 	};
 
+
+	//
+	// Sort dice based on their slope-adjusted location
+	//
+	auto medianLineLength = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return (double)r.maxSideLength; }));
+	auto distanceBetweenDice = medianLineLength * dieSizeToDistBetweenDice;
+	double y_threshold = distanceBetweenDice  / 2;
+
+
 	vector<Rectangle> sortedSquares = squares;
 	std::sort(sortedSquares.begin(), sortedSquares.end(), [removeSlope, y_threshold](const Rectangle a, const Rectangle b) {
 		const auto adjusted_a_center = removeSlope(a.center);
@@ -88,90 +158,40 @@ static vector<Rectangle> filterAndOrderSquares(const vector<Rectangle> &squares)
 		}
 	});
 
-	vector<Point2d> adjustedCenters = vmap<Rectangle, Point2d>(sortedSquares, [removeSlope](Rectangle r) {
-		return removeSlope(r.center);
-	});
-	auto medianAdjustedX = median(vmap<Point2d, double>(adjustedCenters, [](Point2d point) { return point.x; }));
-	auto medianAdjustedY = median(vmap<Point2d, double>(adjustedCenters, [](Point2d point) { return point.y; }));
-	auto medianAdjustedCenter = Point2d(medianAdjustedX, medianAdjustedY);
-	auto medianCenter = restoreSlope(medianAdjustedCenter);
-
-	// auto medianBottomSlope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.bottomLeft, r.bottomRight); }));
-	// auto medianLeftSlope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.topLeft, r.bottomLeft); }));
-	// auto medianRightSlope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.topRight, r.bottomRight); }));
-	// auto topBottomLineSlope = (medianTopSlope + medianBottomSlope) / 2;
-	auto medianTopLineDeltaX = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return (double)r.topRight.x - r.topLeft.x; }));
-	auto medianTopLineDeltaY = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return (double)r.topRight.y - r.topLeft.y; }));
-	double delta_x = medianTopLineDeltaX * dieSizeToDistBetweenDice;
-	double delta_y = medianTopLineDeltaX * dieSizeToDistBetweenDice;
-
-	// n squared algorithm to count neighbors
-	std::vector<bool> hasLeft(squares.size());
-	std::vector<bool> hasRight(squares.size());
-	std::vector<bool> hasAbove(squares.size());
-	std::vector<bool> hasBelow(squares.size());
-	double dist_threshold = medianLineLength / 4; // 2mm threshold from center
-	for (uint i = 0; i < squares.size(); i++) {
-		// Search for neighbor to right
-		auto myCenter = squares[i].center;
-		auto right = Point2d(myCenter.x + delta_x, myCenter.y + delta_y);
-		auto below = Point2d(myCenter.x + delta_y, myCenter.y + delta_x);
-		for (uint j = 0; j < squares.size(); j++) {
-			if (j == i) continue;
-			auto rightDistance = distance2d(right, squares[j].center);
-			if (rightDistance < dist_threshold) {
-				hasRight[i] = hasLeft[j] = true;
-			}
-			auto belowDistance = distance2d(below, squares[j].center);
-			if (belowDistance < dist_threshold) {
-				hasBelow[i] = hasAbove[j] = true;
-			}	
+	//
+	// Find the median distance between dice by taking the mean distance between
+	// squares and their horizontal neighbors
+	///
+	vector<double> distancesBetweenCenters;
+	for (uint i = 1; i < sortedSquares.size(); i++) {
+		if (sortedSquares[i].center.x < sortedSquares[i-1].center.x) {
+			distancesBetweenCenters.push_back( distance2d(sortedSquares[i].center, sortedSquares[i-1].center ));
 		}
 	}
+	if (distancesBetweenCenters.size() > 0) {
+		distanceBetweenDice = median(distancesBetweenCenters);
+	}
+
+	// Cluster the adjusted x and y values so we can look for
+	// outliers, and re-create squares that the algorithm failed
+	// to find.
+	ValueClusters xClusters(distanceBetweenDice * 0.33);
+	ValueClusters yClusters(distanceBetweenDice * 0.33);
+	for (auto rect : sortedSquares) {
+		auto adjustedCenter = removeSlope(rect.center);
+		xClusters.addSample(adjustedCenter.x);
+		xClusters.addSample(adjustedCenter.y);
+	}
+
+	// FIXME -- more work to adjust for square-generation errors
+
+	// If more than 5 clusters, pick group of five that has most samples
+	// Create locations of 25 die centers.
+	// Ensure there is a square for each center, removing squares not associated with die location
+	// Fill in missing squares.
+
+
 	return sortedSquares;
-
-
-	// If there are more than 25 squares, remove those 
-
-	// vector<Rectangle> sortedSquares = squares;
-	// std::sort(sortedSquares.begin(), sortedSquares.end(), [](Rectangle a, Rectangle b) {
-	// 	return (a.center.x + a.center.y) < (b.center.x + b.center.y); 
-	// });
-	// vector<double> delta_xs;
-	// vector<double> delta_ys;
-	// for (uint i = 1; i < sortedSquares.size(); i++) {
-	// 	delta_xs.push_back(sortedSquares[i].center.x - sortedSquares[i - 1].center.x);
-	// 	delta_ys.push_back(sortedSquares[i].center.y - sortedSquares[i - 1].center.y);
-	// }
-	// const double median_delta_x = median(delta_xs);
-	// const double median_delta_y = median(delta_ys);
-	// const double max_delta_x = median_delta_x * 1.15;
-	// const double min_delta_x = median_delta_x / 1.15;
-	// const double max_delta_y = median_delta_x * 1.15;
-	// const double min_delta_y = median_delta_x / 1.15;
-	// bool atNewRow = true;
-	// int numSquaresReadInRow = 0;
-
-	// // Filter out squares that don't have at least one die to their right or left
-	// vector<Rectangle> squaresWithNeighbors;
-	// bool hasNeighborToLeft = false;
-	// for (uint i = 0; i < sortedSquares.size(); i++) {
-	// 	const auto center = sortedSquares[i].center;
-	// 	const bool hasNeighborToRight = (
-	// 		i + 1 < sortedSquares.size() &&
-	// 		sortedSquares[i + 1].center.x < center.x + max_delta_x &&
-	// 		sortedSquares[i + 1].center.x > center.x + min_delta_x &&
-	// 		sortedSquares[i + 1].center.y < center.y + max_delta_y &&
-	// 		sortedSquares[i + 1].center.y > center.y + min_delta_y
-	// 		);
-	// 	if (hasNeighborToLeft || hasNeighborToLeft) {
-	// 		squaresWithNeighbors.push_back(sortedSquares[i]);
-	// 	}
-	// 	hasNeighborToLeft = hasNeighborToRight;
-	// }
-	
-	// return squaresWithNeighbors;
-
 }
 
 
