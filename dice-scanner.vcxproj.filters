@@ -15,11 +15,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dice-scanner.cpp">
+    <ClCompile Include="dicescanner\dice-scanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="squares.cpp">
+    <ClCompile Include="dicescanner\squares.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dicescanner\vfunctional.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dicescanner\rectangle.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dicescanner\find-squares.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

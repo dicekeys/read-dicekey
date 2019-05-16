@@ -154,6 +154,11 @@
     <ClCompile Include="dicescanner\dice-scanner.cpp" />
     <ClCompile Include="dicescanner\squares.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dicescanner\find-squares.h" />
+    <ClInclude Include="dicescanner\rectangle.h" />
+    <ClInclude Include="dicescanner\vfunctional.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
