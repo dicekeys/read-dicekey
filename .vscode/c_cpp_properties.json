@@ -1,6 +1,22 @@
 {
     "configurations": [
         {
+            "name": "Mac",
+            "intelliSenseMode": "clang-x64",
+            "compilerPath": "/usr/bin/clang",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/Cellar/opencv/4.1.0_2/include/opencv4/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        },
+        {
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
