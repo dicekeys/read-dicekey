@@ -31,6 +31,10 @@
     </ClInclude>
     <ClInclude Include="dicescanner\find-squares.h">
       <Filter>Source Files</Filter>
+    <ClInclude Include="dicescanner\locate-dice.h">
+      <Filter>Source Files</Filter>
+    <ClInclude Include="dicescanner\value-clusters.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

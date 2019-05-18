@@ -84,7 +84,7 @@ public:
 			maxCos = MAX(maxCos, cosine);
 		}
 		// qualityLowerIsBetter = area > 0 ? maxCos / area : 1;
-		qualityLowerIsBetter = area > 0 ? maxCos / pow(area, 5) : 1;
+		qualityLowerIsBetter = area > 0 ? maxCos / pow(area, 4) : 1;
 	}
 
 	bool contains(const cv::Point2d &point) const {

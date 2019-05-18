@@ -28,7 +28,7 @@ static double slope(const Point &a, const Point &b)
 
 struct DiceSquares {
     double slope;
-    double angle;
+    double angleRadians;
     double size;
     double distanceBetween;
     std::vector<Rectangle> squares;
@@ -46,7 +46,7 @@ static DiceSquares filterAndOrderSquares(const vector<Rectangle> &squares)
 	// Calculate the median slope, and create functions to remove and restore the slope
 	//
 	r.slope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.topLeft, r.topRight); }));
-	r.angle = atan(r.slope);
+	r.angleRadians = atan(r.slope);
 
 	auto removeSlope = [r](Point2d point) -> Point2d {
 		// y = mx + b => b = y - mx, where b is the y intercept and m is the slope
@@ -58,8 +58,8 @@ static DiceSquares filterAndOrderSquares(const vector<Rectangle> &squares)
 	};
 	auto restoreSlope = [r](Point2d point) -> Point2d {
 		double dist_from_y_intercept = point.x;
-		auto y = point.y + dist_from_y_intercept * sin(r.angle);
-		auto x = dist_from_y_intercept * cos(r.angle);
+		auto y = point.y + dist_from_y_intercept * sin(r.angleRadians);
+		auto x = dist_from_y_intercept * cos(r.angleRadians);
 		return Point2d(x, y);
 	};
 
