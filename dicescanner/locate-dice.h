@@ -18,19 +18,24 @@ static double distance2d(const Point2d &a, const Point2d &b) {
 	return sqrt( dx * dx + dy * dy);
 }
 
+static float distance2f(const Point2f& a, const Point2f& b) {
+	float dx = a.x - b.x;
+	float dy = a.y - b.y;
+	return sqrt(dx * dx + dy * dy);
+}
 
-static double slope(const Point &a, const Point &b)
+static float slope(const Point &a, const Point &b)
 {
 	return a.x == b.x ?
-		DBL_MAX :
-		((double)b.y - a.y) /((double)b.x - a.x);
+		FLT_MAX :
+		((float)b.y - a.y) /((float)b.x - a.x);
 }
 
 struct DiceSquares {
-    double slope;
-    double angleRadians;
-    double size;
-    double distanceBetween;
+    float slope;
+    float angleRadians;
+    float size;
+    float distanceBetween;
     std::vector<Rectangle> squares;
 };
 
@@ -38,39 +43,39 @@ static DiceSquares filterAndOrderSquares(const vector<Rectangle> &squares)
 {
     DiceSquares r;
 
-	const double dieSize = 8; // 8mm die size
-	const double gapBetweenDiceEdges = 1.8; // 1.8mm
-	const double dieSizeToDistBetweenDice = ((dieSize + gapBetweenDiceEdges) / dieSize);
+	const float dieSize = 8; // 8mm die size
+	const float gapBetweenDiceEdges = 1.8f; // 1.8mm
+	const float dieSizeToDistBetweenDice = ((dieSize + gapBetweenDiceEdges) / dieSize);
 
 	//
 	// Calculate the median slope, and create functions to remove and restore the slope
 	//
-	r.slope = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return slope(r.topLeft, r.topRight); }));
+	r.slope = median(vmap<Rectangle, float>(squares, [](Rectangle r) { return slope(r.topLeft, r.topRight); }));
 	r.angleRadians = atan(r.slope);
 
-	auto removeSlope = [r](Point2d point) -> Point2d {
+	auto removeSlope = [r](Point2f point) -> Point2f {
 		// y = mx + b => b = y - mx, where b is the y intercept and m is the slope
-		double y_intercept = point.y - r.slope * point.x;
-		Point2d y_intercept_point = Point2d(0, y_intercept);
+		float y_intercept = point.y - r.slope * point.x;
+		Point2f y_intercept_point = Point2d(0, y_intercept);
 		// the length of the line from the y intercept
-		double dist_from_y_intercept = distance2d(y_intercept_point, point);
-		return Point2d(dist_from_y_intercept, y_intercept);
+		float dist_from_y_intercept = distance2f(y_intercept_point, point);
+		return Point2f(dist_from_y_intercept, y_intercept);
 	};
-	auto restoreSlope = [r](Point2d point) -> Point2d {
-		double dist_from_y_intercept = point.x;
+	auto restoreSlope = [r](Point2f point) -> Point2f {
+		float dist_from_y_intercept = point.x;
 		auto y = point.y + dist_from_y_intercept * sin(r.angleRadians);
 		auto x = dist_from_y_intercept * cos(r.angleRadians);
-		return Point2d(x, y);
+		return Point2f(x, y);
 	};
 
 
 	//
 	// Sort dice based on their slope-adjusted location
 	//
-	auto medianLineLength = median(vmap<Rectangle, double>(squares, [](Rectangle r) { return (double)r.maxSideLength; }));
+	auto medianLineLength = median(vmap<Rectangle, float>(squares, [](Rectangle r) { return (float)r.longerSideLength; }));
 	r.size = medianLineLength;
 	r.distanceBetween = medianLineLength * dieSizeToDistBetweenDice;
-	double y_threshold = r.distanceBetween  / 2;
+	float y_threshold = r.distanceBetween  / 2;
 
 
 	r.squares = squares;
@@ -91,10 +96,10 @@ static DiceSquares filterAndOrderSquares(const vector<Rectangle> &squares)
 	// Find the median distance between dice by taking the mean distance between
 	// squares and their horizontal neighbors
 	///
-	vector<double> distancesBetweenCenters;
+	vector<float> distancesBetweenCenters;
 	for (uint i = 1; i < r.squares.size(); i++) {
 		if (r.squares[i].center.x < r.squares[i-1].center.x) {
-			distancesBetweenCenters.push_back( distance2d(r.squares[i].center, r.squares[i-1].center ));
+			distancesBetweenCenters.push_back( distance2f(r.squares[i].center, r.squares[i-1].center ));
 		}
 	}
 	if (distancesBetweenCenters.size() > 0) {
@@ -104,8 +109,8 @@ static DiceSquares filterAndOrderSquares(const vector<Rectangle> &squares)
 	// Cluster the adjusted x and y values so we can look for
 	// outliers, and re-create squares that the algorithm failed
 	// to find.
-	ValueClusters xClusters(r.distanceBetween * 0.33);
-	ValueClusters yClusters(r.distanceBetween * 0.33);
+	ValueClusters xClusters(r.distanceBetween * 0.33f);
+	ValueClusters yClusters(r.distanceBetween * 0.33f);
 	for (auto rect : r.squares) {
 		auto adjustedCenter = removeSlope(rect.center);
 		xClusters.addSample(adjustedCenter.x);

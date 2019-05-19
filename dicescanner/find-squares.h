@@ -25,7 +25,7 @@ static vector<Rectangle> findSquares(const Mat &image, string path, string filen
 	   Take largest cluster with n (20?  25?) objects
 	     Only works at one threshold.  Can do more?
 	*/
-	vector<Rectangle> rects;
+	vector<Rectangle> candidateDiceSquaresForAllThresholds;
 
 	Mat pyr, timg, gray0(image.size(), CV_8U), gray;
 
@@ -44,26 +44,26 @@ static vector<Rectangle> findSquares(const Mat &image, string path, string filen
 		cv::imwrite(path + "contours/" + filename + "-gray" + ".png", gray0);
 
 		// try several threshold levels
-		for (int l = -1; l < N; l++)
+		for (int l = 0; l < N; l++)
 		{
 			// hack: use Canny instead of zero threshold level.
 			// Canny helps to catch squares with gradient shading
 			if (l == 0)
 			{
-				//double otsu_threshold = cv::threshold(
+				//float otsu_threshold = cv::threshold(
 				//	gray0, gray, 0, 4096, CV_THRESH_BINARY | CV_THRESH_OTSU
 				//);
-				//const double lower_threshold_fraction = 0.5;
+				//const float lower_threshold_fraction = 0.5;
 
 				// apply Canny. Take the upper threshold from slider
 				// and set the lower to 0 (which forces edges merging)
 				// Canny(gray0, gray, otsu_threshold * lower_threshold_fraction, otsu_threshold, 5);  // was 0, 50, 5 -- best so far is 250, 1000
-				Canny(gray0, gray, 250, 1000, 5);  // was 0, 50, 5 -- best so far is 250, 1000
+				Canny(gray0, gray, 253, 255, 5);  // was 0, 50, 5 -- best so far is 253, 255, 5
 
 				// dilate canny output to remove potential
 				// holes between edge segments
 				dilate(gray, gray, Mat(), Point(-1, -1));
-				cv::imwrite(path + "contours/" + filename + "-canny" + ".png", gray);
+				// cv::imwrite(path + "contours/" + filename + "-canny" + ".png", gray);
 			}
 			else
 			{
@@ -76,114 +76,87 @@ static vector<Rectangle> findSquares(const Mat &image, string path, string filen
 			vector<vector<Point>> contours;
 			findContours(gray, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
 
-			// Remove contours too small to be dice.
-			double min_edge_length = double(min(image.size[0], image.size[1])) / 50;
-			double min_area = min_edge_length * min_edge_length;
-			contours = vfilter<vector<Point>>(contours, [min_area](vector<Point> contour) -> bool {
-				auto area = cv::contourArea(contour, false);
-				if (area < min_area) return false;
-				
-				auto rrect = cv::minAreaRect(contour);
-				// Test if it's a rectangle by seeing if it occupies 75% are the are of its equiv min area
-				double shorter_side = min(rrect.size.height, rrect.size.width);
-				double longer_side = max(rrect.size.height, rrect.size.width);
-				if (shorter_side < 0.7 * longer_side) {
-					return false;
-				}
-				double square_area = longer_side * longer_side;
-				if (area < square_area * 0.5)
-					return false;
-
-				return true;
+			contours = vfilter<vector<Point>>(contours, [](vector<Point> contour) -> bool {
+				return arcLength(contour, false) > 50;
 			});
 
-
-			//vector<double> arc_lengths = vmap<vector<Point>, double>(contours, [](vector<Point> contour) -> double {
-			//	return cv::arcLength(contour, false);
-			//});
-
-
-			//double min_size = min_edge_length * 4;
-			//// Filter out contours that aren't at least 100 pixels in length
-			//arc_lengths = vfilter<double>(arc_lengths, [min_size](double arc_length) -> bool {
-			//	return arc_length > min_size;
-			//});
-
-			//// Remove contours that have an arc length too far from the median arc length
-			//auto median_arc_length = median(arc_lengths);
-			//auto min_arc_length = median_arc_length * 0.5;
-			//auto max_arc_length = median_arc_length * 1.5;
-			//contours = vfilter<vector<Point>>(contours, [min_arc_length, max_arc_length](vector<Point> contour) -> bool {
-			//	auto arc_length = cv::arcLength(contour, false);
-			//	return (arc_length >= min_arc_length && arc_length <= max_arc_length);
-			//});
-
 			auto clone = image.clone();
-			cv::drawContours(clone, contours, -1, Scalar(0, 255, 0), 3);
+			for (uint i = 0; i < contours.size(); i++)
+				cv::drawContours(clone, contours, i, Scalar((i * 13) % 255, (i * 41) % 255, (i * 87) % 255), 3);
 
 			cv::imwrite(path + "contours/" + filename + // "-" + std::to_string(c) + 
 				"-" + std::to_string(l) + ".png", clone);
 
-			// Convert contours to squares
-			contours = vmap<vector<Point>, vector<Point>>(contours, [](vector<Point> contour) {
-				Point2f points[4];
-				auto rrect = cv::minAreaRect(contour);
-				rrect.points(points);
-				vector<Point> newContour = {
-					Point(points[0]), Point(points[1]), Point(points[2]), Point(points[3]),
-				};
-				return newContour;
+
+			auto contourRectangles = vmap<vector<Point>, Rectangle>(contours, [](vector<Point> contour) -> Rectangle {
+				return Rectangle(contour);
+			});
+
+			// Remove contours too small to be dice.
+			float min_edge_length = float(min(image.size[0], image.size[1])) / 50;
+			float min_area = min_edge_length * min_edge_length;
+			auto candidateDiceSquares = vfilter<Rectangle>(contourRectangles, [min_area](Rectangle rect) -> bool {
+				if (rect.area < min_area) return false;
+
+				// Test if it's a rectangle by seeing if it occupies 75% are the are of its equiv min area
+				if (rect.shorterSideLength < 0.75f * rect.longerSideLength) {
+					return false;
+				}
+				if (rect.contourArea < rect.area * 0.6)
+					return false;
+
+				return true;
+				});
+			// test each contour
+			candidateDiceSquaresForAllThresholds.insert(candidateDiceSquaresForAllThresholds.end(), candidateDiceSquares.begin(), candidateDiceSquares.end());
+
+			
+			// Remove contours except those that appear to be underlines
+			float min_underline_length = float(min(image.size[0], image.size[1])) / 80;
+			float max_underline_length = float(min(image.size[0], image.size[1])) / 8;
+			auto candidateUnderlines = vfilter<Rectangle>(contourRectangles, [min_underline_length, max_underline_length](Rectangle rect) -> bool {
+				const float underline_length_mm = 5.5f; // 5.5mm
+				const float underline_width_mm = 0.3f; // 0.3 mm
+				const float underline_rect_ratio = underline_length_mm / underline_width_mm;
+				const float min_ratio = underline_rect_ratio / 2;
+				const float max_ratio = underline_rect_ratio * 2;
+
+				// Test if it's a rectangle by seeing if it occupies 75% are the are of its equiv min area
+				float ratio = rect.longerSideLength / rect.shorterSideLength;
+					
+				return rect.longerSideLength > min_underline_length &&
+					rect.longerSideLength < max_underline_length &&
+					ratio >= min_ratio &&
+					ratio <= max_ratio;
 				});
 
-			vector<Point> approx;
-			// test each contour
-			for (auto& contour : contours) {
-				approx = contour;
-				// approximate contour with accuracy proportional
-				// to the contour perimeter
-				// approxPolyDP(contour, approx, arcLength(contour, true) * 0.02, true);
-
-				// square contours should have 4 vertices after approximation
-				// relatively large area (to filter out noisy contours)
-				// and be convex.
-				// Note: absolute value of an area is used because
-				// area may be positive or negative - in accordance with the
-				// contour orientation
-
-				if (approx.size() != 4 || !isContourConvex(approx))
-					continue;
-
-				auto rect = Rectangle(approx);
-
-				// The angle indicates this isn't a square
-				if (rect.maxCos > 0.25)
-					continue;
-				// If the longest side is more than 20% longer than the
-				// shortest side, this isn't a square
-				if (rect.maxSideLength > 1.20 * rect.minSideLength)
-					continue;
-				// If there's not pixels to read text (30x30), it's not our square
-				if (rect.area < 900)
-					continue;
-
-				rects.push_back(rect);
-			}
 		}
 	}
-	if (rects.size() <= 0) {
+	if (candidateDiceSquaresForAllThresholds.size() <= 0) {
 		// There are not enough squares, so return the empty vector
-		return rects;
+		return candidateDiceSquaresForAllThresholds;
 	}
 
 	// Remove rectangles that stray from the median
-	double medianArea = median(vmap<Rectangle, double>(rects, [](Rectangle r) -> double { return r.area; }));
-	double minArea = 0.75 * medianArea;
-	double maxArea = medianArea / 0.75;
-	auto median_rectangles = vfilter<Rectangle>(rects, [minArea, maxArea](Rectangle r) { return  (r.area >= minArea || r.area <= maxArea); });
+	float medianArea = median(vmap<Rectangle, float>(candidateDiceSquaresForAllThresholds, [](Rectangle r) -> float { return r.area; }));
+	float minArea = 0.75f * medianArea;
+	float maxArea = medianArea / 0.75f;
+	candidateDiceSquaresForAllThresholds = vfilter<Rectangle>(candidateDiceSquaresForAllThresholds, [minArea, maxArea](Rectangle r) {
+		return  (r.area >= minArea && r.area <= maxArea);
+		});
+	
+	// Recalculate median for survivors
+	float areaHighPercentile = percentile(
+		vmap<Rectangle, float>(candidateDiceSquaresForAllThresholds, [](Rectangle r) -> float { return r.area; }),
+		85
+	);
+	// Calculate slop of survivors
+	float medianAngle = median(vmap<Rectangle, float>(candidateDiceSquaresForAllThresholds, [](Rectangle r) -> float { return r.angle; }));
+
 
 	// remove overlapping rectangeles
 	vector<Rectangle> non_overlapping_rectangles;
-	for (auto& rect : median_rectangles) {
+	for (auto& rect : candidateDiceSquaresForAllThresholds) {
 		int overlaps_with_index = -1;
 		for (uint i = 0; i < non_overlapping_rectangles.size(); i++) {
 			if (rect.overlaps(non_overlapping_rectangles[i])) {
@@ -196,8 +169,9 @@ static vector<Rectangle> findSquares(const Mat &image, string path, string filen
 			non_overlapping_rectangles.push_back(rect);
 		}
 		else {
-			// This recangle overlaps with another. Pick which to keep
-			if (rect.qualityLowerIsBetter < non_overlapping_rectangles[overlaps_with_index].qualityLowerIsBetter) {
+			// This rectangle is different from the other rectangles.
+			// Choose the rectangle the deviates less from the norm.
+			if ( rect.deviationFromNorm(areaHighPercentile, medianAngle) < non_overlapping_rectangles[overlaps_with_index].deviationFromNorm(areaHighPercentile, medianAngle) ) {
 				// Choose the rectangle with better quality
 				non_overlapping_rectangles[overlaps_with_index] = rect;
 			}

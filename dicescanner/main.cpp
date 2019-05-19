@@ -54,12 +54,15 @@ static void drawSquares(Mat & image, const vector<vector<Point> > & squares)
 }
 
 // the function draws all the squares in the image
-static void writeSquares(Mat& image, const vector<vector<Point> >& squares, string name)
+static void writeSquares(Mat& image, const vector<Rectangle>& rects, string name)
 {
-	for (size_t i = 0; i < squares.size(); i++)
+	for (auto rect : rects)
 	{
-		const Point* p = &squares[i][0];
-		int n = (int)squares[i].size();
+		vector<cv::Point> points = vmap<Point2f, Point>(rect.points, [](Point2f point) -> Point {
+			return Point(point);
+		});
+		const Point* p = points.data();
+		int n = (int)points.size();
 		polylines(image, &p, &n, 1, true, Scalar(0, 255, 0), 3, LINE_AA);
 	}
 
@@ -94,10 +97,7 @@ int main(int argc, char** argv)
 
 		auto diceSquares = filterAndOrderSquares(findSquares(image, path, filename));
 
-		auto squares = vmap<Rectangle, std::vector<Point>>(diceSquares.squares, [](Rectangle r) {
-			return r.points;
-			});
-		writeSquares(image, squares, path + "squares/" + filename + ".png");
+		writeSquares(image, diceSquares.squares, path + "squares/" + filename + ".png");
 
 		if (diceSquares.squares.size() < 13) {
 			cout << "Not enough squares in " << filename << endl;
@@ -108,8 +108,8 @@ int main(int argc, char** argv)
 		cv::Mat grayPreRotation, grayPostRotation;
 		cv::cvtColor(image, grayPreRotation, cv::COLOR_BGR2GRAY);
 		Point2d center = diceSquares.squares[12].center;
-		double correctionAngle = diceSquares.angleRadians * 360 / (2 * M_PI);
-		auto rotationMatrix = cv::getRotationMatrix2D(center, correctionAngle, 1.0);
+		float correctionAngle = diceSquares.angleRadians * 360 / (2 * (float) M_PI);
+		auto rotationMatrix = cv::getRotationMatrix2D(center, correctionAngle, 1.0f);
 
 		cv::warpAffine(grayPreRotation, grayPostRotation, rotationMatrix, grayPreRotation.size() );
 		imwrite(path + "gray/" + filename + ".png", grayPostRotation);

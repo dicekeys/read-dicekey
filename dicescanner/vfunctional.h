@@ -4,6 +4,7 @@ using namespace std;
 
 #include <vector>
 #include <functional>
+#include <math.h>
 
 std::vector<int> x;
 
@@ -36,10 +37,22 @@ static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(T)>
 	return result;
 }
 
-static double median(const vector<double> &numbers)
+
+static float percentile(const vector<float>& numbers, float percentileOf100)
 {
-	vector<double> sorted = numbers;
-	std::sort(sorted.begin(), sorted.end(), [](double a, double b) { return a < b; });
+	if (numbers.size() == 0) return 0;
+
+	vector<float> sorted = numbers;
+	uint lower = (uint) floor(numbers.size() * percentileOf100 / 100);
+	uint upper = min((uint) ceil(numbers.size() * percentileOf100 / 100), numbers.size()-1);
+	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return a < b; });
+	return (sorted[lower] + sorted[upper]) / 2;
+}
+
+static float median(const vector<float> &numbers)
+{
+	vector<float> sorted = numbers;
+	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return a < b; });
 	if (sorted.size() == 0) {
 		return 0;
 	} else if (sorted.size() % 2 > 0) {

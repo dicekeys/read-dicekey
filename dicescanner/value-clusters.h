@@ -8,14 +8,14 @@
 
 class ValueCluster {
 	public:
-	std::vector<double> samples;
-	double median;
+	std::vector<float> samples;
+	float median;
 
-	ValueCluster(double firstSample) {
+	ValueCluster(float firstSample) {
 		samples.push_back(firstSample);
 	}
 
-	void addSample(double sample) {
+	void addSample(float sample) {
 		samples.push_back(sample);
 		// Re-sort list
 		for (auto i = samples.size() - 2; i > 0 && samples[i+1] < samples[i]; i--) {
@@ -33,16 +33,16 @@ class ValueCluster {
 };
 
 class ValueClusters {
-	double proximityThreshold;
+	float proximityThreshold;
 
 	public:
 	std::list<ValueCluster> clusters;
 
-	ValueClusters(double proximityThreshold) {
+	ValueClusters(float proximityThreshold) {
 		this->proximityThreshold = proximityThreshold;
 	}
 
-	void addSample(double sample) {
+	void addSample(float sample) {
 		for (auto it = clusters.begin(); it != clusters.end(); ++it) {
 			if (abs(sample - it->median) < proximityThreshold) {
 				// The sample is within close enough proximity to the mean for this
