@@ -32,7 +32,7 @@ static cv::Point2d getCenter(std::vector<cv::Point> &points)
 	return cv::Point2d(x, y);
 }
 
-class Rectangle {
+class RectangleDetected {
 public:
 	std::vector<cv::Point2f> points;
 	std::vector<cv::Point> fromContour;
@@ -49,7 +49,7 @@ public:
 	// quality is used to determine which of two overlapping rectangles
 	// is better, prefering straighter corners and more area.
 
-	Rectangle(std::vector<cv::Point> contour) {
+	RectangleDetected(std::vector<cv::Point> contour) {
 		fromContour = contour;
 		contourArea = (float) cv::contourArea(contour);
 		auto rrect = cv::minAreaRect(contour);
@@ -57,8 +57,8 @@ public:
 		points.resize(4);
 		rrect.points(this->points.data());
 		angle = rrect.angle;
-		shorterSideLength = min(rrect.size.width, rrect.size.height);
-		longerSideLength = max(rrect.size.width, rrect.size.height);
+		shorterSideLength = std::min(rrect.size.width, rrect.size.height);
+		longerSideLength = std::max(rrect.size.width, rrect.size.height);
 		area = shorterSideLength * longerSideLength;	
 
 		std::sort(points.begin(), points.end(), [](cv::Point a, cv::Point b) {return a.y < b.y; });
@@ -76,9 +76,14 @@ public:
 		bottomLeft = points[3];
 	};
 
-	float deviationFromNorm(float targetArea, float targetAngle) {
-		// The penalty for deviating from a squareness is based on the ratio of the two lenghs
-		float deviationFromSquare = 2.0f * ((longerSideLength / shorterSideLength) - 1);
+	float deviationFromNorm(float targetArea, float targetAngle, float targetShortToLongSideRatio = 1) {
+		// The penalty for deviating from a squareness is based on the ratio of the two lengths
+		float deviationFromSideRatio = (shorterSideLength / longerSideLength) / targetShortToLongSideRatio;
+		if (deviationFromSideRatio < 1 && deviationFromSideRatio > 0) {
+			deviationFromSideRatio = 1 / deviationFromSideRatio;
+		}
+		deviationFromSideRatio -= 1;
+		float devationFromSideLengthRatioPenalty = 2.0f * deviationFromSideRatio;
 		float deviationFromTargetArea = area < targetArea ?
 			// Deviation penalty for falling short of target
 			((targetArea / area) - 1) :
@@ -88,14 +93,14 @@ public:
 		// The penalty from deviating from the target angle
 		float deviationFromTargetAngle = 2.0f * abs(angle - targetAngle) / 90;
 
-		return deviationFromSquare + deviationFromTargetArea + deviationFromTargetAngle;
+		return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
 	}
 
 	bool contains(const cv::Point2d &point) const {
 		return cv::pointPolygonTest(points, point, false) >= 0;
 	}
 
-	bool overlaps(const Rectangle& otherRect) {
+	bool overlaps(const RectangleDetected& otherRect) {
 		return
 			otherRect.contains(center) || contains(otherRect.center);
 	}

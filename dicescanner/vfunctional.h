@@ -1,7 +1,5 @@
 #pragma once
 
-using namespace std;
-
 #include <vector>
 #include <functional>
 #include <math.h>
@@ -38,20 +36,20 @@ static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(T)>
 }
 
 
-static float percentile(const vector<float>& numbers, float percentileOf100)
+static float percentile(const std::vector<float>& numbers, float percentileOf100)
 {
 	if (numbers.size() == 0) return 0;
 
-	vector<float> sorted = numbers;
+	std::vector<float> sorted = numbers;
 	uint lower = (uint) floor(numbers.size() * percentileOf100 / 100);
-	uint upper = min((uint) ceil(numbers.size() * percentileOf100 / 100), numbers.size()-1);
+	uint upper = std::min((uint) ceil(numbers.size() * percentileOf100 / 100), numbers.size()-1);
 	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return a < b; });
 	return (sorted[lower] + sorted[upper]) / 2;
 }
 
-static float median(const vector<float> &numbers)
+static float median(const std::vector<float> &numbers)
 {
-	vector<float> sorted = numbers;
+	std::vector<float> sorted = numbers;
 	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return a < b; });
 	if (sorted.size() == 0) {
 		return 0;

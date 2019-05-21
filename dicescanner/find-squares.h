@@ -11,25 +11,74 @@
 #include "vfunctional.h"
 #include "rectangle.h"
 
-using namespace std;
-using namespace cv;
+struct RectanglesFound {
+	std::vector<RectangleDetected> candidateDiceSquares;
+	std::vector<RectangleDetected> candidateUnderlineRectangles;
+};
 
+static float angleToMod90(float angle) {
+	float angleMod90 = angle;
+	while (angleMod90 > 90) {
+		angleMod90 -= 90;
+	}
+	while (angleMod90 < 0) {
+		angleMod90 += 90;
+	}
+	return angleMod90;
+}
+
+
+static std::vector<RectangleDetected> removeOverlappingRectangles(std::vector<RectangleDetected> rectangles, std::function<float(RectangleDetected)> comparatorLowerIsBetter) {
+	
+//	float targetArea, float targetAngle, float targetShortToLongSideRatio = 1) {
+	std::vector<RectangleDetected> non_overlapping_rectangles;
+	for (auto& rect : rectangles) {
+		int overlaps_with_index = -1;
+		for (uint i = 0; i < non_overlapping_rectangles.size(); i++) {
+			if (rect.overlaps(non_overlapping_rectangles[i])) {
+				overlaps_with_index = i;
+				break;
+			}
+		}
+		if (overlaps_with_index == -1) {
+			// This rectangle doesn't overlap with others
+			non_overlapping_rectangles.push_back(rect);
+		}
+		else {
+			// This rectangle is different from the other rectangles.
+			// Choose the rectangle the deviates less from the norm.
+			if (
+				comparatorLowerIsBetter(rect) < comparatorLowerIsBetter(non_overlapping_rectangles[overlaps_with_index])
+				//rect.deviationFromNorm(targetArea, targetAngle, targetShortToLongSideRatio) <
+				//non_overlapping_rectangles[overlaps_with_index].deviationFromNorm(targetArea, targetAngle, targetShortToLongSideRatio)
+				) {
+				// Choose the rectangle with better quality
+				non_overlapping_rectangles[overlaps_with_index] = rect;
+			}
+		}
+	}
+
+	return non_overlapping_rectangles;
+}
 
 // returns sequence of squares detected on the image.
-static vector<Rectangle> findSquares(const Mat &image, string path, string filename, int thresh = 50, int N = 20)
+static RectanglesFound findSquares(const cv::Mat &image, std::string path, std::string filename, int N = 13)
 {
+	RectanglesFound result;
+
 	/*
-	Next step:
+	Future:
 	   Cluster areas by binary orders of magnitude.
 		(two sets: a from 2^i - 2^(i+1), the other from 1.5 * 2^i - 1.5 * 2^(i+1) so that we don't have boundary issues)
 	   Take largest cluster with n (20?  25?) objects
 	     Only works at one threshold.  Can do more?
 	*/
-	vector<Rectangle> candidateDiceSquaresForAllThresholds;
+	std::vector<RectangleDetected> candidateDiceSquares;
+	std::vector<RectangleDetected> candidateUnderlineRectangles;
 
-	Mat pyr, timg, gray0(image.size(), CV_8U), gray;
+	cv::Mat pyr, timg, gray0(image.size(), CV_8U), gray;
 
-	blur(image, timg, Size(5, 5)); // was 3
+	blur(image, timg, image.size().width > 2048 ? cv::Size(5, 5) : cv::Size(3,3)); // was 3
 
 	// down-scale and upscale the image to filter out the noise
 	//pyrDown(image, pyr, Size(image.cols / 2, image.rows / 2));
@@ -62,7 +111,7 @@ static vector<Rectangle> findSquares(const Mat &image, string path, string filen
 
 				// dilate canny output to remove potential
 				// holes between edge segments
-				dilate(gray, gray, Mat(), Point(-1, -1));
+				dilate(gray, gray, cv::Mat(), cv::Point(-1, -1));
 				// cv::imwrite(path + "contours/" + filename + "-canny" + ".png", gray);
 			}
 			else
@@ -73,110 +122,100 @@ static vector<Rectangle> findSquares(const Mat &image, string path, string filen
 			}
 
 			// find contours and store them all as a list
-			vector<vector<Point>> contours;
-			findContours(gray, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
+			std::vector<std::vector<cv::Point>> contours;
+			findContours(gray, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
-			contours = vfilter<vector<Point>>(contours, [](vector<Point> contour) -> bool {
-				return arcLength(contour, false) > 50;
+			contours = vfilter<std::vector<cv::Point>>(contours, [](std::vector<cv::Point> contour) -> bool {
+				return cv::arcLength(contour, false) > 50;
 			});
 
 			auto clone = image.clone();
 			for (uint i = 0; i < contours.size(); i++)
-				cv::drawContours(clone, contours, i, Scalar((i * 13) % 255, (i * 41) % 255, (i * 87) % 255), 3);
+				cv::drawContours(clone, contours, i, cv::Scalar((i * 13) % 255, (i * 41) % 255, (i * 87) % 255), 3);
 
 			cv::imwrite(path + "contours/" + filename + // "-" + std::to_string(c) + 
 				"-" + std::to_string(l) + ".png", clone);
 
+			float min_edge_length = float(std::min(image.size[0], image.size[1])) / 50;
+			float min_area = min_edge_length * min_edge_length;
 
-			auto contourRectangles = vmap<vector<Point>, Rectangle>(contours, [](vector<Point> contour) -> Rectangle {
-				return Rectangle(contour);
+			float min_underline_length = float(std::min(image.size[0], image.size[1])) / 80;
+			float max_underline_length = float(std::min(image.size[0], image.size[1])) / 8;
+			const float underline_length_mm = 5.5f; // 5.5mm
+			const float underline_width_mm = 0.3f; // 0.3 mm
+			const float underline_rect_short_to_long_ratio = underline_width_mm / underline_length_mm;
+			const float min_short_to_long_ratio = underline_rect_short_to_long_ratio / 2;
+			const float max_short_to_long_ratio = underline_rect_short_to_long_ratio * 2;
+
+			for (auto contour : contours) {
+				auto rect = RectangleDetected(contour);
+				float shortToLongRatio = rect.shorterSideLength / rect.longerSideLength;
+
+				if (
+					// Rect area is above the minimum area to be considred a potential die
+					(rect.area > min_area) &&
+					// Rectangle is square enough
+					(shortToLongRatio >= 0.75f) &&
+					// the contour area is at least 60% of the area of the interpolated rectangle
+					(rect.contourArea >= rect.area * 0.6)
+					) {
+					candidateDiceSquares.push_back(rect);
+				}
+				else if (
+					rect.longerSideLength > min_underline_length &&
+					rect.longerSideLength < max_underline_length &&
+					shortToLongRatio >= min_short_to_long_ratio &&
+					shortToLongRatio <= max_short_to_long_ratio
+					) {
+					candidateUnderlineRectangles.push_back(rect);
+				}
+			}
+		}
+	}
+
+	if (candidateDiceSquares.size() > 0) {
+		// Remove rectangles that stray from the median
+
+		float medianArea = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) -> float { return r.area; }));
+		float minArea = 0.75f * medianArea;
+		float maxArea = medianArea / 0.75f;
+		candidateDiceSquares = vfilter<RectangleDetected>(candidateDiceSquares, [minArea, maxArea](RectangleDetected r) {
+			return  (r.area >= minArea && r.area <= maxArea);
 			});
 
-			// Remove contours too small to be dice.
-			float min_edge_length = float(min(image.size[0], image.size[1])) / 50;
-			float min_area = min_edge_length * min_edge_length;
-			auto candidateDiceSquares = vfilter<Rectangle>(contourRectangles, [min_area](Rectangle rect) -> bool {
-				if (rect.area < min_area) return false;
+		// Recalculate median for survivors
+		float areaHighPercentile = percentile(
+			vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) -> float { return r.area; }),
+			85
+		);
+		// Calculate slope of survivors
+		float medianAngle = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) -> float { return r.angle; }));
 
-				// Test if it's a rectangle by seeing if it occupies 75% are the are of its equiv min area
-				if (rect.shorterSideLength < 0.75f * rect.longerSideLength) {
-					return false;
-				}
-				if (rect.contourArea < rect.area * 0.6)
-					return false;
-
-				return true;
-				});
-			// test each contour
-			candidateDiceSquaresForAllThresholds.insert(candidateDiceSquaresForAllThresholds.end(), candidateDiceSquares.begin(), candidateDiceSquares.end());
-
-			
-			// Remove contours except those that appear to be underlines
-			float min_underline_length = float(min(image.size[0], image.size[1])) / 80;
-			float max_underline_length = float(min(image.size[0], image.size[1])) / 8;
-			auto candidateUnderlines = vfilter<Rectangle>(contourRectangles, [min_underline_length, max_underline_length](Rectangle rect) -> bool {
-				const float underline_length_mm = 5.5f; // 5.5mm
-				const float underline_width_mm = 0.3f; // 0.3 mm
-				const float underline_rect_ratio = underline_length_mm / underline_width_mm;
-				const float min_ratio = underline_rect_ratio / 2;
-				const float max_ratio = underline_rect_ratio * 2;
-
-				// Test if it's a rectangle by seeing if it occupies 75% are the are of its equiv min area
-				float ratio = rect.longerSideLength / rect.shorterSideLength;
-					
-				return rect.longerSideLength > min_underline_length &&
-					rect.longerSideLength < max_underline_length &&
-					ratio >= min_ratio &&
-					ratio <= max_ratio;
-				});
-
-		}
-	}
-	if (candidateDiceSquaresForAllThresholds.size() <= 0) {
-		// There are not enough squares, so return the empty vector
-		return candidateDiceSquaresForAllThresholds;
-	}
-
-	// Remove rectangles that stray from the median
-	float medianArea = median(vmap<Rectangle, float>(candidateDiceSquaresForAllThresholds, [](Rectangle r) -> float { return r.area; }));
-	float minArea = 0.75f * medianArea;
-	float maxArea = medianArea / 0.75f;
-	candidateDiceSquaresForAllThresholds = vfilter<Rectangle>(candidateDiceSquaresForAllThresholds, [minArea, maxArea](Rectangle r) {
-		return  (r.area >= minArea && r.area <= maxArea);
+		candidateDiceSquares = removeOverlappingRectangles(candidateDiceSquares, [medianArea, medianAngle](RectangleDetected r) -> float {
+			return r.deviationFromNorm(medianArea, medianAngle, 1);
 		});
-	
-	// Recalculate median for survivors
-	float areaHighPercentile = percentile(
-		vmap<Rectangle, float>(candidateDiceSquaresForAllThresholds, [](Rectangle r) -> float { return r.area; }),
-		85
-	);
-	// Calculate slop of survivors
-	float medianAngle = median(vmap<Rectangle, float>(candidateDiceSquaresForAllThresholds, [](Rectangle r) -> float { return r.angle; }));
-
-
-	// remove overlapping rectangeles
-	vector<Rectangle> non_overlapping_rectangles;
-	for (auto& rect : candidateDiceSquaresForAllThresholds) {
-		int overlaps_with_index = -1;
-		for (uint i = 0; i < non_overlapping_rectangles.size(); i++) {
-			if (rect.overlaps(non_overlapping_rectangles[i])) {
-				overlaps_with_index = i;
-				break;
-			}
-		}
-		if (overlaps_with_index == -1) {
-			// This rectangle doesn't overlap with others
-			non_overlapping_rectangles.push_back(rect);
-		}
-		else {
-			// This rectangle is different from the other rectangles.
-			// Choose the rectangle the deviates less from the norm.
-			if ( rect.deviationFromNorm(areaHighPercentile, medianAngle) < non_overlapping_rectangles[overlaps_with_index].deviationFromNorm(areaHighPercentile, medianAngle) ) {
-				// Choose the rectangle with better quality
-				non_overlapping_rectangles[overlaps_with_index] = rect;
-			}
-		}
 	}
 
-	return non_overlapping_rectangles;
+	if (candidateUnderlineRectangles.size() > 0) {
+		float medianLength = median(vmap<RectangleDetected, float>(candidateUnderlineRectangles, [](RectangleDetected r) -> float { return r.longerSideLength; }));
+		float minLength = medianLength * 0.85f;
+		float maxLength = medianLength * 1.1f;
+
+		float medianAngleMod90 = median(vmap<RectangleDetected, float>(candidateUnderlineRectangles, [](RectangleDetected r) -> float {
+			return angleToMod90(r.angle);
+		}));
+
+		candidateUnderlineRectangles = vfilter<RectangleDetected>(candidateUnderlineRectangles, [minLength, maxLength](RectangleDetected r) {
+			return  (r.longerSideLength >= minLength && r.longerSideLength <= maxLength);
+		});
+
+		candidateUnderlineRectangles = removeOverlappingRectangles(candidateDiceSquares, [medianLength, medianAngleMod90](RectangleDetected r) -> float {
+			return abs((r.longerSideLength - medianLength) / medianLength) + abs(angleToMod90(r.angle) - medianAngleMod90) / 90;
+		});
+
+	}
+
+	result.candidateDiceSquares = candidateDiceSquares;
+	result.candidateUnderlineRectangles = candidateUnderlineRectangles;
+	return result;
 }

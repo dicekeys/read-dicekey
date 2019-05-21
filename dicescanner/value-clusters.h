@@ -12,6 +12,7 @@ class ValueCluster {
 	float median;
 
 	ValueCluster(float firstSample) {
+		median = firstSample;
 		samples.push_back(firstSample);
 	}
 

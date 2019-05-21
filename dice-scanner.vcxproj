@@ -159,6 +159,7 @@
     <ClInclude Include="dicescanner\vfunctional.h" />
     <ClInclude Include="dicescanner\locate-dice.h" />
     <ClInclude Include="dicescanner\value-clusters.h" />
+    <ClInclude Include="dicescanner\read-dice.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

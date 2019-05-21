@@ -12,19 +12,19 @@
 #include "value-clusters.h"
 
 
-static double distance2d(const Point2d &a, const Point2d &b) {
+static double distance2d(const cv::Point2d &a, const cv::Point2d &b) {
 	double dx = a.x - b.x;
 	double dy = a.y - b.y;
 	return sqrt( dx * dx + dy * dy);
 }
 
-static float distance2f(const Point2f& a, const Point2f& b) {
+static float distance2f(const cv::Point2f& a, const cv::Point2f& b) {
 	float dx = a.x - b.x;
 	float dy = a.y - b.y;
 	return sqrt(dx * dx + dy * dy);
 }
 
-static float slope(const Point &a, const Point &b)
+static float slope(const cv::Point &a, const cv::Point &b)
 {
 	return a.x == b.x ?
 		FLT_MAX :
@@ -36,10 +36,10 @@ struct DiceSquares {
     float angleRadians;
     float size;
     float distanceBetween;
-    std::vector<Rectangle> squares;
+    std::vector<RectangleDetected> squares;
 };
 
-static DiceSquares filterAndOrderSquares(const vector<Rectangle> &squares)
+static DiceSquares filterAndOrderSquares(const std::vector<RectangleDetected> &squares)
 {
     DiceSquares r;
 
@@ -50,36 +50,36 @@ static DiceSquares filterAndOrderSquares(const vector<Rectangle> &squares)
 	//
 	// Calculate the median slope, and create functions to remove and restore the slope
 	//
-	r.slope = median(vmap<Rectangle, float>(squares, [](Rectangle r) { return slope(r.topLeft, r.topRight); }));
+	r.slope = median(vmap<RectangleDetected, float>(squares, [](RectangleDetected r) { return slope(r.topLeft, r.topRight); }));
 	r.angleRadians = atan(r.slope);
 
-	auto removeSlope = [r](Point2f point) -> Point2f {
+	auto removeSlope = [r](cv::Point2f point) -> cv::Point2f {
 		// y = mx + b => b = y - mx, where b is the y intercept and m is the slope
 		float y_intercept = point.y - r.slope * point.x;
-		Point2f y_intercept_point = Point2d(0, y_intercept);
+		cv::Point2f y_intercept_point = cv::Point2d(0, y_intercept);
 		// the length of the line from the y intercept
 		float dist_from_y_intercept = distance2f(y_intercept_point, point);
-		return Point2f(dist_from_y_intercept, y_intercept);
+		return cv::Point2f(dist_from_y_intercept, y_intercept);
 	};
-	auto restoreSlope = [r](Point2f point) -> Point2f {
+	auto restoreSlope = [r](cv::Point2f point) -> cv::Point2f {
 		float dist_from_y_intercept = point.x;
 		auto y = point.y + dist_from_y_intercept * sin(r.angleRadians);
 		auto x = dist_from_y_intercept * cos(r.angleRadians);
-		return Point2f(x, y);
+		return cv::Point2f(x, y);
 	};
 
 
 	//
 	// Sort dice based on their slope-adjusted location
 	//
-	auto medianLineLength = median(vmap<Rectangle, float>(squares, [](Rectangle r) { return (float)r.longerSideLength; }));
+	auto medianLineLength = median(vmap<RectangleDetected, float>(squares, [](RectangleDetected r) { return (float)r.longerSideLength; }));
 	r.size = medianLineLength;
 	r.distanceBetween = medianLineLength * dieSizeToDistBetweenDice;
 	float y_threshold = r.distanceBetween  / 2;
 
 
 	r.squares = squares;
-	std::sort(r.squares.begin(), r.squares.end(), [removeSlope, y_threshold](const Rectangle a, const Rectangle b) {
+	std::sort(r.squares.begin(), r.squares.end(), [removeSlope, y_threshold](const RectangleDetected a, const RectangleDetected b) {
 		const auto adjusted_a_center = removeSlope(a.center);
 		const auto adjusted_b_center = removeSlope(b.center);
 		if (abs(adjusted_a_center.y - adjusted_b_center.y) > y_threshold) {
@@ -96,7 +96,7 @@ static DiceSquares filterAndOrderSquares(const vector<Rectangle> &squares)
 	// Find the median distance between dice by taking the mean distance between
 	// squares and their horizontal neighbors
 	///
-	vector<float> distancesBetweenCenters;
+	std::vector<float> distancesBetweenCenters;
 	for (uint i = 1; i < r.squares.size(); i++) {
 		if (r.squares[i].center.x < r.squares[i-1].center.x) {
 			distancesBetweenCenters.push_back( distance2f(r.squares[i].center, r.squares[i-1].center ));
