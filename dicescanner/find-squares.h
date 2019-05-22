@@ -205,11 +205,14 @@ static RectanglesFound findSquares(const cv::Mat &image, std::string path, std::
 			return angleToMod90(r.angle);
 		}));
 
+		// Remove rectangles that are outside the valid length range
 		candidateUnderlineRectangles = vfilter<RectangleDetected>(candidateUnderlineRectangles, [minLength, maxLength](RectangleDetected r) {
 			return  (r.longerSideLength >= minLength && r.longerSideLength <= maxLength);
 		});
 
-		candidateUnderlineRectangles = removeOverlappingRectangles(candidateDiceSquares, [medianLength, medianAngleMod90](RectangleDetected r) -> float {
+		// Remove overlapping underline rectangles, favoring those that better fit
+		// our model of underline length and the 4 valid angles (the angle mod 90)
+		candidateUnderlineRectangles = removeOverlappingRectangles(candidateUnderlineRectangles, [medianLength, medianAngleMod90](RectangleDetected r) -> float {
 			return abs((r.longerSideLength - medianLength) / medianLength) + abs(angleToMod90(r.angle) - medianAngleMod90) / 90;
 		});
 

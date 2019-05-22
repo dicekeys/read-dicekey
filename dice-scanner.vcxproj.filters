@@ -10,5 +10,6 @@
     <ClInclude Include="dicescanner\locate-dice.h" />
     <ClInclude Include="dicescanner\value-clusters.h" />
     <ClInclude Include="dicescanner\read-dice.h" />
+    <ClInclude Include="dicescanner\rotate.h" />
   </ItemGroup>
 </Project>

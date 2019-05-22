@@ -15,6 +15,7 @@
 #include "rectangle.h"
 #include "find-squares.h"
 #include "value-clusters.h"
+#include "rotate.h"
 #include "locate-dice.h"
 #include "read-dice.h"
 #define _USE_MATH_DEFINES
@@ -54,6 +55,7 @@ static void drawSquares(cv::Mat & image, const std::vector<std::vector<cv::Point
 // the function draws all the squares in the image
 static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& rects, std::string name)
 {
+	auto clone = image.clone();
 	for (auto rect : rects)
 	{
 		std::vector<cv::Point> points = vmap<cv::Point2f, cv::Point>(rect.points, [](cv::Point2f point) -> cv::Point {
@@ -61,11 +63,11 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 		});
 		const cv::Point* p = points.data();
 		int n = (int)points.size();
-		polylines(image, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
+		polylines(clone, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
 	}
 
 	// cv::imshow(wndname, image);
-	cv::imwrite(name, image);
+	cv::imwrite(name, clone);
 }
 
 
@@ -82,8 +84,6 @@ int main(int argc, char** argv)
 		names[1] = "0";
 	}
 
-	std::vector<std::vector<cv::Point> > squares;
-
 	for (auto& filename : names) {
 		std::string fname = path + "img/" + filename + ".jpg";
 		cv::Mat image = cv::imread(fname, cv::IMREAD_COLOR);
@@ -94,24 +94,32 @@ int main(int argc, char** argv)
 		}
 
 		auto squaresFound = findSquares(image, path, filename);
+
+		auto boxSlope = median(vmap<RectangleDetected, float>(squaresFound.candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
+
+		auto rotatedImage = rotateImageAndRectanglesFound(image, squaresFound, boxSlope);
+
+		writeSquares(rotatedImage, squaresFound.candidateUnderlineRectangles, path + "squares/underlines" + filename + ".png");
+
 		auto diceSquares = filterAndOrderSquares(squaresFound.candidateDiceSquares);
 
-		writeSquares(image, diceSquares.squares, path + "squares/" + filename + ".png");
+		writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
 
 		if (diceSquares.squares.size() < 13) {
 			std::cout << "Not enough squares in " << filename << std::endl;
 			continue;
 		}
 
-		// Rotate image by diceSquares.angle
-		cv::Mat grayPreRotation, grayPostRotation;
-		cv::cvtColor(image, grayPreRotation, cv::COLOR_BGR2GRAY);
-		cv::Point2d center = diceSquares.squares[12].center;
-		float correctionAngle = diceSquares.angleRadians * 360 / (2 * (float) M_PI);
-		auto rotationMatrix = cv::getRotationMatrix2D(center, correctionAngle, 1.0f);
 
-		cv::warpAffine(grayPreRotation, grayPostRotation, rotationMatrix, grayPreRotation.size() );
-		imwrite(path + "gray/" + filename + ".png", grayPostRotation);
+		//// Rotate image by diceSquares.angle
+		//cv::Mat grayPreRotation, grayPostRotation;
+		//cv::cvtColor(rotatedImage, grayPreRotation, cv::COLOR_BGR2GRAY);
+		//cv::Point2d center = diceSquares.squares[12].center;
+		//float correctionAngle = diceSquares.angleRadians * 360 / (2 * (float) M_PI);
+		//auto rotationMatrix = cv::getRotationMatrix2D(center, correctionAngle, 1.0f);
+
+		//cv::warpAffine(grayPreRotation, grayPostRotation, rotationMatrix, grayPreRotation.size() );
+		//imwrite(path + "gray/" + filename + ".png", grayPostRotation);
 
 		// drawSquares(image, squares);
 

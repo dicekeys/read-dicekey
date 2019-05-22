@@ -12,36 +12,76 @@
 #include "value-clusters.h"
 
 
-static double distance2d(const cv::Point2d &a, const cv::Point2d &b) {
+static double distance2d(const cv::Point2d& a, const cv::Point2d& b) {
 	double dx = a.x - b.x;
 	double dy = a.y - b.y;
-	return sqrt( dx * dx + dy * dy);
+	return sqrt(dx * dx + dy * dy);
 }
 
-static float distance2f(const cv::Point2f& a, const cv::Point2f& b) {
+static float distance2f(const cv::Point2f & a, const cv::Point2f & b) {
 	float dx = a.x - b.x;
 	float dy = a.y - b.y;
 	return sqrt(dx * dx + dy * dy);
 }
 
-static float slope(const cv::Point &a, const cv::Point &b)
+static float slope(const cv::Point & a, const cv::Point & b)
 {
 	return a.x == b.x ?
 		FLT_MAX :
-		((float)b.y - a.y) /((float)b.x - a.x);
+		((float)b.y - a.y) / ((float)b.x - a.x);
 }
 
 struct DiceSquares {
-    float slope;
-    float angleRadians;
-    float size;
-    float distanceBetween;
-    std::vector<RectangleDetected> squares;
+	float slope;
+	float angleRadians;
+	float size;
+	float distanceBetween;
+	std::vector<RectangleDetected> squares;
 };
+
+
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+static cv::Mat removeSlope(cv::Mat image, RectanglesFound & rects, float slope) {
+	auto angleRadians = atan(slope);
+	auto angleDegrees = angleRadians * 360 / (2 * (float)M_PI);
+	const float sinAngle = sin(angleRadians);
+	const float cosAngle = cos(angleRadians);
+
+	cv::Mat rotatedImage;
+	// Rotate around the top left for simlicity
+	auto rotationMatrix = cv::getRotationMatrix2D(cv::Point2f(0, 0), angleDegrees, 1.0f);
+
+	cv::warpAffine(image, rotatedImage, rotationMatrix, image.size());
+
+	auto rotatePoint = [sinAngle, cosAngle](cv::Point2f point) -> cv::Point2f {
+		auto x = (point.x * cosAngle) - (point.y * sinAngle);
+		auto y = (point.x * sinAngle) + (point.y * cosAngle);
+		return cv::Point2f(x, y);
+	};
+
+	// Rotate candidate dice
+	//const auto area90thPercentile = percentile(vmap<RectangleDetected, float>(rects.candidateDiceSquares, [](RectangleDetected r) -> float {
+	//	r.area;
+	//	}), 90.0f);
+	// const float squareEdgeLength = sqrt(area90thPercentile) * 1.15; // Add 15% to make sure we don't miss anything
+
+	rects.candidateDiceSquares = vmap<RectangleDetected, RectangleDetected>(rects.candidateDiceSquares,
+		[rotatePoint](RectangleDetected r) -> RectangleDetected {
+			return RectangleDetected(rotatePoint(r.center), r.size, 0.0f, r.contourArea);
+		});
+
+	// Rotate candidate underlines
+	rects.candidateUnderlineRectangles = vmap<RectangleDetected, RectangleDetected>(rects.candidateUnderlineRectangles,
+		[rotatePoint](RectangleDetected r) -> RectangleDetected {
+			return RectangleDetected(rotatePoint(r.center), r.size, 0.0f, r.contourArea);
+		});
+}
 
 static DiceSquares filterAndOrderSquares(const std::vector<RectangleDetected> &squares)
 {
-    DiceSquares r;
+	DiceSquares r;
 
 	const float dieSize = 8; // 8mm die size
 	const float gapBetweenDiceEdges = 1.8f; // 1.8mm
@@ -50,7 +90,7 @@ static DiceSquares filterAndOrderSquares(const std::vector<RectangleDetected> &s
 	//
 	// Calculate the median slope, and create functions to remove and restore the slope
 	//
-	r.slope = median(vmap<RectangleDetected, float>(squares, [](RectangleDetected r) { return slope(r.topLeft, r.topRight); }));
+	r.slope = median(vmap<RectangleDetected, float>(squares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
 	r.angleRadians = atan(r.slope);
 
 	auto removeSlope = [r](cv::Point2f point) -> cv::Point2f {
@@ -75,7 +115,7 @@ static DiceSquares filterAndOrderSquares(const std::vector<RectangleDetected> &s
 	auto medianLineLength = median(vmap<RectangleDetected, float>(squares, [](RectangleDetected r) { return (float)r.longerSideLength; }));
 	r.size = medianLineLength;
 	r.distanceBetween = medianLineLength * dieSizeToDistBetweenDice;
-	float y_threshold = r.distanceBetween  / 2;
+	float y_threshold = r.distanceBetween / 2;
 
 
 	r.squares = squares;
@@ -86,11 +126,12 @@ static DiceSquares filterAndOrderSquares(const std::vector<RectangleDetected> &s
 			// After adjusting for slope, there's a big enough difference in the Y axis
 			// to sort based on the row (Y axis, or height from top to bottom)
 			return adjusted_a_center.y < adjusted_b_center.y;
-		} else {
+		}
+		else {
 			// Within the same row, sort by column (x axis)
 			return adjusted_a_center.x < adjusted_b_center.x;
 		}
-	});
+		});
 
 	//
 	// Find the median distance between dice by taking the mean distance between
@@ -98,8 +139,8 @@ static DiceSquares filterAndOrderSquares(const std::vector<RectangleDetected> &s
 	///
 	std::vector<float> distancesBetweenCenters;
 	for (uint i = 1; i < r.squares.size(); i++) {
-		if (r.squares[i].center.x < r.squares[i-1].center.x) {
-			distancesBetweenCenters.push_back( distance2f(r.squares[i].center, r.squares[i-1].center ));
+		if (r.squares[i].center.x < r.squares[i - 1].center.x) {
+			distancesBetweenCenters.push_back(distance2f(r.squares[i].center, r.squares[i - 1].center));
 		}
 	}
 	if (distancesBetweenCenters.size() > 0) {

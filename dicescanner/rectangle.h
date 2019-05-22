@@ -34,46 +34,40 @@ static cv::Point2d getCenter(std::vector<cv::Point> &points)
 
 class RectangleDetected {
 public:
-	std::vector<cv::Point2f> points;
-	std::vector<cv::Point> fromContour;
 	float contourArea;
-	cv::Point topLeft;
-	cv::Point topRight;
-	cv::Point bottomLeft;
-	cv::Point bottomRight;
 	float area;
 	float angle;
 	float longerSideLength;
 	float shorterSideLength;
 	cv::Point2d center;
-	// quality is used to determine which of two overlapping rectangles
-	// is better, prefering straighter corners and more area.
+	cv::Size2f size;
+	std::vector<cv::Point2f> points = std::vector<cv::Point2f>(4);
 
-	RectangleDetected(std::vector<cv::Point> contour) {
-		fromContour = contour;
-		contourArea = (float) cv::contourArea(contour);
-		auto rrect = cv::minAreaRect(contour);
+	// Calculated by RotatedRect.points(), which returns in order
+	// bottomLeft, topLeft, topRight, bottomRight.
+	cv::Point bottomLeft() { return points[0]; };
+	cv::Point topLeft() { return points[1]; };
+	cv::Point topRight() { return points[2]; };
+	cv::Point bottomRight() { return points[3]; };
+
+	RectangleDetected(cv::RotatedRect rrect, float _contourArea) {
+		contourArea = _contourArea;
 		center = rrect.center;
-		points.resize(4);
-		rrect.points(this->points.data());
+		size = rrect.size;
 		angle = rrect.angle;
+		// The order is bottomLeft, topLeft, topRight, bottomRight.
+		rrect.points(points.data());
 		shorterSideLength = std::min(rrect.size.width, rrect.size.height);
 		longerSideLength = std::max(rrect.size.width, rrect.size.height);
-		area = shorterSideLength * longerSideLength;	
+		area = shorterSideLength * longerSideLength;
+	}
 
-		std::sort(points.begin(), points.end(), [](cv::Point a, cv::Point b) {return a.y < b.y; });
-		// The first two points are the top two.  Sort them top left and top right
-		if (points[0].x > points[1].x) {
-			swap(points[0], points[1]);
-		}
-		// The second set of two points are the bottom two.  Sort them right then left.
-		if (points[2].x < points[3].x) {
-			swap(points[2], points[3]);
-		}
-		topLeft = points[0];
-		topRight = points[1];
-		bottomRight = points[2];
-		bottomLeft = points[3];
+	RectangleDetected(cv::Point2f center, cv::Size2f size, float angle, float _contourArea) :
+		RectangleDetected(cv::RotatedRect(center, size, angle), _contourArea) {
+	}
+
+	RectangleDetected(std::vector<cv::Point> contour) :
+		RectangleDetected(cv::minAreaRect(contour), (float)cv::contourArea(contour)) {
 	};
 
 	float deviationFromNorm(float targetArea, float targetAngle, float targetShortToLongSideRatio = 1) {
@@ -94,7 +88,7 @@ public:
 		float deviationFromTargetAngle = 2.0f * abs(angle - targetAngle) / 90;
 
 		return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
-	}
+	};
 
 	bool contains(const cv::Point2d &point) const {
 		return cv::pointPolygonTest(points, point, false) >= 0;
