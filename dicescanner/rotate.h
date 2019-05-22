@@ -17,20 +17,36 @@
 
 static cv::Mat rotateImageAndRectanglesFound(cv::Mat image, RectanglesFound& rects, float slope) {
 	auto angleRadians = atan(slope);
+	const float radians45Degrees = 45.0f * 2.0f * (float) M_PI / 360.0f;
+	const float radians90Degrees = 90.0f * 2.0f * (float) M_PI / 360.0f;
+	if (angleRadians > radians45Degrees) {
+		angleRadians -= radians90Degrees;
+	}
+	else if (angleRadians < -radians45Degrees) {
+		angleRadians += radians90Degrees;
+	}
 	auto angleDegrees = angleRadians * 360 / (2 * (float)M_PI);
-	const float sinAngle = sin(angleRadians);
-	const float cosAngle = cos(angleRadians);
+	cv::Point2f center = cv::Point2f(image.size[0] / 2.0f, image.size[1] / 2.0f);
+	const float sinAngle = sin(-angleRadians);
+	const float cosAngle = cos(-angleRadians);
 
 	cv::Mat rotatedImage;
 	// Rotate around the top left for simlicity
-	auto rotationMatrix = cv::getRotationMatrix2D(cv::Point2f(0, 0), angleDegrees, 1.0f);
+	auto rotationMatrix = cv::getRotationMatrix2D(center, angleDegrees, 1.0f);
 
 	cv::warpAffine(image, rotatedImage, rotationMatrix, image.size());
 
-	auto rotatePoint = [sinAngle, cosAngle](cv::Point2f point) -> cv::Point2f {
-		auto x = (point.x * cosAngle) - (point.y * sinAngle);
-		auto y = (point.x * sinAngle) + (point.y * cosAngle);
-		return cv::Point2f(x, y);
+	auto rotatePoint = [center, sinAngle, cosAngle](cv::Point2f point) -> cv::Point2f {
+		// Get point relative to center
+		auto x_c = point.x - center.x;
+		auto y_c = point.y - center.y;
+
+		// Rotate
+		auto x = (x_c * cosAngle) - (y_c * sinAngle);
+		auto y = (x_c * sinAngle) + (y_c * cosAngle);
+
+		// Get point relative to 0,0 by adding back in center
+		return cv::Point2f(x + center.x, y + center.y);
 	};
 
 	// Rotate candidate dice
