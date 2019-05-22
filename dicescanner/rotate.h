@@ -17,22 +17,24 @@
 
 static cv::Mat rotateImageAndRectanglesFound(cv::Mat image, RectanglesFound& rects, float slope) {
 	auto angleRadians = atan(slope);
-	const float radians45Degrees = 45.0f * 2.0f * (float) M_PI / 360.0f;
-	const float radians90Degrees = 90.0f * 2.0f * (float) M_PI / 360.0f;
-	if (angleRadians > radians45Degrees) {
+
+	const float radians45Degrees = 45.0f * 2.0f * (float)M_PI / 360.0f;
+	const float radians90Degrees = 90.0f * 2.0f * (float)M_PI / 360.0f;
+	while (angleRadians > radians45Degrees) {
 		angleRadians -= radians90Degrees;
 	}
-	else if (angleRadians < -radians45Degrees) {
+	while (angleRadians < -radians45Degrees) {
 		angleRadians += radians90Degrees;
 	}
 	auto angleDegrees = angleRadians * 360 / (2 * (float)M_PI);
+
 	cv::Point2f center = cv::Point2f(image.size[0] / 2.0f, image.size[1] / 2.0f);
-	const float sinAngle = sin(-angleRadians);
-	const float cosAngle = cos(-angleRadians);
+	const float sinAngle = sin(angleRadians);
+	const float cosAngle = cos(angleRadians);
 
 	cv::Mat rotatedImage;
-	// Rotate around the top left for simlicity
-	auto rotationMatrix = cv::getRotationMatrix2D(center, angleDegrees, 1.0f);
+	// Rotate around the center of the image to remove the angle
+	auto rotationMatrix = cv::getRotationMatrix2D(center, -angleDegrees, 1.0f);
 
 	cv::warpAffine(image, rotatedImage, rotationMatrix, image.size());
 
@@ -56,14 +58,14 @@ static cv::Mat rotateImageAndRectanglesFound(cv::Mat image, RectanglesFound& rec
 	// const float squareEdgeLength = sqrt(area90thPercentile) * 1.15; // Add 15% to make sure we don't miss anything
 
 	rects.candidateDiceSquares = vmap<RectangleDetected, RectangleDetected>(rects.candidateDiceSquares,
-		[rotatePoint](RectangleDetected r) -> RectangleDetected {
-			return RectangleDetected(rotatePoint(r.center), r.size, 0.0f, r.contourArea);
+		[rotatePoint, angleDegrees](RectangleDetected r) -> RectangleDetected {
+			return RectangleDetected(rotatePoint(r.center), r.size, r.angle + angleDegrees, r.contourArea);
 		});
 
 	// Rotate candidate underlines
 	rects.candidateUnderlineRectangles = vmap<RectangleDetected, RectangleDetected>(rects.candidateUnderlineRectangles,
-		[rotatePoint](RectangleDetected r) -> RectangleDetected {
-			return RectangleDetected(rotatePoint(r.center), r.size, 0.0f, r.contourArea);
+		[rotatePoint, angleDegrees](RectangleDetected r) -> RectangleDetected {
+			return RectangleDetected(rotatePoint(r.center), r.size, r.angle + angleDegrees, r.contourArea);
 		});
 
 	return rotatedImage;

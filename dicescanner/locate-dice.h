@@ -28,7 +28,9 @@ static float slope(const cv::Point & a, const cv::Point & b)
 {
 	return a.x == b.x ?
 		FLT_MAX :
-		((float)b.y - a.y) / ((float)b.x - a.x);
+		// Note that since the y axis goes downward in OpenCV (unlike high school math),
+		// we calculate delta y using a.y - b.y instead of b.y - a.y
+		((float)a.y - b.y) / ((float)b.x - a.x);
 }
 
 struct DiceSquares {
