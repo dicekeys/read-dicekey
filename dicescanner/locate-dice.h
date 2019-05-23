@@ -34,7 +34,7 @@ static float slope(const cv::Point & a, const cv::Point & b)
 }
 
 
-static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, const std::vector<RectangleDetected> &squares)
+static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, const std::vector<RectangleDetected> &squares, float dieSizeAsFractionOfDistanceBetweenDice = 0.85f)
 {
 	std::vector<cv::Mat> r;
 
@@ -106,8 +106,8 @@ static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, const std::vec
 	float centerY = median(yClusterMedians);
 	float distBetweenX = median(xDists);
 	float distBetweenY = median(yDists);
-	float xSize = distBetweenX * 0.95f;
-	float ySize = distBetweenY * 0.95f;
+	float xSize = distBetweenX * dieSizeAsFractionOfDistanceBetweenDice;
+	float ySize = distBetweenY * dieSizeAsFractionOfDistanceBetweenDice;
 	float halfXSize = xSize / 2;
 	float halfYSize = ySize / 2;
 

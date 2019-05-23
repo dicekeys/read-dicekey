@@ -6,31 +6,45 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
-#include <tesseract/baseapi.h>
+#pragma warning(disable : 4996)
 
+#include <tesseract/baseapi.h>
+#include <tesseract/genericvector.h>
 
 
 struct DieOcrResult {
-	bool success;
-	char letter;
-	char digit;
-	float letterConfidence;
-	float digitConfidence;
-	uint orientation;
+	bool success = false;
+	char letter = 0;
+	char digit = 0;
+	float letterConfidence = 0;
+	float digitConfidence = 0;
+	uint orientation = 0;
 };
 
-DieOcrResult readDie(cv::Mat &image) {
+DieOcrResult readDie(std::string path, cv::Mat &image) {
 	DieOcrResult result;
 	result.success = false;
 
 	static tesseract::TessBaseAPI ocr = tesseract::TessBaseAPI();
 	static bool tess_initialized = false;
-	
+
+	auto varsNames = GenericVector<STRING>();
+	varsNames.push_back("load_system_dawg");
+	varsNames.push_back("load_freq_dawg");
+	varsNames.push_back("tessedit_char_whitelist");
+	auto varValues = GenericVector<STRING>();
+	varValues.push_back("F");
+	varValues.push_back("F");
+	varValues.push_back("ABCDEGHJKLMNPQRTVWXYabdfr123456");
+
 	// Initialize tesseract to use English (eng) and the LSTM OCR engine.
 	if (!tess_initialized) {
-		ocr.Init("/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/", "eng", tesseract::OEM_TESSERACT_ONLY);
+		// ocr.SetVariable("load_system_dawg", "false");
+		// ocr.SetVariable("load_freq_dawg", "false");
+		ocr.Init(path.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varsNames, &varValues, false);
 		ocr.SetVariable("tessedit_char_whitelist", "ABCDEGHJKLMNPQRTVWXYabdfr123456");
-		ocr.SetPageSegMode(tesseract::PSM_AUTO_OSD);
+		
+		ocr.SetPageSegMode(tesseract::PSM_RAW_LINE);
 	}
 	//
 	// tess.SetImage((uchar*)sub.data, sub.size().width, sub.size().height, sub.channels(), sub.step1());
