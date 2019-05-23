@@ -75,7 +75,10 @@ int main(int argc, char** argv)
 {
 	// std::string path = "";
 	std::string path = "/Users/stuart/github/dice-scanner/";
-	std::vector<std::string> names = { "1", "2", "3", "4", "5" };
+	std::vector<std::string> names = {
+		"1", "2", "3", "4", "5",
+		"6", "7", "8", "9"
+	};
 	help(argv[0]);
 
 	if (argc > 1)
@@ -97,15 +100,25 @@ int main(int argc, char** argv)
 
 		auto boxSlope = median(vmap<RectangleDetected, float>(squaresFound.candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
 
-		auto rotatedImage = rotateImageAndRectanglesFound(image, squaresFound, boxSlope);
+		cv::Mat coloredForTesseract;
+		cv::cvtColor(image, coloredForTesseract, cv::COLOR_BGR2RGBA);
 
+		auto rotatedImage = rotateImageAndRectanglesFound(coloredForTesseract, squaresFound, boxSlope);
+		
 		writeSquares(rotatedImage, squaresFound.candidateUnderlineRectangles, path + "squares/underlines" + filename + ".png");
 
 		auto dice = filterAndOrderSquares(rotatedImage, squaresFound.candidateDiceSquares);
 
 		for (uint i = 0; i < dice.size(); i++) {
 			auto die = dice[i];
-			imwrite(path + "dice/" + filename + "-" + std::to_string(i) + ".png", die);
+			auto readResult = readDie(die);
+			std::string identifier = filename + "-" + std::to_string(i);
+			if (readResult.success) {
+				identifier += "-";
+				identifier += readResult.letter;
+				identifier += readResult.digit;
+			}
+			imwrite(path + "dice/" + identifier + ".png", die);
 		}
 		// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
 

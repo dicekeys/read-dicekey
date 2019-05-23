@@ -106,8 +106,8 @@ static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, const std::vec
 	float centerY = median(yClusterMedians);
 	float distBetweenX = median(xDists);
 	float distBetweenY = median(yDists);
-	float xSize = distBetweenX * 0.9f;
-	float ySize = distBetweenY * 0.9f;
+	float xSize = distBetweenX * 0.95f;
+	float ySize = distBetweenY * 0.95f;
 	float halfXSize = xSize / 2;
 	float halfYSize = ySize / 2;
 
