@@ -16,6 +16,10 @@ class ValueCluster {
 		samples.push_back(firstSample);
 	}
 
+	std::vector<float> samplesVector() {
+		return std::vector<float>(samples.begin(), samples.end());
+	}
+
 	void addSample(float sample) {
 		samples.push_back(sample);
 		// Re-sort list
@@ -43,6 +47,10 @@ class ValueClusters {
 		this->proximityThreshold = proximityThreshold;
 	}
 
+	std::vector<ValueCluster> clusterVector() {
+		return std::vector<ValueCluster>(clusters.begin(), clusters.end());
+	}
+
 	void addSample(float sample) {
 		for (auto it = clusters.begin(); it != clusters.end(); ++it) {
 			if (abs(sample - it->median) < proximityThreshold) {
@@ -61,9 +69,7 @@ class ValueClusters {
 		}
 		// The sample comes after all of the existing clusters,
 		// and so should in a new cluster at the end of the list.
-		if (clusters.empty()) {
-			clusters.push_back(ValueCluster(sample));
-		}
+		clusters.push_back(ValueCluster(sample));
 	}
 };
 

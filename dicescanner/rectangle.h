@@ -39,7 +39,7 @@ public:
 	float angle;
 	float longerSideLength;
 	float shorterSideLength;
-	cv::Point2d center;
+	cv::Point2f center;
 	cv::Size2f size;
 	std::vector<cv::Point2f> points = std::vector<cv::Point2f>(4);
 

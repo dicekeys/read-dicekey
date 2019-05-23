@@ -101,12 +101,16 @@ int main(int argc, char** argv)
 
 		writeSquares(rotatedImage, squaresFound.candidateUnderlineRectangles, path + "squares/underlines" + filename + ".png");
 
-		auto diceSquares = filterAndOrderSquares(squaresFound.candidateDiceSquares);
+		auto dice = filterAndOrderSquares(rotatedImage, squaresFound.candidateDiceSquares);
 
-		writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
+		for (uint i = 0; i < dice.size(); i++) {
+			auto die = dice[i];
+			imwrite(path + "dice/" + filename + "-" + std::to_string(i) + ".png", die);
+		}
+		// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
 
-		if (diceSquares.squares.size() < 13) {
-			std::cout << "Not enough squares in " << filename << std::endl;
+		if (dice.size() < 25) {
+			std::cout << "Not enough dice in " << filename << std::endl;
 			continue;
 		}
 
