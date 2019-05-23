@@ -209,8 +209,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/Cellar/opencv/4.1.0_2/include/opencv4;
-				"LIBRARY_SEARCH_PATHS[arch=*]" = /usr/local/Cellar/opencv/4.1.0_2/lib/opencv4;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					/usr/local/Cellar/opencv/4.1.0_2/include/opencv4,
+					/usr/local/Cellar/tesseract/4.0.0_1/include/,
+				);
+				"LIBRARY_SEARCH_PATHS[arch=*]" = (
+					/usr/local/Cellar/opencv/4.1.0_2/lib/opencv4,
+					/usr/local/Cellar/tesseract/4.0.0_1/include/,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -267,6 +273,7 @@
 					"-lopencv_photo",
 					"-lopencv_imgproc",
 					"-lopencv_core",
+					"-L/usr/local/Cellar/tesseract/4.0.0_1/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

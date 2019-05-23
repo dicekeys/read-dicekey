@@ -39,18 +39,18 @@ const char* wndname = "Square Detection Demo";
 
 
 // the function draws all the squares in the image
-static void drawSquares(cv::Mat & image, const std::vector<std::vector<cv::Point> > & squares)
-{
-	auto clone = image.clone();
-	for (size_t i = 0; i < squares.size(); i++)
-	{
-		const cv::Point* p = &squares[i][0];
-		int n = (int)squares[i].size();
-		polylines(clone, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
-	}
-
-	imshow(wndname, clone);
-}
+//static void drawSquares(cv::Mat & image, const std::vector<std::vector<cv::Point> > & squares)
+//{
+//	auto clone = image.clone();
+//	for (size_t i = 0; i < squares.size(); i++)
+//	{
+//		const cv::Point* p = &squares[i][0];
+//		int n = (int)squares[i].size();
+//		polylines(clone, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
+//	}
+//
+//	imshow(wndname, clone);
+//}
 
 // the function draws all the squares in the image
 static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& rects, std::string name)
@@ -74,7 +74,7 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 int main(int argc, char** argv)
 {
 	// std::string path = "";
-	string path = "/Users/stuart/github/dice-scanner/";
+	std::string path = "/Users/stuart/github/dice-scanner/";
 	std::vector<std::string> names = { "1", "2", "3", "4", "5" };
 	help(argv[0]);
 

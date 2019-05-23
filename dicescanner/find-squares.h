@@ -191,8 +191,8 @@ static RectanglesFound findSquares(const cv::Mat &image, std::string path, std::
 		// Calculate slope of survivors
 		float medianAngle = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) -> float { return r.angle; }));
 
-		candidateDiceSquares = removeOverlappingRectangles(candidateDiceSquares, [medianArea, medianAngle](RectangleDetected r) -> float {
-			return r.deviationFromNorm(medianArea, medianAngle, 1);
+		candidateDiceSquares = removeOverlappingRectangles(candidateDiceSquares, [areaHighPercentile, medianAngle](RectangleDetected r) -> float {
+			return r.deviationFromNorm(areaHighPercentile, medianAngle, 1);
 		});
 	}
 

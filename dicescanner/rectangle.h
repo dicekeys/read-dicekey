@@ -18,19 +18,19 @@
 //	float dy2 = (float)pt2.y - pt0.y;
 //	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2));
 //}
-
-static cv::Point2d getCenter(std::vector<cv::Point> &points)
-{
-	float x = 0;
-	float y = 0;
-	for (auto& point : points) {
-		x += point.x;
-		y += point.y;
-	}
-	x /= points.size();
-	y /= points.size();
-	return cv::Point2d(x, y);
-}
+//
+//static cv::Point2d getCenter(std::vector<cv::Point> &points)
+//{
+//	float x = 0;
+//	float y = 0;
+//	for (auto& point : points) {
+//		x += point.x;
+//		y += point.y;
+//	}
+//	x /= points.size();
+//	y /= points.size();
+//	return cv::Point2d(x, y);
+//}
 
 class RectangleDetected {
 public:

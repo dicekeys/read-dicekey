@@ -12,11 +12,11 @@
 #include "value-clusters.h"
 #include "rotate.h"
 
-static double distance2d(const cv::Point2d& a, const cv::Point2d& b) {
-	double dx = a.x - b.x;
-	double dy = a.y - b.y;
-	return sqrt(dx * dx + dy * dy);
-}
+//static double distance2d(const cv::Point2d& a, const cv::Point2d& b) {
+//	double dx = a.x - b.x;
+//	double dy = a.y - b.y;
+//	return sqrt(dx * dx + dy * dy);
+//}
 
 static float distance2f(const cv::Point2f & a, const cv::Point2f & b) {
 	float dx = a.x - b.x;
