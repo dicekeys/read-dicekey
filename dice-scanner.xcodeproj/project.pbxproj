@@ -225,6 +225,8 @@
 					"-I/usr/local/Cellar/opencv/4.1.0_2/include/opencv4/opencv",
 					"-I/usr/local/Cellar/opencv/4.1.0_2/include/opencv4",
 					"-L/usr/local/Cellar/opencv/4.1.0_2/lib",
+					"-L/usr/local/Cellar/tesseract/4.0.0_1/lib",
+					"-ltesseract",
 					"-lopencv_gapi",
 					"-lopencv_stitching",
 					"-lopencv_aruco",
@@ -273,7 +275,6 @@
 					"-lopencv_photo",
 					"-lopencv_imgproc",
 					"-lopencv_core",
-					"-L/usr/local/Cellar/tesseract/4.0.0_1/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
