@@ -89,7 +89,7 @@ static RectanglesFound findSquares(const cv::Mat &image, std::string path, std::
 	{
 		//int ch[] = { c, 0 };
 		// mixChannels(&timg, 1, &gray0, 1, ch, 1);
-		cv::cvtColor(timg, gray0, CV_BGR2GRAY);
+		cv::cvtColor(timg, gray0, cv::COLOR_BGR2GRAY);
 		cv::imwrite(path + "contours/" + filename + "-gray" + ".png", gray0);
 
 		// try several threshold levels

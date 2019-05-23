@@ -73,8 +73,8 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 
 int main(int argc, char** argv)
 {
-	std::string path = "";
-	// string path = "/Users/stuart/github/dice-scanner/squares/"
+	// std::string path = "";
+	string path = "/Users/stuart/github/dice-scanner/";
 	std::vector<std::string> names = { "1", "2", "3", "4", "5" };
 	help(argv[0]);
 

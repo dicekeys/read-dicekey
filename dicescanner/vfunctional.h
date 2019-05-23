@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <functional>
+#include <algorithm>
 #include <math.h>
 
 std::vector<int> x;
@@ -42,7 +43,7 @@ static float percentile(const std::vector<float>& numbers, float percentileOf100
 
 	std::vector<float> sorted = numbers;
 	uint lower = (uint) floor(numbers.size() * percentileOf100 / 100);
-	uint upper = std::min((uint) ceil(numbers.size() * percentileOf100 / 100), numbers.size()-1);
+	uint upper = std::min<uint>((uint) ceil(numbers.size() * percentileOf100 / 100), numbers.size()-1);
 	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return a < b; });
 	return (sorted[lower] + sorted[upper]) / 2;
 }
