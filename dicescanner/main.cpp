@@ -106,8 +106,12 @@ int main(int argc, char** argv)
 		auto boxSlope = median(vmap<RectangleDetected, float>(squaresFound.candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
 
 		auto rotatedImage = rotateImageAndRectanglesFound(gray, squaresFound, boxSlope);
+
+		cv::Mat rotatedColor;
+		cv::cvtColor(rotatedImage, rotatedColor, cv::COLOR_GRAY2BGR);
 		
-		writeSquares(rotatedImage, squaresFound.candidateUnderlineRectangles, path + "squares/underlines" + filename + ".png");
+		writeSquares(rotatedColor, squaresFound.candidateDiceSquares, path + "squares/dice" + filename + ".png");
+		writeSquares(rotatedColor, squaresFound.candidateUnderlineRectangles, path + "squares/underlines" + filename + ".png");
 
 		auto dice = filterAndOrderSquares(rotatedImage, squaresFound);
 
@@ -115,8 +119,8 @@ int main(int argc, char** argv)
 			auto die = dice[i];
 			cv::Mat dieBlur, edges;
 			blur(die, dieBlur, cv::Size(3,3));
-			// Canny(dieBlur, edges, 255, 255, 5);
-			edges = dieBlur >= 70;
+			// Canny(dieBlur, edges, 10, 50, 5);
+			edges = dieBlur >= 65;
 			auto readResult = readDie(tesseractPath, edges);
 			std::string identifier = filename + "-" + std::to_string(i);
 			if (readResult.success) {

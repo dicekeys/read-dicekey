@@ -169,25 +169,47 @@ static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, RectanglesFoun
 
 		if (indexOfClosestUnderline >= 0) {
 			auto underline = squaresFound.candidateUnderlineRectangles[indexOfClosestUnderline];
-			if (abs(underline.center.y - cy) > abs(underline.center.x - cx)) {
-				if (underline.center.y > cy) {
-					// The underline is below the die center.  It's right-side up.
-					std::cout << "Die " << die  << " at angle 0\n";
-				} else {
+			const float distx = abs(underline.center.x - cx);
+			const float disty = abs(underline.center.y - cy);
+			if (disty > distx) {
+				// The underline is above or below the center,
+				// indicating horizontal lettering (rotated 0 or 180)
+				bool rotate180 = (underline.center.y < cy);
+				std::cout << "Die " << die << " at angle " << (rotate180 ? "180" : "0") << "\n";
+				float left = underline.center.x - underline.longerSideLength / 2.0f;
+				float height = 2.0f * (disty - 0.2f);
+				float top = rotate180 ?
+					// Select safely below the underline
+					underline.center.y + 0.3f * approxPixelsPerMm :
+					// Select safely above the underline
+					underline.center.y - (0.3f * approxPixelsPerMm) - height;
+				float width = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
+				cv::Rect myROI((int) left, (int) top, (int) width, (int) height);
+				cv::Mat dieImage = image(myROI);
+				if (rotate180) {
 					// The underline is above the die center.  It's up-side down.
 					// Rotate 180
-					std::cout << "Die " << die << " at angle 180\n";
+					cv::rotate(dieImage, dieImage, cv::ROTATE_180);
 				}
+				r.push_back(dieImage);
+				continue;
 			} else {
-				if (underline.center.x > cx) {
-					// The underline is right of the die center.  It's rotated -90 degrees.
-					// Rotate 90 (clockwise) to fix.
-					std::cout << "Die " << die << " at angle -90\n";
-				} else {
-					// The underline is right of the die center.  It's rotated 90 degrees.
-					// Rotate -90 (counterclockwise) to fix.
-					std::cout << "Die " << die << " at angle 90\n";
-				}
+				bool facingRight = (underline.center.x < cx);
+				std::cout << "Die " << die << " at angle " << (facingRight ? "90" : "-90") << "\n";
+				float top = underline.center.y - underline.longerSideLength / 2.0f;
+				float width = 2.0f * (distx - 0.2f);
+				float left = facingRight ?
+					// Select safely below the underline
+					underline.center.x + 0.3f * approxPixelsPerMm :
+					// Select safely above the underline
+					underline.center.x - (0.3f * approxPixelsPerMm) - width;
+				float height = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
+				cv::Rect myROI((int) left, (int) top, (int) width, (int) height);
+				cv::Mat dieImage = image(myROI);
+				cv::Mat rotated;
+				cv::rotate(dieImage, rotated, facingRight ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
+				r.push_back(rotated);
+				continue;
 			}
 		} else {
 			std::cout << "Die " << die << " angle not found\n";

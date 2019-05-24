@@ -45,7 +45,7 @@ DieOcrResult readDie(std::string path, cv::Mat &image) {
 		ocr.Init(path.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varsNames, &varValues, false);
 		ocr.SetVariable("tessedit_char_whitelist", "ABCDEGHJKLMNPQRTVWXYabdfr123456");
 		
-		ocr.SetPageSegMode(tesseract::PSM_AUTO_OSD);
+		ocr.SetPageSegMode(tesseract::PSM_RAW_LINE);
 	}
 	//
 	// tess.SetImage((uchar*)sub.data, sub.size().width, sub.size().height, sub.channels(), sub.step1());
