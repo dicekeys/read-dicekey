@@ -11,5 +11,9 @@
     <ClInclude Include="dicescanner\value-clusters.h" />
     <ClInclude Include="dicescanner\read-dice.h" />
     <ClInclude Include="dicescanner\rotate.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="dice-scanner.rc" />
   </ItemGroup>
 </Project>

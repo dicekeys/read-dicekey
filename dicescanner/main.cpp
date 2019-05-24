@@ -73,8 +73,10 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 
 int main(int argc, char** argv)
 {
-	// std::string path = "";
-	std::string path = "/Users/stuart/github/dice-scanner/";
+	// std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
+	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+	std::string path = "";
+	// std::string path = "/Users/stuart/github/dice-scanner/";
 	std::vector<std::string> names = {
 		"1", "2", "3", "4", "5",
 		"6", "7", "8", "9"
@@ -111,7 +113,7 @@ int main(int argc, char** argv)
 
 		for (uint i = 0; i < dice.size(); i++) {
 			auto die = dice[i];
-			auto readResult = readDie(die);
+			auto readResult = readDie(tesseractPath, die);
 			std::string identifier = filename + "-" + std::to_string(i);
 			if (readResult.success) {
 				identifier += "-";
