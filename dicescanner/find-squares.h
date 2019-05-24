@@ -62,7 +62,7 @@ static std::vector<RectangleDetected> removeOverlappingRectangles(std::vector<Re
 }
 
 // returns sequence of squares detected on the image.
-static RectanglesFound findSquares(const cv::Mat &image, std::string path, std::string filename, int N = 13)
+static RectanglesFound findSquares(const cv::Mat &gray, std::string path, std::string filename, int N = 13)
 {
 	RectanglesFound result;
 
@@ -76,9 +76,10 @@ static RectanglesFound findSquares(const cv::Mat &image, std::string path, std::
 	std::vector<RectangleDetected> candidateDiceSquares;
 	std::vector<RectangleDetected> candidateUnderlineRectangles;
 
-	cv::Mat pyr, timg, gray0(image.size(), CV_8U), gray;
+	 //cv::Mat pyr, timg, gray0(image.size(), CV_8U), gray;
+	 cv::Mat grayBlur, edges;
 
-	blur(image, timg, image.size().width > 2048 ? cv::Size(5, 5) : cv::Size(3,3)); // was 3
+	blur(gray, grayBlur, gray.size().width > 2048 ? cv::Size(5, 5) : cv::Size(3,3)); // was 3
 
 	// down-scale and upscale the image to filter out the noise
 	//pyrDown(image, pyr, Size(image.cols / 2, image.rows / 2));
@@ -89,8 +90,7 @@ static RectanglesFound findSquares(const cv::Mat &image, std::string path, std::
 	{
 		//int ch[] = { c, 0 };
 		// mixChannels(&timg, 1, &gray0, 1, ch, 1);
-		cv::cvtColor(timg, gray0, cv::COLOR_BGR2GRAY);
-		cv::imwrite(path + "contours/" + filename + "-gray" + ".png", gray0);
+		// cv::imwrite(path + "contours/" + filename + "-gray" + ".png", gray);
 
 		// try several threshold levels
 		for (int l = 0; l < N; l++)
@@ -107,40 +107,40 @@ static RectanglesFound findSquares(const cv::Mat &image, std::string path, std::
 				// apply Canny. Take the upper threshold from slider
 				// and set the lower to 0 (which forces edges merging)
 				// Canny(gray0, gray, otsu_threshold * lower_threshold_fraction, otsu_threshold, 5);  // was 0, 50, 5 -- best so far is 250, 1000
-				Canny(gray0, gray, 253, 255, 5);  // was 0, 50, 5 -- best so far is 253, 255, 5
+				Canny(grayBlur, edges, 253, 255, 5);  // was 0, 50, 5 -- best so far is 253, 255, 5
 
 				// dilate canny output to remove potential
 				// holes between edge segments
-				dilate(gray, gray, cv::Mat(), cv::Point(-1, -1));
+				dilate(edges, edges, cv::Mat(), cv::Point(-1, -1));
 				// cv::imwrite(path + "contours/" + filename + "-canny" + ".png", gray);
 			}
 			else
 			{
 				// apply threshold if l!=0:
 				//     tgray(x,y) = gray(x,y) < (l+1)*255/N ? 255 : 0
-				gray = gray0 >= (l + 1) * 255 / N;
+				edges = gray >= (l + 1) * 255 / N;
 			}
 
 			// find contours and store them all as a list
 			std::vector<std::vector<cv::Point>> contours;
-			findContours(gray, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+			findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
 			contours = vfilter<std::vector<cv::Point>>(contours, [](std::vector<cv::Point> contour) -> bool {
 				return cv::arcLength(contour, false) > 50;
 			});
 
-			auto clone = image.clone();
+			auto clone = gray.clone();
 			for (uint i = 0; i < contours.size(); i++)
 				cv::drawContours(clone, contours, i, cv::Scalar((i * 13) % 255, (i * 41) % 255, (i * 87) % 255), 3);
 
 			cv::imwrite(path + "contours/" + filename + // "-" + std::to_string(c) + 
 				"-" + std::to_string(l) + ".png", clone);
 
-			float min_edge_length = float(std::min(image.size[0], image.size[1])) / 50;
+			float min_edge_length = float(std::min(gray.size[0], gray.size[1])) / 50;
 			float min_area = min_edge_length * min_edge_length;
 
-			float min_underline_length = float(std::min(image.size[0], image.size[1])) / 80;
-			float max_underline_length = float(std::min(image.size[0], image.size[1])) / 8;
+			float min_underline_length = float(std::min(gray.size[0], gray.size[1])) / 80;
+			float max_underline_length = float(std::min(gray.size[0], gray.size[1])) / 8;
 			const float underline_length_mm = 5.5f; // 5.5mm
 			const float underline_width_mm = 0.3f; // 0.3 mm
 			const float underline_rect_short_to_long_ratio = underline_width_mm / underline_length_mm;

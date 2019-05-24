@@ -33,9 +33,10 @@ DieOcrResult readDie(std::string path, cv::Mat &image) {
 	varsNames.push_back("load_freq_dawg");
 	varsNames.push_back("tessedit_char_whitelist");
 	auto varValues = GenericVector<STRING>();
-	varValues.push_back("F");
-	varValues.push_back("F");
+	varValues.push_back("0");
+	varValues.push_back("0");
 	varValues.push_back("ABCDEGHJKLMNPQRTVWXYabdfr123456");
+	
 
 	// Initialize tesseract to use English (eng) and the LSTM OCR engine.
 	if (!tess_initialized) {
@@ -44,18 +45,20 @@ DieOcrResult readDie(std::string path, cv::Mat &image) {
 		ocr.Init(path.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varsNames, &varValues, false);
 		ocr.SetVariable("tessedit_char_whitelist", "ABCDEGHJKLMNPQRTVWXYabdfr123456");
 		
-		ocr.SetPageSegMode(tesseract::PSM_RAW_LINE);
+		ocr.SetPageSegMode(tesseract::PSM_AUTO_OSD);
 	}
 	//
 	// tess.SetImage((uchar*)sub.data, sub.size().width, sub.size().height, sub.channels(), sub.step1());
+
+	
 	auto width = image.size().width;
 	auto height = image.size().height;
 	auto bytesPerPixel = image.elemSize();
 	auto bytesPerLine = image.step1();
 	ocr.SetImage(image.data, width, height, (int) bytesPerPixel, (int) bytesPerLine);
-
-
 	ocr.Recognize(NULL);
+	
+	
 
 	// auto test = ocr.GetUTF8Text();
 

@@ -73,10 +73,10 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 
 int main(int argc, char** argv)
 {
-	// std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
-	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
-	std::string path = "";
-	// std::string path = "/Users/stuart/github/dice-scanner/";
+	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
+	//std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+	//std::string path = "";
+	std::string path = "/Users/stuart/github/dice-scanner/";
 	std::vector<std::string> names = {
 		"1", "2", "3", "4", "5",
 		"6", "7", "8", "9"
@@ -98,22 +98,26 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		auto squaresFound = findSquares(image, path, filename);
+		cv::Mat gray;
+		cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+
+		auto squaresFound = findSquares(gray, path, filename);
 
 		auto boxSlope = median(vmap<RectangleDetected, float>(squaresFound.candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
 
-		cv::Mat coloredForTesseract;
-		cv::cvtColor(image, coloredForTesseract, cv::COLOR_BGR2RGBA);
-
-		auto rotatedImage = rotateImageAndRectanglesFound(coloredForTesseract, squaresFound, boxSlope);
+		auto rotatedImage = rotateImageAndRectanglesFound(gray, squaresFound, boxSlope);
 		
 		writeSquares(rotatedImage, squaresFound.candidateUnderlineRectangles, path + "squares/underlines" + filename + ".png");
 
-		auto dice = filterAndOrderSquares(rotatedImage, squaresFound.candidateDiceSquares);
+		auto dice = filterAndOrderSquares(rotatedImage, squaresFound);
 
 		for (uint i = 0; i < dice.size(); i++) {
 			auto die = dice[i];
-			auto readResult = readDie(tesseractPath, die);
+			cv::Mat dieBlur, edges;
+			blur(die, dieBlur, cv::Size(3,3));
+			// Canny(dieBlur, edges, 255, 255, 5);
+			edges = dieBlur >= 70;
+			auto readResult = readDie(tesseractPath, edges);
 			std::string identifier = filename + "-" + std::to_string(i);
 			if (readResult.success) {
 				identifier += "-";
@@ -121,6 +125,7 @@ int main(int argc, char** argv)
 				identifier += readResult.digit;
 			}
 			imwrite(path + "dice/" + identifier + ".png", die);
+			imwrite(path + "dice/edge-" + identifier + ".png", edges);
 		}
 		// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
 
