@@ -17,7 +17,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-static cv::Mat rotateImageAndRectanglesFound(cv::Mat image, RectanglesFound& rects, float slope) {
+static cv::Mat rotateImageAndRectanglesFound(cv::Mat image, std::vector<RectangleDetected>& candidateDiceSquares, float slope) {
 	auto angleRadians = atan(slope);
 
 	const float radians45Degrees = 45.0f * 2.0f * (float)M_PI / 360.0f;
@@ -59,16 +59,16 @@ static cv::Mat rotateImageAndRectanglesFound(cv::Mat image, RectanglesFound& rec
 	//	}), 90.0f);
 	// const float squareEdgeLength = sqrt(area90thPercentile) * 1.15; // Add 15% to make sure we don't miss anything
 
-	rects.candidateDiceSquares = vmap<RectangleDetected, RectangleDetected>(rects.candidateDiceSquares,
+	candidateDiceSquares = vmap<RectangleDetected, RectangleDetected>(candidateDiceSquares,
 		[rotatePoint, angleDegrees](RectangleDetected r) -> RectangleDetected {
-			return RectangleDetected(rotatePoint(r.center), r.size, r.angle + angleDegrees, r.contourArea);
+			return RectangleDetected(rotatePoint(r.center), r.size, r.angle + angleDegrees, r.contourArea, r.foundAtThreshold);
 		});
 
-	// Rotate candidate underlines
-	rects.candidateUnderlineRectangles = vmap<RectangleDetected, RectangleDetected>(rects.candidateUnderlineRectangles,
-		[rotatePoint, angleDegrees](RectangleDetected r) -> RectangleDetected {
-			return RectangleDetected(rotatePoint(r.center), r.size, r.angle + angleDegrees, r.contourArea);
-		});
+	//// Rotate candidate underlines
+	//rects.candidateUnderlineRectangles = vmap<RectangleDetected, RectangleDetected>(rects.candidateUnderlineRectangles,
+	//	[rotatePoint, angleDegrees](RectangleDetected r) -> RectangleDetected {
+	//		return RectangleDetected(rotatePoint(r.center), r.size, r.angle + angleDegrees, r.contourArea);
+	//	});
 
 	return rotatedImage;
 }

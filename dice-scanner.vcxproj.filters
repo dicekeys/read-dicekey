@@ -12,6 +12,7 @@
     <ClInclude Include="dicescanner\read-dice.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="dicescanner\find-underline.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

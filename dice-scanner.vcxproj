@@ -156,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dicescanner\find-squares.h" />
+    <ClInclude Include="dicescanner\find-underline.h" />
     <ClInclude Include="dicescanner\rectangle.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="dicescanner\vfunctional.h" />

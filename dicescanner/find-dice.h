@@ -36,14 +36,12 @@ struct DieFound {
 
 static std::vector<cv::Mat> findDice(cv::Mat &image, std::vector<RectangleDetected> &candidateDiceSquares, float &approxPixelsPerMm)
 {
-	cv::Mat r;
+	std::vector<cv::Mat> r;
 
 	const float mmBetweenDieCenter = 8.0f + 1.8f;
 	const float dieSizeAsFractionOfDistanceBetweenDice = 8.0f / mmBetweenDieCenter;
 	const float mmFromDieCenterToUnderlineCenter = 2.15f;
 	const float maxMmFromDieCenterToUnderlineCenter = 2.0f * mmFromDieCenterToUnderlineCenter;
-
-	std::vector<DieFound> r;
 
 	const float dieSize = 8; // 8mm die size
 	const float gapBetweenDiceEdges = 1.8f; // 1.8mm

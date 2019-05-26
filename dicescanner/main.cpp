@@ -19,7 +19,6 @@
 #include "find-dice.h"
 #include "read-dice.h"
 #include "slope.h"
-#include "find-die-orientation-and-text-region.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -73,7 +72,7 @@ int main(int argc, char** argv)
 	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
 	//std::string path = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
 	std::string path = "";
-	std::string intermediateImagePath = path + "/progress/";
+	std::string intermediateImagePath = path + "progress/";
 	std::vector<std::string> names = {
 		"1", "2", "3", "4", "5",
 		"6", "7", "8", "9"
@@ -87,7 +86,7 @@ int main(int argc, char** argv)
 	}
 
 	for (auto& filename : names) {
-		std::string fname = intermediateImagePath + "img/" + filename + ".jpg";
+		std::string fname = path + "img/" + filename + ".jpg";
 		cv::Mat image = cv::imread(fname, cv::IMREAD_COLOR);
 		if (image.empty())
 		{
@@ -106,18 +105,18 @@ int main(int argc, char** argv)
 
 		cv::Mat rotatedColor;
 		cv::cvtColor(rotatedImage, rotatedColor, cv::COLOR_GRAY2BGR);
-		
-		writeSquares(rotatedColor, candidateDiceSquares, path + "squares/dice" + filename + ".png");
+
+		writeSquares(rotatedColor, candidateDiceSquares, path + "dice-squares-" + filename + ".png");
 
 		float approxPixelsPerMm;
 		auto dice = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
 
 		for (uint i = 0; i < dice.size(); i++) {
 			auto die = dice[i];
-			char letter, digit;
-			float letterConfidence, digitConfidence;
+			char letter = 0, digit = 0;
+			float letterConfidence = 0, digitConfidence = 0;
 			DieRead dieRead;
-			auto diereadSuccessfully = findDieOrientationAndTextRegion(tesseractPath, intermediateImagePath, die, dieRead, approxPixelsPerMm);
+			auto diereadSuccessfully = orientAndReadDie(tesseractPath, intermediateImagePath, die, dieRead, approxPixelsPerMm);
 			std::string identifier = filename + "-" + std::to_string(i);
 			if (diereadSuccessfully) {
 				identifier += "-";
@@ -134,5 +133,6 @@ int main(int argc, char** argv)
 			continue;
 		}
 
+	}
 	return 0;
 }

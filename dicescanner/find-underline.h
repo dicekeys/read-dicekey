@@ -1,3 +1,4 @@
+#pragma once
 
 #include <float.h>
 #include <opencv2/opencv.hpp>
@@ -13,23 +14,11 @@
 #include "rotate.h"
 #include "distance.h"
 
-#include <iostream> // FIXME after this works
+#include <iostream>
 
 
-struct DieFound {
-	cv::Mat image;
-	bool underlineFound;
-	RectangleDetected underline;
-	cv::Mat textImage;
-	int orientationInDegrees;
-};
 
-static bool findOrientationAndText(cv::Mat &image, DieFound &dieFound) {
-
-
-}
-
-static bool findUnderline(cv::Mat &image, RectangleDetected &cloestUnderline) {
+static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline) {
 	// Assume image is size of die (needs to be re-checked)
 	const float approxPixelsPerMm = ((image.size[0] + image.size[1]) / 2) / 8.0f;
 	const float mmFromDieCenterToUnderlineCenter = 2.15f;
@@ -40,10 +29,10 @@ static bool findUnderline(cv::Mat &image, RectangleDetected &cloestUnderline) {
 	const float maxDistanceDieCenterToUnderlineCenter = approxPixelsPerMm *
 		maxMmFromDieCenterToUnderlineCenter;
 
-	bool anUnderlineWasFound;
+	bool anUnderlineWasFound = false;
 	float minLength = image.size[0] / 2.2f;
 	float closestDistance = INFINITY;
-	auto dieCenter = cv::Point2f(image.size[0] / 2, image.size[1] / 2);
+	auto dieCenter = cv::Point2f(((float)image.size[0]) / 2, ((float) image.size[1]) / 2);
 
 	for (RectangleDetected rect : findRectangles(image)) {
 		if (rect.longerSideLength < minLength)
@@ -68,7 +57,7 @@ static bool findUnderline(cv::Mat &image, RectangleDetected &cloestUnderline) {
 		// This is the current winning candidate
 		anUnderlineWasFound = true;
 		closestDistance = distFromDieCenterToCandidateLine;
-		cloestUnderline = rect;
+		closestUnderline = rect;
 	}
 
 	return anUnderlineWasFound;
