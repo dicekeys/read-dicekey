@@ -11,46 +11,39 @@
 #include "find-squares.h"
 #include "value-clusters.h"
 #include "rotate.h"
+#include "distance.h"
 
 #include <iostream> // FIXME after this works
 
-//static double distance2d(const cv::Point2d& a, const cv::Point2d& b) {
-//	double dx = a.x - b.x;
-//	double dy = a.y - b.y;
-//	return sqrt(dx * dx + dy * dy);
-//}
-
-static float distance2f(const cv::Point2f & a, const cv::Point2f & b) {
-	float dx = a.x - b.x;
-	float dy = a.y - b.y;
-	return sqrt(dx * dx + dy * dy);
-}
-
-static float slope(const cv::Point & a, const cv::Point & b)
-{
-	return a.x == b.x ?
-		FLT_MAX :
-		// Note that since the y axis goes downward in OpenCV (unlike high school math),
-		// we calculate delta y using a.y - b.y instead of b.y - a.y
-		((float)a.y - b.y) / ((float)b.x - a.x);
-};
+// static float slope(const cv::Point & a, const cv::Point & b)
+// {
+// 	return a.x == b.x ?
+// 		FLT_MAX :
+// 		// Note that since the y axis goes downward in OpenCV (unlike high school math),
+// 		// we calculate delta y using a.y - b.y instead of b.y - a.y
+// 		((float)a.y - b.y) / ((float)b.x - a.x);
+// };
 
 
 struct DieFound {
-	cv::Point2f center;
-	int rotation;
+	cv::Mat image;
+	bool underlineFound;
 	RectangleDetected underline;
+	cv::Mat textImage;
+	int orientationInDegrees;
 };
 
 
-static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, RectanglesFound &squaresFound)
+static std::vector<cv::Mat> findDice(cv::Mat &image, std::vector<RectangleDetected> &candidateDiceSquares, float &approxPixelsPerMm)
 {
+	cv::Mat r;
+
 	const float mmBetweenDieCenter = 8.0f + 1.8f;
 	const float dieSizeAsFractionOfDistanceBetweenDice = 8.0f / mmBetweenDieCenter;
 	const float mmFromDieCenterToUnderlineCenter = 2.15f;
 	const float maxMmFromDieCenterToUnderlineCenter = 2.0f * mmFromDieCenterToUnderlineCenter;
 
-	std::vector<cv::Mat> r;
+	std::vector<DieFound> r;
 
 	const float dieSize = 8; // 8mm die size
 	const float gapBetweenDiceEdges = 1.8f; // 1.8mm
@@ -59,8 +52,8 @@ static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, RectanglesFoun
 	//
 	// Sort dice based on their slope-adjusted location
 	//
-	auto medianLineLength = median(vmap<RectangleDetected, float>(squaresFound.candidateDiceSquares, [](RectangleDetected r) { return (float)r.longerSideLength; }));
-	auto ssquares = squaresFound.candidateDiceSquares;
+	auto medianLineLength = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) { return (float)r.longerSideLength; }));
+	auto ssquares = candidateDiceSquares;
 	//r.size = medianLineLength;
 	auto distanceBetween = medianLineLength * dieSizeToDistBetweenDice;
 	float y_threshold = distanceBetween / 2;
@@ -125,7 +118,7 @@ static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, RectanglesFoun
 	float halfXSize = xSize / 2;
 	float halfYSize = ySize / 2;
 
-	const float approxPixelsPerMm =
+	approxPixelsPerMm =
 		( (distBetweenX + distBetweenY) / 2 ) / // pixels between die centers (averaging x and y distances)
 		mmBetweenDieCenter; // over the number of mm between die centers in our box design
 
@@ -146,87 +139,9 @@ static std::vector<cv::Mat> filterAndOrderSquares(cv::Mat &image, RectanglesFoun
 		// find the closest underline
 		int indexOfClosestUnderline = -1;
 		float closestDistance = INFINITY;
-		for (int i = 0; i < squaresFound.candidateUnderlineRectangles.size(); i++) {
-			auto distFromDieCenterToCandidateLine = distance2f(dieCenter, squaresFound.candidateUnderlineRectangles[i].center);
-			
-			if (distFromDieCenterToCandidateLine > maxDistanceDieCenterToUnderlineCenter) {
-				// Not close enough to consider
-				continue;
-			}
 
-			// FIXME -- reject candidate if line from die center to candidate center is not perpendicular (+- 25 degrees) with long edge of rectangle
-
-
-			if (indexOfClosestUnderline >= 0 && distFromDieCenterToCandidateLine > closestDistance) {
-				// A rectangle already found is closer
-				continue;
-			}
-
-			// This is the current winning candidate
-			indexOfClosestUnderline = i;
-			closestDistance = distFromDieCenterToCandidateLine;
-		}
-
-		if (indexOfClosestUnderline >= 0) {
-			auto underline = squaresFound.candidateUnderlineRectangles[indexOfClosestUnderline];
-			const float distx = abs(underline.center.x - cx);
-			const float disty = abs(underline.center.y - cy);
-			if (disty > distx) {
-				// The underline is above or below the center,
-				// indicating horizontal lettering (rotated 0 or 180)
-				bool rotate180 = (underline.center.y < cy);
-				std::cout << "Die " << die << " at angle " << (rotate180 ? "180" : "0") << "\n";
-				float left = underline.center.x - underline.longerSideLength / 2.0f;
-				float height = 2.0f * (disty - 0.2f);
-				float top = rotate180 ?
-					// Select safely below the underline
-					underline.center.y + 0.3f * approxPixelsPerMm :
-					// Select safely above the underline
-					underline.center.y - (0.3f * approxPixelsPerMm) - height;
-				float width = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
-				cv::Rect myROI((int) left, (int) top, (int) width, (int) height);
-				cv::Mat dieImage = image(myROI);
-				if (rotate180) {
-					// The underline is above the die center.  It's up-side down.
-					// Rotate 180
-					cv::rotate(dieImage, dieImage, cv::ROTATE_180);
-				}
-				r.push_back(dieImage);
-				continue;
-			} else {
-				bool facingRight = (underline.center.x < cx);
-				std::cout << "Die " << die << " at angle " << (facingRight ? "90" : "-90") << "\n";
-				float top = underline.center.y - underline.longerSideLength / 2.0f;
-				float width = 2.0f * (distx - 0.2f);
-				float left = facingRight ?
-					// Select safely below the underline
-					underline.center.x + 0.3f * approxPixelsPerMm :
-					// Select safely above the underline
-					underline.center.x - (0.3f * approxPixelsPerMm) - width;
-				float height = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
-				cv::Rect myROI((int) left, (int) top, (int) width, (int) height);
-				cv::Mat dieImage = image(myROI);
-				cv::Mat rotated;
-				cv::rotate(dieImage, rotated, facingRight ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
-				r.push_back(rotated);
-				continue;
-			}
-		} else {
-			std::cout << "Die " << die << " angle not found\n";
-		}
-
-
-		// cv::Mat clone = image.clone();
-		
-
-		//float bottom = cy + halfYSize;
 		cv::Rect myROI((int) left, (int) top, (int) xSize, (int) ySize);
-
-		// Crop the full image to that image contained by the rectangle myROI
-		// Note that this doesn't copy the data
 		cv::Mat dieImage = image(myROI);
-		
-		
 		
 		r.push_back(dieImage);
 

@@ -16,8 +16,10 @@
 #include "find-squares.h"
 #include "value-clusters.h"
 #include "rotate.h"
-#include "locate-dice.h"
+#include "find-dice.h"
 #include "read-dice.h"
+#include "slope.h"
+#include "find-die-orientation-and-text-region.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -25,11 +27,6 @@
 static void help(const char* programName)
 {
 	std::cout <<
-		"\nA program using pyramid scaling, Canny, contours and contour simplification\n"
-		"to find squares in a list of images (pic1-6.png)\n"
-		"Returns sequence of squares detected on the image.\n"
-		"Call:\n"
-		"./" << programName << " [file_name (optional)]\n"
 		"Using OpenCV version " << CV_VERSION << "\n" << std::endl;
 }
 
@@ -74,9 +71,9 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 int main(int argc, char** argv)
 {
 	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
-	//std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
-	//std::string path = "";
-	std::string path = "/Users/stuart/github/dice-scanner/";
+	//std::string path = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+	std::string path = "";
+	std::string intermediateImagePath = path + "/progress/";
 	std::vector<std::string> names = {
 		"1", "2", "3", "4", "5",
 		"6", "7", "8", "9"
@@ -90,7 +87,7 @@ int main(int argc, char** argv)
 	}
 
 	for (auto& filename : names) {
-		std::string fname = path + "img/" + filename + ".jpg";
+		std::string fname = intermediateImagePath + "img/" + filename + ".jpg";
 		cv::Mat image = cv::imread(fname, cv::IMREAD_COLOR);
 		if (image.empty())
 		{
@@ -101,35 +98,34 @@ int main(int argc, char** argv)
 		cv::Mat gray;
 		cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
-		auto squaresFound = findSquares(gray, path, filename);
+		auto candidateDiceSquares = findCandidateDiceSquares(gray, path, filename);
 
-		auto boxSlope = median(vmap<RectangleDetected, float>(squaresFound.candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
+		auto boxSlope = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
 
-		auto rotatedImage = rotateImageAndRectanglesFound(gray, squaresFound, boxSlope);
+		auto rotatedImage = rotateImageAndRectanglesFound(gray, candidateDiceSquares, boxSlope);
 
 		cv::Mat rotatedColor;
 		cv::cvtColor(rotatedImage, rotatedColor, cv::COLOR_GRAY2BGR);
 		
-		writeSquares(rotatedColor, squaresFound.candidateDiceSquares, path + "squares/dice" + filename + ".png");
-		writeSquares(rotatedColor, squaresFound.candidateUnderlineRectangles, path + "squares/underlines" + filename + ".png");
+		writeSquares(rotatedColor, candidateDiceSquares, path + "squares/dice" + filename + ".png");
 
-		auto dice = filterAndOrderSquares(rotatedImage, squaresFound);
+		float approxPixelsPerMm;
+		auto dice = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
 
 		for (uint i = 0; i < dice.size(); i++) {
 			auto die = dice[i];
-			cv::Mat dieBlur, edges;
-			blur(die, dieBlur, cv::Size(3,3));
-			// Canny(dieBlur, edges, 10, 50, 5);
-			edges = dieBlur >= 65;
-			auto readResult = readDie(tesseractPath, edges);
+			char letter, digit;
+			float letterConfidence, digitConfidence;
+			DieRead dieRead;
+			auto diereadSuccessfully = findDieOrientationAndTextRegion(tesseractPath, intermediateImagePath, die, dieRead, approxPixelsPerMm);
 			std::string identifier = filename + "-" + std::to_string(i);
-			if (readResult.success) {
+			if (diereadSuccessfully) {
 				identifier += "-";
-				identifier += readResult.letter;
-				identifier += readResult.digit;
+				identifier += dieRead.letter;
+				identifier += dieRead.digit;
 			}
-			imwrite(path + "dice/" + identifier + ".png", die);
-			imwrite(path + "dice/edge-" + identifier + ".png", edges);
+			imwrite(intermediateImagePath + "die-" + identifier + ".png", die);
+			// imwrite(intermediateImagePath + "dice-edges-" + identifier + ".png", edges);
 		}
 		// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
 
@@ -137,24 +133,6 @@ int main(int argc, char** argv)
 			std::cout << "Not enough dice in " << filename << std::endl;
 			continue;
 		}
-
-
-		//// Rotate image by diceSquares.angle
-		//cv::Mat grayPreRotation, grayPostRotation;
-		//cv::cvtColor(rotatedImage, grayPreRotation, cv::COLOR_BGR2GRAY);
-		//cv::Point2d center = diceSquares.squares[12].center;
-		//float correctionAngle = diceSquares.angleRadians * 360 / (2 * (float) M_PI);
-		//auto rotationMatrix = cv::getRotationMatrix2D(center, correctionAngle, 1.0f);
-
-		//cv::warpAffine(grayPreRotation, grayPostRotation, rotationMatrix, grayPreRotation.size() );
-		//imwrite(path + "gray/" + filename + ".png", grayPostRotation);
-
-		// drawSquares(image, squares);
-
-		//int c = waitKey();
-		//if (c == 27)
-		//	break;
-	}
 
 	return 0;
 }

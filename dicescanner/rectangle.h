@@ -39,6 +39,7 @@ public:
 	float angle;
 	float longerSideLength;
 	float shorterSideLength;
+	int foundAtThreshold;
 	cv::Point2f center;
 	cv::Size2f size;
 	std::vector<cv::Point2f> points = std::vector<cv::Point2f>(4);
@@ -50,8 +51,9 @@ public:
 	cv::Point topRight() { return points[2]; };
 	cv::Point bottomRight() { return points[3]; };
 
-	RectangleDetected(cv::RotatedRect rrect, float _contourArea) {
+	RectangleDetected(cv::RotatedRect rrect, float _contourArea, int _foundAtThreshold) {
 		contourArea = _contourArea;
+		foundAtThreshold = _foundAtThreshold;
 		center = rrect.center;
 		size = rrect.size;
 		angle = rrect.angle;
@@ -62,13 +64,16 @@ public:
 		area = shorterSideLength * longerSideLength;
 	}
 
-	RectangleDetected(cv::Point2f center, cv::Size2f size, float angle, float _contourArea) :
-		RectangleDetected(cv::RotatedRect(center, size, angle), _contourArea) {
+	RectangleDetected(cv::Point2f center, cv::Size2f size, float angle, float _contourArea, int _foundAtThreshold) :
+		RectangleDetected(cv::RotatedRect(center, size, angle), _contourArea, _foundAtThreshold) {
 	}
 
-	RectangleDetected(std::vector<cv::Point> contour) :
-		RectangleDetected(cv::minAreaRect(contour), (float)cv::contourArea(contour)) {
+	RectangleDetected(std::vector<cv::Point> contour, int _foundAtThreshold) :
+		RectangleDetected(cv::minAreaRect(contour), (float)cv::contourArea(contour), _foundAtThreshold) {
 	};
+
+	// Default constructor creates point of size 0 at origin.
+	RectangleDetected() : RectangleDetected(cv::Point2f(0,0), cv::Size2f(), 0, 0, -1) {}
 
 	float deviationFromNorm(float targetArea, float targetAngle, float targetShortToLongSideRatio = 1) {
 		// The penalty for deviating from a squareness is based on the ratio of the two lengths
