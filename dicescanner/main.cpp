@@ -69,8 +69,8 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 
 int main(int argc, char** argv)
 {
-	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
-	//std::string path = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+	//std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
+	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
 	std::string path = "";
 	std::string intermediateImagePath = path + "progress/";
 	std::vector<std::string> names = {
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 		cv::Mat rotatedColor;
 		cv::cvtColor(rotatedImage, rotatedColor, cv::COLOR_GRAY2BGR);
 
-		writeSquares(rotatedColor, candidateDiceSquares, path + "dice-squares-" + filename + ".png");
+		writeSquares(rotatedColor, candidateDiceSquares, intermediateImagePath + "dice-squares-" + filename + ".png");
 
 		float approxPixelsPerMm;
 		auto dice = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
@@ -116,14 +116,19 @@ int main(int argc, char** argv)
 			char letter = 0, digit = 0;
 			float letterConfidence = 0, digitConfidence = 0;
 			DieRead dieRead;
-			auto diereadSuccessfully = orientAndReadDie(tesseractPath, intermediateImagePath, die, dieRead, approxPixelsPerMm);
+			auto diereadSuccessfully = orientAndReadDie(tesseractPath, intermediateImagePath + filename + "-" + std::to_string(i) + "-", die, dieRead, approxPixelsPerMm, i);
 			std::string identifier = filename + "-" + std::to_string(i);
 			if (diereadSuccessfully) {
-				identifier += "-";
+				identifier += "-" + std::to_string(dieRead.orientationInDegrees) + "-" +
 				identifier += dieRead.letter;
 				identifier += dieRead.digit;
+				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) + "\n";
+			} else {
+				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
 			}
-			imwrite(intermediateImagePath + "die-" + identifier + ".png", die);
+			imwrite(intermediateImagePath + identifier + ".png", die);
+			
+
 			// imwrite(intermediateImagePath + "dice-edges-" + identifier + ".png", edges);
 		}
 		// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");

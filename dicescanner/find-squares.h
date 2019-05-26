@@ -116,7 +116,7 @@ static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, int N 
 
 		for (auto contour : contours) {
 			if (cv::arcLength(contour, false) > 50) {
-				rectanglesFound.push_back(RectangleDetected(contour, l));
+				rectanglesFound.push_back(RectangleDetected(contour, l == 0 ? 0 : (l + 1) * 255 / N));
 			}
 		}
 	}
