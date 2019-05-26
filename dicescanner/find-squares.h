@@ -75,7 +75,8 @@ static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, int N 
 	 //cv::Mat pyr, timg, gray0(image.size(), CV_8U), gray;
 	 cv::Mat grayBlur, edges;
 
-	blur(gray, grayBlur, gray.size().width > 2048 ? cv::Size(5, 5) : cv::Size(3,3)); // was 3
+	//cv::blur(gray, grayBlur, gray.size().width > 2048 ? cv::Size(5, 5) : cv::Size(3,3)); // was 3
+	cv::medianBlur(gray, grayBlur, 3); // was 3
 
 	// try several threshold levels
 	for (int l = 0; l < N; l++)

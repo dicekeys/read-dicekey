@@ -36,27 +36,9 @@ static cv::Rect cropLTWH(const cv::Size size, float _left, float _top, float _wi
 // }
 
 bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, int dieIndex = -1) {
-	dieRead.letterConfidence = 0;
-	dieRead.digitConfidence = 0;
-
-	cv::Mat dieBlur, edges;
-	blur(dieImageGrayscale, dieBlur, cv::Size(3,3));
-	// Canny(dieBlur, edges, 10, 50, 5);
-	if (threshold == 0) {
-		// cv::adaptiveThreshold(dieBlur, edges, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 61, 2);
-		edges = dieBlur >= 62;
-	} else {
-		edges = dieBlur >= threshold;
-	}
-
-	if (debugImagePath.size() > 0) {
-		cv::imwrite(debugImagePath + "ocr-edges.png", edges);
-	}
-
-	static tesseract::TessBaseAPI ocr = tesseract::TessBaseAPI();
+	const uint N = 20;
 	static bool tess_initialized = false;
-	const tesseract::PageIteratorLevel level = tesseract::RIL_SYMBOL;
-
+	static tesseract::TessBaseAPI ocr = tesseract::TessBaseAPI();
 	if (!tess_initialized) {
 		auto varNames = GenericVector<STRING>();
 		varNames.push_back("load_system_dawg");
@@ -67,7 +49,6 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 		varValues.push_back("0");
 		varValues.push_back("ABCDEGHJKLMNPQRTVWXYabdfr123456");
 	
-
 		// Initialize tesseract to use English (eng) and the LSTM OCR engine.
 		ocr.Init(tesseractPath.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varNames, &varValues, false);
 		ocr.SetVariable("tessedit_char_whitelist", "ABCDEGHJKLMNPQRTVWXYabdfr123456");
@@ -75,42 +56,75 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 		ocr.SetPageSegMode(tesseract::PSM_RAW_LINE);
 	}
 	
-	auto bytesPerPixel = edges.elemSize();
-	auto bytesPerLine = edges.step1();
-	auto width = edges.size().width;
-	auto height = edges.size().height;
-	ocr.SetImage(edges.data, width, height, (int) bytesPerPixel, (int) bytesPerLine);
-	ocr.Recognize(NULL);
-	
-	auto iterator = ocr.GetIterator();
+	dieRead.letterConfidence = 0;
+	dieRead.digitConfidence = 0;
 
-	if (iterator == NULL) {
-		return false;
-	}
-	char* symbol = iterator->GetUTF8Text(level);
-	if (symbol == NULL || *symbol == 0) {
-		return false;
-	}
-	dieRead.letter = *symbol;
-	delete symbol;
-	dieRead.letterConfidence = iterator->Confidence(level);
+	cv::Mat dieBlur, edges;
+	cv::medianBlur(dieImageGrayscale, dieBlur, 3);
 
-	if (!iterator->Next(level)) {
+	for (int l = 0; l < N; l++)
+	{
+		// hack: use Canny instead of zero threshold level.
+		// Canny helps to catch squares with gradient shading
+		if (l == 0) {
+			cv::threshold(dieBlur, edges, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+		} else {
+			edges = dieBlur >= (l + 1) * 255 / N;;
+		}
+
+		// if (debugImagePath.size() > 0) {
+		// 	cv::imwrite(debugImagePath + "ocr-edges.png", edges);
+		// }
+
+		const tesseract::PageIteratorLevel level = tesseract::RIL_SYMBOL;
+
+		auto bytesPerPixel = edges.elemSize();
+		auto bytesPerLine = edges.step1();
+		auto width = edges.size().width;
+		auto height = edges.size().height;
+		ocr.SetImage(edges.data, width, height, (int) bytesPerPixel, (int) bytesPerLine);
+		ocr.Recognize(NULL);
+		
+		auto iterator = ocr.GetIterator();
+
+		if (iterator == NULL) {
+			continue;
+		}
+		char* symbol = iterator->GetUTF8Text(level);
+		if (symbol == NULL || *symbol == 0) {
+			delete iterator;
+			continue;
+		}
+		float confidence = iterator->Confidence(level);
+		char letter = *symbol;
+		delete symbol;
+		if (confidence > dieRead.letterConfidence) {
+			// FIXME -- also check if letter is among valid letters
+			dieRead.letter = letter;
+			dieRead.letterConfidence = iterator->Confidence(level);
+		}
+
+		if (!iterator->Next(level)) {
+			delete iterator;
+			continue;
+		}
+
+		symbol = iterator->GetUTF8Text(level);
+		if (symbol == NULL || *symbol == 0) {
+			delete iterator;
+			continue;
+		}
+		confidence = iterator->Confidence(level);
+		char digit = *symbol;
+		delete symbol;
+		if (confidence > dieRead.digitConfidence && digit >= '0' & digit <= '6') {
+			dieRead.digit = digit;
+			dieRead.digitConfidence = iterator->Confidence(level);
+		}
+
 		delete iterator;
-		return false;
 	}
-
-	symbol = iterator->GetUTF8Text(level);
-	if (symbol == NULL || *symbol == 0) {
-		delete iterator;
-		return false;
-	}
-	dieRead.digit =  *symbol;
-	delete symbol;
-	dieRead.digitConfidence = iterator->Confidence(level);
-
-	delete iterator;
-	return true;
+	return dieRead.digitConfidence > 0 && dieRead.letterConfidence > 0;
 }
 
 
@@ -148,7 +162,7 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 			// std::cout << "Die " << dieIndex << " at angle " << dieRead.orientationInDegrees << "\n";
 			float width = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
 			float left = underline.center.x - width / 2.0f;
-			float height = 2.0f * (disty - 0.2f * approxPixelsPerMm);
+			float height = 2.0f * (disty - 0.2f);
 			float top =   dieRead.orientationInDegrees == 180 ?
 					// Select safely below the underline
 					underline.center.y + 0.3f * approxPixelsPerMm :
@@ -168,7 +182,7 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 			// std::cout << "Die " << dieIndex << " at angle " << dieRead.orientationInDegrees << "\n";
 			float height = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
 			float top = underline.center.y - height / 2.0f;
-			float width = 2.0f * (distx - 0.2f * approxPixelsPerMm);
+			float width = 2.0f * (distx - 0.2f);
 			float left = dieRead.orientationInDegrees == 90 ?
 				// Select safely to right of funderline
 				underline.center.x + 0.3f * approxPixelsPerMm :

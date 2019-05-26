@@ -119,9 +119,10 @@ int main(int argc, char** argv)
 			auto diereadSuccessfully = orientAndReadDie(tesseractPath, intermediateImagePath + filename + "-" + std::to_string(i) + "-", die, dieRead, approxPixelsPerMm, i);
 			std::string identifier = filename + "-" + std::to_string(i);
 			if (diereadSuccessfully) {
-				identifier += "-" + std::to_string(dieRead.orientationInDegrees) + "-" +
+				identifier += "[= ";
 				identifier += dieRead.letter;
 				identifier += dieRead.digit;
+				identifier += "=" + std::to_string(dieRead.orientationInDegrees) + " =]";
 				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) + "\n";
 			} else {
 				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
