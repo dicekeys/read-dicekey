@@ -69,9 +69,10 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 
 int main(int argc, char** argv)
 {
-	//std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
-	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
-	std::string path = "";
+	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
+	std::string path = "/Users/stuart/github/dice-scanner/";
+	//std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+	//std::string path = "";
 	std::string intermediateImagePath = path + "progress/";
 	std::vector<std::string> names = {
 		"1", "2", "3", "4", "5",
@@ -113,8 +114,6 @@ int main(int argc, char** argv)
 
 		for (uint i = 0; i < dice.size(); i++) {
 			auto die = dice[i];
-			char letter = 0, digit = 0;
-			float letterConfidence = 0, digitConfidence = 0;
 			DieRead dieRead;
 			auto diereadSuccessfully = orientAndReadDie(tesseractPath, intermediateImagePath + filename + "-" + std::to_string(i) + "-", die, dieRead, approxPixelsPerMm, i);
 			std::string identifier = filename + "-" + std::to_string(i);
@@ -128,7 +127,7 @@ int main(int argc, char** argv)
 				identifier += "READ-ERROR";
 				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
 			}
-			imwrite(intermediateImagePath + identifier + ".png", die);
+			imwrite(intermediateImagePath + "dice/" + identifier + ".png", die);
 			
 
 			// imwrite(intermediateImagePath + "dice-edges-" + identifier + ".png", edges);
