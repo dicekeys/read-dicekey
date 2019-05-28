@@ -115,7 +115,7 @@ std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string tesseractPath, 
 				identifier += "READ-ERROR";
 				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
 			}
-			cv::imwrite(intermediateImagePath + identifier + ".png", dice[i]);
+			cv::imwrite(intermediateImagePath + "dice/" + identifier + ".png", dice[i]);
 			
 
 			// imwrite(intermediateImagePath + "dice-edges-" + identifier + ".png", edges);
