@@ -141,7 +141,7 @@ bool isRectangleShapedLikelUnderline(RectangleDetected rect) {
 
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findCandidateDiceSquares(const cv::Mat &gray, std::string path, std::string filename, int N = 13)
+static std::vector<RectangleDetected> findCandidateDiceSquares(const cv::Mat &gray, int N = 13)
 {
 	/*
 	Future:

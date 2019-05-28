@@ -128,7 +128,6 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 }
 
 
-
 static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &dieImageGrayscale, DieRead &dieRead, float approxPixelsPerMm, int dieIndex = -1) {
 	float centerX = ((float) dieImageGrayscale.size[0]) / 2;
 	float centerY = ((float) dieImageGrayscale.size[1]) / 2;
@@ -211,4 +210,17 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 	}
 
 	return underlineFound && dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0;
+}
+
+
+
+static std::vector<DieRead> orientAndReadDice(std::string tesseractPath, std::string debugImagePath, std::vector<cv::Mat> &dieGrayscaleImages, float approxPixelsPerMm) 
+{
+	std::vector<DieRead> result;
+	for (uint i = 0; i < dieGrayscaleImages.size(); i++) {
+		DieRead dieRead;
+		orientAndReadDie(tesseractPath, debugImagePath + + "-" + std::to_string(i) + "-", dieGrayscaleImages[i], dieRead, approxPixelsPerMm, i);
+		result.push_back(dieRead);
+	}
+	return result;
 }

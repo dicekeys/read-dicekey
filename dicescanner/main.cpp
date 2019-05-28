@@ -66,6 +66,70 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 	cv::imwrite(name, clone);
 }
 
+std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string tesseractPath, std::string intermediateImagePath)
+{
+		cv::Mat gray;
+		cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+
+		//
+		// Stage one: identify the dice box by identifying the 25 squares formed by the 25 dice
+		//
+		auto candidateDiceSquares = findCandidateDiceSquares(gray);
+
+		//
+		// Step two: find and remove the slope (angle) so that the dice are horizonally aligned
+		// Future: should simply unskew image to have same effect but also remove kew
+		//
+		auto boxSlope = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
+		auto rotatedImage = rotateImageAndRectanglesFound(gray, candidateDiceSquares, boxSlope);
+
+		// Display the rotated dice for debuggin purposes.
+		cv::Mat rotatedColor;
+		cv::cvtColor(rotatedImage, rotatedColor, cv::COLOR_GRAY2BGR);
+		writeSquares(rotatedColor, candidateDiceSquares, intermediateImagePath + "-dice-squares" + ".png");
+
+		//
+		// Find the dice within the flattened image and calculate the number of pixesl per millimeter
+		// in the process
+		//
+		float approxPixelsPerMm;
+		auto dice = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
+
+		//
+		// Read each of the 25 dice indivudally by finding the underline to determine the rotation
+		// and then reading the text above the underline.
+		auto diceRead = orientAndReadDice(tesseractPath, intermediateImagePath, dice, approxPixelsPerMm);
+
+		// More output for debugging purposes
+		for (uint i = 0; i < dice.size(); i++) {
+			auto dieRead = diceRead[i];
+			DieRead dieRead;
+			std::string identifier = "-" + std::to_string(i);
+			if (dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0) {
+				identifier += " ";
+				identifier += dieRead.letter;
+				identifier += dieRead.digit;
+				identifier += " " + std::to_string(dieRead.orientationInDegrees) + "";
+				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) + "\n";
+			} else {
+				identifier += "READ-ERROR";
+				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
+			}
+			cv::imwrite(intermediateImagePath + identifier + ".png", dice[i]);
+			
+
+			// imwrite(intermediateImagePath + "dice-edges-" + identifier + ".png", edges);
+		}
+		
+		// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
+
+		if (dice.size() < 25) {
+			std::cout << "Not enough dice in found in " << intermediateImagePath << std::endl;
+		}
+
+	return diceRead;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -94,51 +158,7 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		cv::Mat gray;
-		cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-
-		auto candidateDiceSquares = findCandidateDiceSquares(gray, path, filename);
-
-		auto boxSlope = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
-
-		auto rotatedImage = rotateImageAndRectanglesFound(gray, candidateDiceSquares, boxSlope);
-
-		cv::Mat rotatedColor;
-		cv::cvtColor(rotatedImage, rotatedColor, cv::COLOR_GRAY2BGR);
-
-		writeSquares(rotatedColor, candidateDiceSquares, intermediateImagePath + "dice-squares-" + filename + ".png");
-
-		float approxPixelsPerMm;
-		auto dice = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
-
-		for (uint i = 0; i < dice.size(); i++) {
-			auto die = dice[i];
-			char letter = 0, digit = 0;
-			float letterConfidence = 0, digitConfidence = 0;
-			DieRead dieRead;
-			auto diereadSuccessfully = orientAndReadDie(tesseractPath, intermediateImagePath + filename + "-" + std::to_string(i) + "-", die, dieRead, approxPixelsPerMm, i);
-			std::string identifier = filename + "-" + std::to_string(i);
-			if (diereadSuccessfully) {
-				identifier += " ";
-				identifier += dieRead.letter;
-				identifier += dieRead.digit;
-				identifier += " " + std::to_string(dieRead.orientationInDegrees) + " ";
-				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) + "\n";
-			} else {
-				identifier += "READ-ERROR";
-				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
-			}
-			imwrite(intermediateImagePath + identifier + ".png", die);
-			
-
-			// imwrite(intermediateImagePath + "dice-edges-" + identifier + ".png", edges);
-		}
-		// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
-
-		if (dice.size() < 25) {
-			std::cout << "Not enough dice in " << filename << std::endl;
-			continue;
-		}
+		getDiceFromImage(image, intermediateImagePath + filename, tesseractPath);
 
 	}
 	return 0;
