@@ -137,7 +137,7 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 	// 	8; // 8mm dice
 
 	RectangleDetected underline;
-	bool underlineFound = findUnderline(dieImageGrayscale, underline);
+	bool underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
 
 	if (underlineFound) {
 		cv::Mat textRegionImageGrayscale;

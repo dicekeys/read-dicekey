@@ -32,6 +32,8 @@
 //	return cv::Point2d(x, y);
 //}
 
+
+
 class RectangleDetected {
 public:
 	float contourArea;
@@ -40,6 +42,7 @@ public:
 	float longerSideLength;
 	float shorterSideLength;
 	int foundAtThreshold;
+	cv::RotatedRect rotatedRect;
 	cv::Point2f center;
 	cv::Size2f size;
 	std::vector<cv::Point2f> points = std::vector<cv::Point2f>(4);
@@ -52,6 +55,7 @@ public:
 	cv::Point bottomRight() { return points[3]; };
 
 	RectangleDetected(cv::RotatedRect rrect, float _contourArea, int _foundAtThreshold) {
+		rotatedRect = rrect;
 		contourArea = _contourArea;
 		foundAtThreshold = _foundAtThreshold;
 		center = rrect.center;

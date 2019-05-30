@@ -48,10 +48,12 @@ static float percentile(const std::vector<float>& numbers, float percentileOf100
 	return (sorted[lower] + sorted[upper]) / 2;
 }
 
-static float median(const std::vector<float> &numbers)
+
+template <typename NUMBER>
+static NUMBER median(const std::vector<NUMBER> &numbers)
 {
-	std::vector<float> sorted = numbers;
-	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return a < b; });
+	std::vector<NUMBER> sorted = numbers;
+	std::sort(sorted.begin(), sorted.end(), [](NUMBER a, NUMBER b) { return a < b; });
 	if (sorted.size() == 0) {
 		return 0;
 	} else if (sorted.size() % 2 > 0) {
