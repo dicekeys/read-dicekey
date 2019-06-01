@@ -168,7 +168,7 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		getDiceFromImage(image, intermediateImagePath + filename, filename, 1);
+		getDiceFromImage(image, filename, intermediateImagePath + filename, 1);
 
 	}
 	return 0;

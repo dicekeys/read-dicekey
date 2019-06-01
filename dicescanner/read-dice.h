@@ -36,9 +36,9 @@ static cv::Rect cropLTWH(const cv::Size size, float _left, float _top, float _wi
 
 // }
 
-tesseract::TessBaseAPI initOcr(std::string tesseractPath = "/dev/null") {
+tesseract::TessBaseAPI* initOcr(std::string tesseractPath = "/dev/null") {
 	static bool tess_initialized = false;
-	static tesseract::TessBaseAPI ocr = tesseract::TessBaseAPI();
+	static tesseract::TessBaseAPI* ocr = new tesseract::TessBaseAPI();
 	if (!tess_initialized) {
 		if (tesseractPath == "/dev/null") {
 			throw "initOcr called before tesseract path provided";
@@ -53,9 +53,10 @@ tesseract::TessBaseAPI initOcr(std::string tesseractPath = "/dev/null") {
 		varValues.push_back("ABCDEGHJKLMNPQRTVWXYabdfr123456");
 	
 		// Initialize tesseract to use English (eng) and the LSTM OCR engine.
-		ocr.Init(tesseractPath.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varNames, &varValues, false);
-		ocr.SetVariable("tessedit_char_whitelist", "ABCDEGHJKLMNPQRTVWXYabdfr123456");
-		ocr.SetPageSegMode(tesseract::PSM_RAW_LINE);
+		ocr->Init(tesseractPath.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varNames, &varValues, false);
+		tess_initialized = true;
+		ocr->SetVariable("tessedit_char_whitelist", "ABCDEGHJKLMNPQRTVWXYabdfr123456");
+		ocr->SetPageSegMode(tesseract::PSM_RAW_LINE);
 	}
 	return ocr;
 }
@@ -63,7 +64,7 @@ tesseract::TessBaseAPI initOcr(std::string tesseractPath = "/dev/null") {
 bool readDie(cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, std::string debugImagePath = "/dev/null", int debugLevel = 0) {
 	const uint N = 20;
 	static bool tess_initialized = false;
-	static tesseract::TessBaseAPI ocr = initOcr();
+	static tesseract::TessBaseAPI* ocr = initOcr();
 	
 	dieRead.letterConfidence = 0;
 	dieRead.digitConfidence = 0;
@@ -91,10 +92,10 @@ bool readDie(cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, std::s
 		auto bytesPerLine = edges.step1();
 		auto width = edges.size().width;
 		auto height = edges.size().height;
-		ocr.SetImage(edges.data, width, height, (int) bytesPerPixel, (int) bytesPerLine);
-		ocr.Recognize(NULL);
+		ocr->SetImage(edges.data, width, height, (int) bytesPerPixel, (int) bytesPerLine);
+		ocr->Recognize(NULL);
 		
-		auto iterator = ocr.GetIterator();
+		auto iterator = ocr->GetIterator();
 
 		if (iterator == NULL) {
 			continue;
