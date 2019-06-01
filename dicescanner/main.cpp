@@ -66,68 +66,75 @@ static void writeSquares(cv::Mat& image, const std::vector<RectangleDetected>& r
 	cv::imwrite(name, clone);
 }
 
-std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string tesseractPath, std::string intermediateImagePath)
+std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string fileIdentifier, std::string intermediateImagePath = "/dev/null", int boxDebugLevel = 0)
 {
-		cv::Mat gray;
-		cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+	cv::Mat gray;
+	cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
-		//
-		// Stage one: identify the dice box by identifying the 25 squares formed by the 25 dice
-		//
-		auto candidateDiceSquares = findCandidateDiceSquares(gray);
+	//
+	// Stage one: identify the dice box by identifying the 25 squares formed by the 25 dice
+	//
+	auto candidateDiceSquares = findCandidateDiceSquares(gray);
 
-		//
-		// Step two: find and remove the slope (angle) so that the dice are horizonally aligned
-		// Future: should simply unskew image to have same effect but also remove kew
-		//
-		auto boxSlope = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
-		auto rotatedImage = rotateImageAndRectanglesFound(gray, candidateDiceSquares, boxSlope);
+	//
+	// Step two: find and remove the slope (angle) so that the dice are horizonally aligned
+	// Future: should simply unskew image to have same effect but also remove kew
+	//
+	auto boxSlope = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) { return slope(r.topLeft(), r.topRight()); }));
+	auto rotatedImage = rotateImageAndRectanglesFound(gray, candidateDiceSquares, boxSlope);
 
-		// Display the rotated dice for debuggin purposes.
-		cv::Mat rotatedColor;
-		cv::cvtColor(rotatedImage, rotatedColor, cv::COLOR_GRAY2BGR);
+	// Display the rotated dice for debuggin purposes.
+	cv::Mat rotatedColor;
+	cv::cvtColor(rotatedImage, rotatedColor, cv::COLOR_GRAY2BGR);
+	if (!intermediateImagePath.find("/dev/null") == 0 && boxDebugLevel >= 1) {
 		writeSquares(rotatedColor, candidateDiceSquares, intermediateImagePath + "-dice-squares" + ".png");
+	}
 
-		//
-		// Find the dice within the flattened image and calculate the number of pixesl per millimeter
-		// in the process
-		//
-		float approxPixelsPerMm;
-		auto dice = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
+	//
+	// Find the dice within the flattened image and calculate the number of pixesl per millimeter
+	// in the process
+	//
+	float approxPixelsPerMm;
+	auto dice = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
 
-		//
-		// Read each of the 25 dice indivudally by finding the underline to determine the rotation
-		// and then reading the text above the underline.
-		auto diceRead = orientAndReadDice(tesseractPath, intermediateImagePath, dice, approxPixelsPerMm);
+	//
+	// Read each of the 25 dice indivudally by finding the underline to determine the rotation
+	// and then reading the text above the underline.
+	auto diceRead = orientAndReadDice(dice, approxPixelsPerMm, intermediateImagePath);
 
-		// More output for debugging purposes
-		for (uint i = 0; i < dice.size(); i++) {
-			auto dieRead = diceRead[i];
-			std::string identifier = "-" + std::to_string(i);
-			if (dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0) {
-				identifier += " ";
-				identifier += dieRead.letter;
-				identifier += dieRead.digit;
-				identifier += " " + std::to_string(dieRead.orientationInDegrees) + "";
-				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees <<
-					" read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) <<
-					" with confidence " << dieRead.letterConfidence << ", " << dieRead.digitConfidence <<
-					"\n";
-			} else {
-				identifier += "READ-ERROR";
-				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
-			}
+	// More output for debugging purposes
+	for (uint i = 0; i < dice.size(); i++) {
+		//
+		int dieDebugLevel =
+			(fileIdentifier.size() > 0 && fileIdentifier[fileIdentifier.size() -1] == '1' && i == 16) ? 2 :
+			boxDebugLevel;
+
+		auto dieRead = diceRead[i];
+		std::string identifier = "-" + std::to_string(i);
+		if (dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0) {
+			identifier += " ";
+			identifier += dieRead.letter;
+			identifier += dieRead.digit;
+			identifier += " " + std::to_string(dieRead.orientationInDegrees) + "";
+			std::cout << "File " << fileIdentifier << "Die " << i << " at angle " << dieRead.orientationInDegrees <<
+				" read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) <<
+				" with confidence " << dieRead.letterConfidence << ", " << dieRead.digitConfidence <<
+				"\n";
+		} else {
+			identifier += "READ-ERROR";
+			std::cout << "File " << fileIdentifier << " Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
+		}
+		if (!intermediateImagePath.rfind("/dev/null", 0) == 0 && dieDebugLevel >= 1) {
 			cv::imwrite(intermediateImagePath + identifier + "-die.png", dice[i]);
-			
-
-			// imwrite(intermediateImagePath + "dice-edges-" + identifier + ".png", edges);
 		}
-		
-		// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
 
-		if (dice.size() < 25) {
-			std::cout << "Not enough dice in found in " << intermediateImagePath << std::endl;
-		}
+	}
+	
+	// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
+
+	if (dice.size() < 25) {
+		std::cout << "Not enough dice in found in " << intermediateImagePath << std::endl;
+	}
 
 	return diceRead;
 }
@@ -137,6 +144,7 @@ int main(int argc, char** argv)
 {
 	//std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
 	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+	initOcr(tesseractPath);
 	std::string path = "";
 	std::string intermediateImagePath = path + "progress/";
 	std::vector<std::string> names = {
@@ -160,7 +168,7 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		getDiceFromImage(image, tesseractPath, intermediateImagePath + filename);
+		getDiceFromImage(image, intermediateImagePath + filename, filename, 1);
 
 	}
 	return 0;

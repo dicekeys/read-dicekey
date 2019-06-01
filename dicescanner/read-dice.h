@@ -36,11 +36,13 @@ static cv::Rect cropLTWH(const cv::Size size, float _left, float _top, float _wi
 
 // }
 
-bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, int dieIndex = -1) {
-	const uint N = 20;
+tesseract::TessBaseAPI initOcr(std::string tesseractPath = "/dev/null") {
 	static bool tess_initialized = false;
 	static tesseract::TessBaseAPI ocr = tesseract::TessBaseAPI();
 	if (!tess_initialized) {
+		if (tesseractPath == "/dev/null") {
+			throw "initOcr called before tesseract path provided";
+		}
 		auto varNames = GenericVector<STRING>();
 		varNames.push_back("load_system_dawg");
 		varNames.push_back("load_freq_dawg");
@@ -53,9 +55,15 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 		// Initialize tesseract to use English (eng) and the LSTM OCR engine.
 		ocr.Init(tesseractPath.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varNames, &varValues, false);
 		ocr.SetVariable("tessedit_char_whitelist", "ABCDEGHJKLMNPQRTVWXYabdfr123456");
-	
 		ocr.SetPageSegMode(tesseract::PSM_RAW_LINE);
 	}
+	return ocr;
+}
+
+bool readDie(cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, std::string debugImagePath = "/dev/null", int debugLevel = 0) {
+	const uint N = 20;
+	static bool tess_initialized = false;
+	static tesseract::TessBaseAPI ocr = initOcr();
 	
 	dieRead.letterConfidence = 0;
 	dieRead.digitConfidence = 0;
@@ -73,9 +81,9 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 			edges = dieBlur >= (l + 1) * 255 / N;;
 		}
 
-		// if (debugImagePath.size() > 0) {
-		// 	cv::imwrite(debugImagePath + "ocr-edges.png", edges);
-		// }
+		if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 2) {
+		 	cv::imwrite(debugImagePath + "ocr-edges-" + std::to_string(l) + ".png", edges);
+		}
 
 		const tesseract::PageIteratorLevel level = tesseract::RIL_SYMBOL;
 
@@ -129,7 +137,7 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 }
 
 
-static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &dieImageGrayscale, DieRead &dieRead, float approxPixelsPerMm, int dieIndex = -1) {
+static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGrayscale, DieRead &dieRead, float approxPixelsPerMm, int debugLevel = 0) {
 	float centerX = ((float) dieImageGrayscale.size[0]) / 2;
 	float centerY = ((float) dieImageGrayscale.size[1]) / 2;
 
@@ -139,12 +147,7 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 
 	bool underlineFound;
 	RectangleDetected underline;
-	// if (dieIndex == 20) {
-	//	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
-	// }
-	// else {
 	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
-	//}
 	if (underlineFound) {
 		cv::Mat textRegionImageGrayscale;
 		if (debugImagePath.size() > 0) {
@@ -155,7 +158,9 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 			const cv::Point* p = points.data();
 			int n = (int)points.size();
 			polylines(underlineImage, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
-			cv::imwrite(debugImagePath + "underline.png", underlineImage);
+			if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 1) {
+				cv::imwrite(debugImagePath + "underline.png", underlineImage);
+			}
 		}
 
 		const float distx = abs(underline.center.x - centerX);
@@ -200,7 +205,7 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 			cv::rotate(dieImage, textRegionImageGrayscale, dieRead.orientationInDegrees == 90 ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
 		}
 
-		readDie(tesseractPath, debugImagePath, textRegionImageGrayscale, dieRead, underline.foundAtThreshold, dieIndex );
+		readDie(textRegionImageGrayscale, dieRead, underline.foundAtThreshold, debugImagePath, debugLevel);
 	}
 
 	return underlineFound && dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0;
@@ -208,12 +213,12 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 
 
 
-static std::vector<DieRead> orientAndReadDice(std::string tesseractPath, std::string debugImagePath, std::vector<cv::Mat> &dieGrayscaleImages, float approxPixelsPerMm) 
+static std::vector<DieRead> orientAndReadDice(std::vector<cv::Mat> &dieGrayscaleImages, float approxPixelsPerMm, std::string debugImagePath)
 {
 	std::vector<DieRead> result;
 	for (uint i = 0; i < dieGrayscaleImages.size(); i++) {
 		DieRead dieRead;
-		orientAndReadDie(tesseractPath, debugImagePath + + "-" + std::to_string(i) + "-", dieGrayscaleImages[i], dieRead, approxPixelsPerMm, i);
+		orientAndReadDie(debugImagePath + + "-" + std::to_string(i) + "-", dieGrayscaleImages[i], dieRead, approxPixelsPerMm, i);
 		result.push_back(dieRead);
 	}
 	return result;
