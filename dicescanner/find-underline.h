@@ -63,13 +63,15 @@
 
 static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
 	auto bounds = rect.boundingRect();
-	auto left = bounds.x;
-	auto top = bounds.y;
+	auto left = std::max(0, bounds.x);
+	auto top = std::max(0, bounds.y);
+	cv::Point2f points[4];
+	rect.points(points);
 
 	auto contourInBoundingBox = std::vector<cv::Point> {
-		cv::Point( rect.points[0].x - left, rect.points[0].y - top ),
-		cv::Point( rect.points[1].x - left, rect.points[1].y - top ),
-		cv::Point( rect.points[2].x - left, rect.points[2].y - top ),
+		cv::Point( (int) points[0].x - left, (int) points[0].y - top ),
+		cv::Point( (int) points[1].x - left, (int) points[1].y - top ),
+		cv::Point( (int) points[2].x - left, (int) points[2].y - top ),
 	};
 	std::vector<std::vector<cv::Point>> contours = { contourInBoundingBox };
 
@@ -78,9 +80,9 @@ static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
 
 	std::vector<uint> pixelValuesInRect;
 	for (int x = 0; x < bounds.width; x++) {		
-		for (int y = 0; y < bounds.width; y++) {
-			if (mask.at<uchar>(x, y) > 0) {
-				pixelValuesInRect.push_back( image.at<uchar>(left + x, top + y ) );
+		for (int y = 0; y < bounds.height; y++) {
+			if (mask.at<uchar>(y, x) > 0) {
+				pixelValuesInRect.push_back( image.at<uchar>(top + y, left + x) );
 			}
 		}
 	}
@@ -92,8 +94,8 @@ static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
 static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline, const float approxPixelsPerMm) {
 	// Assume image is size of die (needs to be re-checked)
 //	const float approxPixelsPerMm = ((image.size[0] + image.size[1]) / 2) / 8.0f;
-	const float lineLengthMm = 5.5f;
-	const float mmFromDieCenterToUnderlineCenter = 2.15f;
+	const float lineLengthMm = 5.0f;
+	const float mmFromDieCenterToUnderlineCenter = 2.85f;
 	const float maxMmFromDieCenterToUnderlineCenter = 2.0f * mmFromDieCenterToUnderlineCenter;
 
 	// FUTURE -- use same threshold as die rectangle to save time?
@@ -104,8 +106,8 @@ static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline, c
 	bool anUnderlineWasFound = false;
 	float expectedLengthInPixels = lineLengthMm * approxPixelsPerMm;
 	float pixelsExpectedFromDieCenterToUnderlineCenter = mmFromDieCenterToUnderlineCenter * approxPixelsPerMm;
-	float minLength = 0.85 * expectedLengthInPixels;
-	float maxLength = 1.15 * expectedLengthInPixels;
+	float minLength = 0.85f * expectedLengthInPixels;
+	float maxLength = 1.15f * expectedLengthInPixels;
 	float smallestDeviation = INFINITY;
 	auto dieCenter = cv::Point2f(((float)image.size[0]) / 2, ((float) image.size[1]) / 2);
 

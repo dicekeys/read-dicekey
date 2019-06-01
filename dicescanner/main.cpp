@@ -103,7 +103,6 @@ std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string tesseractPath, 
 		// More output for debugging purposes
 		for (uint i = 0; i < dice.size(); i++) {
 			auto dieRead = diceRead[i];
-			DieRead dieRead;
 			std::string identifier = "-" + std::to_string(i);
 			if (dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0) {
 				identifier += " ";
@@ -158,7 +157,7 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		getDiceFromImage(image, intermediateImagePath + filename, tesseractPath);
+		getDiceFromImage(image, tesseractPath, intermediateImagePath + filename);
 
 	}
 	return 0;

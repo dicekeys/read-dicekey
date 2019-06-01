@@ -117,7 +117,7 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 		confidence = iterator->Confidence(level);
 		char digit = *symbol;
 		delete symbol;
-		if (confidence > dieRead.digitConfidence && digit >= '0' & digit <= '6') {
+		if (confidence > dieRead.digitConfidence && digit >= '0' && digit <= '6') {
 			dieRead.digit = digit;
 			dieRead.digitConfidence = iterator->Confidence(level);
 		}
