@@ -40,6 +40,7 @@ tesseract::TessBaseAPI* initOcr(std::string tesseractPath = "/dev/null") {
 	static bool tess_initialized = false;
 	static tesseract::TessBaseAPI* ocr = new tesseract::TessBaseAPI();
 	if (!tess_initialized) {
+		const char* alphabet = "ABCDEGHJKLMNPQRTVWXYabdfr123456";
 		if (tesseractPath == "/dev/null") {
 			throw "initOcr called before tesseract path provided";
 		}
@@ -50,12 +51,12 @@ tesseract::TessBaseAPI* initOcr(std::string tesseractPath = "/dev/null") {
 		auto varValues = GenericVector<STRING>();
 		varValues.push_back("0");
 		varValues.push_back("0");
-		varValues.push_back("ABCDEGHJKLMNPQRTVWXYabdfr123456");
+		varValues.push_back(alphabet);
 	
 		// Initialize tesseract to use English (eng) and the LSTM OCR engine.
 		ocr->Init(tesseractPath.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varNames, &varValues, false);
 		tess_initialized = true;
-		ocr->SetVariable("tessedit_char_whitelist", "ABCDEGHJKLMNPQRTVWXYabdfr123456");
+		ocr->SetVariable("tessedit_char_whitelist", alphabet);
 		ocr->SetPageSegMode(tesseract::PSM_RAW_LINE);
 	}
 	return ocr;
