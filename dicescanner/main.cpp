@@ -109,15 +109,15 @@ std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string fileIdentifier,
 			boxDebugLevel;
 
 		orientAndReadDie(intermediateImagePath + + "-" + std::to_string(i) + "-", diceGrayscaleImages[i], dieRead, approxPixelsPerMm, dieDebugLevel);
+		diceRead.push_back(dieRead);
 		//
-		auto dieRead = diceRead[i];
 		std::string identifier = "-" + std::to_string(i);
 		if (dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0) {
 			identifier += " ";
 			identifier += dieRead.letter;
 			identifier += dieRead.digit;
 			identifier += " " + std::to_string(dieRead.orientationInDegrees) + "";
-			std::cout << "File " << fileIdentifier << "Die " << i << " at angle " << dieRead.orientationInDegrees <<
+			std::cout << "File " << fileIdentifier << " Die " << i << " at angle " << dieRead.orientationInDegrees <<
 				" read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) <<
 				" with confidence " << dieRead.letterConfidence << ", " << dieRead.digitConfidence <<
 				"\n";
