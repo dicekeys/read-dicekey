@@ -65,6 +65,8 @@ static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
 	auto bounds = rect.boundingRect();
 	auto left = std::max(0, bounds.x);
 	auto top = std::max(0, bounds.y);
+	auto width = std::min(image.cols - left, bounds.width);
+	auto height = std::min(image.rows - top, bounds.height);
 	cv::Point2f points[4];
 	rect.points(points);
 
@@ -75,12 +77,12 @@ static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
 	};
 	std::vector<std::vector<cv::Point>> contours = { contourInBoundingBox };
 
-	cv::Mat mask(cv::Size(bounds.width, bounds.height), uchar(0));
+	cv::Mat mask(bounds.height, bounds.width, uchar(0));
 	drawContours(mask, contours, 0, cv::Scalar(1), cv::FILLED, 0);
 
 	std::vector<uint> pixelValuesInRect;
-	for (int x = 0; x < bounds.width; x++) {		
-		for (int y = 0; y < bounds.height; y++) {
+	for (int x = 0; x < width; x++) {		
+		for (int y = 0; y < height; y++) {
 			if (mask.at<uchar>(y, x) > 0) {
 				pixelValuesInRect.push_back( image.at<uchar>(top + y, left + x) );
 			}
@@ -94,7 +96,7 @@ static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
 static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline, const float approxPixelsPerMm) {
 	// Assume image is size of die (needs to be re-checked)
 //	const float approxPixelsPerMm = ((image.size[0] + image.size[1]) / 2) / 8.0f;
-	const float lineLengthMm = 5.0f;
+	const float lineLengthMm = 5.5f;
 	const float mmFromDieCenterToUnderlineCenter = 2.85f;
 	const float maxMmFromDieCenterToUnderlineCenter = 2.0f * mmFromDieCenterToUnderlineCenter;
 
@@ -110,8 +112,9 @@ static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline, c
 	float maxLength = 1.15f * expectedLengthInPixels;
 	float smallestDeviation = INFINITY;
 	auto dieCenter = cv::Point2f(((float)image.size[0]) / 2, ((float) image.size[1]) / 2);
-
-	for (RectangleDetected rect : findRectangles(image)) {
+	
+	auto rectangles = findRectangles(image);
+	for (RectangleDetected rect : rectangles) {
 		if (rect.longerSideLength < minLength || rect.longerSideLength > maxLength)
 			continue;
 		if (!isRectangleShapedLikelUnderline(rect))
