@@ -61,7 +61,7 @@
 // }
 
 
-static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
+static uchar percentilePointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect, float percentileOutOf100 = 20.0f) {
 	auto bounds = rect.boundingRect();
 	auto left = std::max(0, bounds.x);
 	auto top = std::max(0, bounds.y);
@@ -80,7 +80,7 @@ static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
 	cv::Mat mask(bounds.height, bounds.width, uchar(0));
 	drawContours(mask, contours, 0, cv::Scalar(1), cv::FILLED, 0);
 
-	std::vector<uint> pixelValuesInRect;
+	std::vector<uchar> pixelValuesInRect;
 	for (int x = 0; x < width; x++) {		
 		for (int y = 0; y < height; y++) {
 			if (mask.at<uchar>(y, x) > 0) {
@@ -89,7 +89,7 @@ static uint medianPointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect) {
 		}
 	}
 
-	return median(pixelValuesInRect);
+	return percentile<uchar>(pixelValuesInRect, percentileOutOf100);
 }
 
 
@@ -108,8 +108,8 @@ static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline, c
 	bool anUnderlineWasFound = false;
 	float expectedLengthInPixels = lineLengthMm * approxPixelsPerMm;
 	float pixelsExpectedFromDieCenterToUnderlineCenter = mmFromDieCenterToUnderlineCenter * approxPixelsPerMm;
-	float minLength = 0.85f * expectedLengthInPixels;
-	float maxLength = 1.15f * expectedLengthInPixels;
+	float minLength = 0.75f * expectedLengthInPixels;
+	float maxLength = 1.25f * expectedLengthInPixels;
 	float smallestDeviation = INFINITY;
 	auto dieCenter = cv::Point2f(((float)image.size[0]) / 2, ((float) image.size[1]) / 2);
 	
@@ -117,17 +117,26 @@ static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline, c
 	for (RectangleDetected rect : rectangles) {
 		if (rect.longerSideLength < minLength || rect.longerSideLength > maxLength)
 			continue;
-		if (!isRectangleShapedLikelUnderline(rect))
+		if (!isRectangleShapedLikeUnderline(rect))
 			continue;
 
 		auto distFromDieCenterToCandidateLine = distance2f(dieCenter, rect.center);
-		auto fractionalDeviationFromExpectedDistanceToCenter = 
-			((float) abs( distFromDieCenterToCandidateLine - pixelsExpectedFromDieCenterToUnderlineCenter)) /
+		// One deviation is being twice as far from the center as the line should be
+		auto deviationFromExpectedDistanceToCenterOfDie = 
+			((float) std::max( 0.0f, distFromDieCenterToCandidateLine - pixelsExpectedFromDieCenterToUnderlineCenter)) /
 			(float) pixelsExpectedFromDieCenterToUnderlineCenter;
-		// A black line should have pixel value 0
-		auto fractionalDeviationFromBlackLine = ((float) medianPointInRoundedRect(image, rect.rotatedRect)) / 256.0f;
-		auto deviation = fractionalDeviationFromBlackLine + fractionalDeviationFromExpectedDistanceToCenter;
-
+		// A black line should have pixel values close to 0. We'll use 20th percentile
+		// One deviation is having a 80th% percentile darkest point (20th percentile lightest) be white instad of black
+		auto statisticallyRepresentativePixelGrayscale = percentilePointInRoundedRect(image, rect.rotatedRect);
+		auto deviationFromBlackLine = ((float) statisticallyRepresentativePixelGrayscale) / 255.0f;
+		// One deviation is being 25% shorter than the expected length in pixels		
+		auto deviationFromExpectedLength = std::max(0.0f, expectedLengthInPixels - rect.longerSideLength) * 4.0f / expectedLengthInPixels;
+		// One deviation is being 40 degrees off a right angle
+		auto deviationFromExpectedAngle = (float)((int)abs(rect.angle) % 90) / 40.0f;
+		float deviation = deviationFromBlackLine +
+			deviationFromExpectedDistanceToCenterOfDie +
+			deviationFromExpectedLength +
+			deviationFromExpectedAngle;
 		
 		// if (distFromDieCenterToCandidateLine > maxDistanceDieCenterToUnderlineCenter) {
 		// 	// Not close enough to consider

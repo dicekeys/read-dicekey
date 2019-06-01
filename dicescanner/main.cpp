@@ -109,12 +109,15 @@ std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string tesseractPath, 
 				identifier += dieRead.letter;
 				identifier += dieRead.digit;
 				identifier += " " + std::to_string(dieRead.orientationInDegrees) + "";
-				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) + "\n";
+				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees <<
+					" read as " << std::string(1, dieRead.letter) << std::string(1, dieRead.digit) <<
+					" with confidence " << dieRead.letterConfidence << ", " << dieRead.digitConfidence <<
+					"\n";
 			} else {
 				identifier += "READ-ERROR";
 				std::cout << "Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
 			}
-			cv::imwrite(intermediateImagePath + "dice/" + identifier + ".png", dice[i]);
+			cv::imwrite(intermediateImagePath + identifier + "-die.png", dice[i]);
 			
 
 			// imwrite(intermediateImagePath + "dice-edges-" + identifier + ".png", edges);

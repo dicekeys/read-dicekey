@@ -37,14 +37,15 @@ static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(T)>
 }
 
 
-static float percentile(const std::vector<float>& numbers, float percentileOf100)
+template <typename NUMBER>
+static NUMBER percentile(const std::vector<NUMBER>& numbers, float percentileOf100)
 {
 	if (numbers.size() == 0) return 0;
 
-	std::vector<float> sorted = numbers;
+	std::vector<NUMBER> sorted = numbers;
 	uint lower = (uint) floor(numbers.size() * percentileOf100 / 100);
 	uint upper = std::min<uint>((uint) ceil(numbers.size() * percentileOf100 / 100), ((uint)numbers.size())-1);
-	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return a < b; });
+	std::sort(sorted.begin(), sorted.end(), [](NUMBER a, NUMBER b) { return a < b; });
 	return (sorted[lower] + sorted[upper]) / 2;
 }
 

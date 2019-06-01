@@ -155,6 +155,7 @@
     <ClCompile Include="dicescanner\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dicescanner\find-dice.h" />
     <ClInclude Include="dicescanner\find-squares.h" />
     <ClInclude Include="dicescanner\find-underline.h" />
     <ClInclude Include="dicescanner\rectangle.h" />

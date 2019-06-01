@@ -13,12 +13,13 @@
 
 #include "find-underline.h"
 
-struct DieRead {	
-	uint orientationInDegrees;
-	char letter;
-	char digit;
-	float letterConfidence;
-	float digitConfidence;
+class DieRead {
+	public:
+	uint orientationInDegrees = 0;
+	char letter = 0;
+	char digit = 0;
+	float letterConfidence = 0;
+	float digitConfidence = 0;
 };
 
 static cv::Rect cropLTWH(const cv::Size size, float _left, float _top, float _width, float _height) {
@@ -95,11 +96,11 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 			delete iterator;
 			continue;
 		}
-		float confidence = iterator->Confidence(level);
+		float letterConfidence = iterator->Confidence(level);
 		char letter = *symbol;
 		delete symbol;
-		if (confidence > dieRead.letterConfidence) {
-			// FIXME -- also check if letter is among valid letters
+		static const std::string validLetters = "aAbBCdDEGHJKLMNPQrRTVWXY";
+		if (letterConfidence > dieRead.letterConfidence && validLetters.find(letter) != std::string::npos ) {
 			dieRead.letter = letter;
 			dieRead.letterConfidence = iterator->Confidence(level);
 		}
@@ -114,10 +115,10 @@ bool readDie(std::string tesseractPath, std::string debugImagePath, cv::Mat &die
 			delete iterator;
 			continue;
 		}
-		confidence = iterator->Confidence(level);
+		float digitConfidence = iterator->Confidence(level);
 		char digit = *symbol;
 		delete symbol;
-		if (confidence > dieRead.digitConfidence && digit >= '0' && digit <= '6') {
+		if (digitConfidence > dieRead.digitConfidence && digit >= '0' && digit <= '6') {
 			dieRead.digit = digit;
 			dieRead.digitConfidence = iterator->Confidence(level);
 		}
@@ -136,9 +137,14 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 	// 	( (dieImageGrayscale.size[0] + dieImageGrayscale.size[1]) / 2 ) / // pixels for size of die
 	// 	8; // 8mm dice
 
+	bool underlineFound;
 	RectangleDetected underline;
-	bool underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
-
+	// if (dieIndex == 20) {
+	//	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
+	// }
+	// else {
+	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
+	//}
 	if (underlineFound) {
 		cv::Mat textRegionImageGrayscale;
 		if (debugImagePath.size() > 0) {
@@ -194,19 +200,7 @@ static bool orientAndReadDie(std::string tesseractPath, std::string debugImagePa
 			cv::rotate(dieImage, textRegionImageGrayscale, dieRead.orientationInDegrees == 90 ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
 		}
 
-		char letter = 0, digit = 0;
-		float letterConfidence = 0, digitConfidence = 0;
-
 		readDie(tesseractPath, debugImagePath, textRegionImageGrayscale, dieRead, underline.foundAtThreshold, dieIndex );
-		if (letterConfidence > 0 && letterConfidence > dieRead.letterConfidence) {
-			dieRead.letter = letter;
-			dieRead.letterConfidence = letterConfidence;
-		}
-		if (digitConfidence > 0 && digitConfidence > dieRead.digitConfidence) {
-			dieRead.digit = digit;
-			dieRead.digitConfidence = digitConfidence;
-		}
-
 	}
 
 	return underlineFound && dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0;
