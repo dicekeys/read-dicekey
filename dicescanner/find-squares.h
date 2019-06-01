@@ -127,11 +127,11 @@ static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, int N 
 const float underline_length_mm = 5.5f; // 5.5mm
 const float underline_width_mm = 0.3f; // 0.3 mm
 const float underline_rect_short_to_long_ratio = underline_width_mm / underline_length_mm;
-const float min_short_to_long_ratio = underline_rect_short_to_long_ratio / 2;
-const float max_short_to_long_ratio = underline_rect_short_to_long_ratio * 2;
+const float min_short_to_long_ratio = underline_rect_short_to_long_ratio / 4;
+const float max_short_to_long_ratio = underline_rect_short_to_long_ratio * 3;
 
 
-bool isRectangleShapedLikelUnderline(RectangleDetected rect) {
+bool isRectangleShapedLikeUnderline(RectangleDetected rect) {
 	float shortToLongRatio = rect.shorterSideLength / rect.longerSideLength;
 	return (
 		shortToLongRatio >= min_short_to_long_ratio &&
