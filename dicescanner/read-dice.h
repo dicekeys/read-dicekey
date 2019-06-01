@@ -214,13 +214,13 @@ static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGraysc
 
 
 
-static std::vector<DieRead> orientAndReadDice(std::vector<cv::Mat> &dieGrayscaleImages, float approxPixelsPerMm, std::string debugImagePath)
-{
-	std::vector<DieRead> result;
-	for (uint i = 0; i < dieGrayscaleImages.size(); i++) {
-		DieRead dieRead;
-		orientAndReadDie(debugImagePath + + "-" + std::to_string(i) + "-", dieGrayscaleImages[i], dieRead, approxPixelsPerMm, i);
-		result.push_back(dieRead);
-	}
-	return result;
-}
+// static std::vector<DieRead> orientAndReadDice(std::vector<cv::Mat> &dieGrayscaleImages, float approxPixelsPerMm, std::string debugImagePath)
+// {
+// 	std::vector<DieRead> result;
+// 	for (uint i = 0; i < dieGrayscaleImages.size(); i++) {
+// 		DieRead dieRead;
+// 		orientAndReadDie(debugImagePath + + "-" + std::to_string(i) + "-", dieGrayscaleImages[i], dieRead, approxPixelsPerMm, dieDebugLevel);
+// 		result.push_back(dieRead);
+// 	}
+// 	return result;
+// }

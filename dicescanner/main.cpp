@@ -95,20 +95,21 @@ std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string fileIdentifier,
 	// in the process
 	//
 	float approxPixelsPerMm;
-	auto dice = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
+	auto diceGrayscaleImages = findDice(rotatedImage, candidateDiceSquares, approxPixelsPerMm);
 
 	//
 	// Read each of the 25 dice indivudally by finding the underline to determine the rotation
 	// and then reading the text above the underline.
-	auto diceRead = orientAndReadDice(dice, approxPixelsPerMm, intermediateImagePath);
-
-	// More output for debugging purposes
-	for (uint i = 0; i < dice.size(); i++) {
-		//
+	// auto diceRead = orientAndReadDice(dice, approxPixelsPerMm, intermediateImagePath);
+	std::vector<DieRead> diceRead;
+	for (uint i = 0; i < diceGrayscaleImages.size(); i++) {
+		DieRead dieRead;
 		int dieDebugLevel =
-			(fileIdentifier.size() > 0 && fileIdentifier[fileIdentifier.size() -1] == '1' && i == 16) ? 2 :
+			((fileIdentifier.size() > 0) && (fileIdentifier[fileIdentifier.size() -1] == '1') && (i == 16)) ? 2 :
 			boxDebugLevel;
 
+		orientAndReadDie(intermediateImagePath + + "-" + std::to_string(i) + "-", diceGrayscaleImages[i], dieRead, approxPixelsPerMm, dieDebugLevel);
+		//
 		auto dieRead = diceRead[i];
 		std::string identifier = "-" + std::to_string(i);
 		if (dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0) {
@@ -125,14 +126,14 @@ std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string fileIdentifier,
 			std::cout << "File " << fileIdentifier << " Die " << i << " at angle " << dieRead.orientationInDegrees << " could not be read.\n";
 		}
 		if (!intermediateImagePath.rfind("/dev/null", 0) == 0 && dieDebugLevel >= 1) {
-			cv::imwrite(intermediateImagePath + identifier + "-die.png", dice[i]);
+			cv::imwrite(intermediateImagePath + identifier + "-die.png", diceGrayscaleImages[i]);
 		}
 
 	}
 	
 	// writeSquares(rotatedImage, diceSquares.squares, path + "squares/" + filename + ".png");
 
-	if (dice.size() < 25) {
+	if (diceGrayscaleImages.size() < 25) {
 		std::cout << "Not enough dice in found in " << intermediateImagePath << std::endl;
 	}
 
