@@ -144,6 +144,8 @@ static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGraysc
 	float centerX = ((float) dieImageGrayscale.size[0]) / 2;
 	float centerY = ((float) dieImageGrayscale.size[1]) / 2;
 
+	// FUTURE orient based on underline angle, rather than rotating entire die.
+
 	bool underlineFound;
 	RectangleDetected underline;
 	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
