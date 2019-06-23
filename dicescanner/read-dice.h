@@ -15,11 +15,17 @@
 
 class DieRead {
 	public:
+		// Degrees rotated clockwsise from rightside up
+		// 0 => rightside-up
+		// 90 => facing right, with underline to left
+		// 180 => upside-down
+		// 270 => facing left, with underline to right
 	uint orientationInDegrees = 0;
 	char letter = 0;
 	char digit = 0;
 	float letterConfidence = 0;
 	float digitConfidence = 0;
+	cv::Mat imageFedToOCR;
 };
 
 static cv::Rect cropLTWH(const cv::Size size, float _left, float _top, float _width, float _height) {
@@ -30,11 +36,6 @@ static cv::Rect cropLTWH(const cv::Size size, float _left, float _top, float _wi
 
 	return cv::Rect(left, top, width, height);
 }
-
-// static cv::Rect cropLTRB(const cv::Size size, float _left, float _top, float _right, float _bottom) {
-// 	return cropLTWH(size, _left, _top, _right - _left, _bottom - _top);
-
-// }
 
 tesseract::TessBaseAPI* initOcr(std::string tesseractPath = "/dev/null") {
 	static bool tess_initialized = false;
@@ -143,10 +144,6 @@ static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGraysc
 	float centerX = ((float) dieImageGrayscale.size[0]) / 2;
 	float centerY = ((float) dieImageGrayscale.size[1]) / 2;
 
-	// const float approxPixelsPerMm =
-	// 	( (dieImageGrayscale.size[0] + dieImageGrayscale.size[1]) / 2 ) / // pixels for size of die
-	// 	8; // 8mm dice
-
 	bool underlineFound;
 	RectangleDetected underline;
 	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
@@ -203,8 +200,8 @@ static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGraysc
 			;
 			float right = left + width;
 			auto cropRect = cropLTWH(dieImageGrayscale.size(), left, top, width, height);
-			cv::Mat dieImage = dieImageGrayscale(cropRect);
-			cv::rotate(dieImage, textRegionImageGrayscale, dieRead.orientationInDegrees == 90 ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
+			dieRead.imageFedToOCR = dieImageGrayscale(cropRect);
+			cv::rotate(dieRead.imageFedToOCR, textRegionImageGrayscale, dieRead.orientationInDegrees == 90 ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
 		}
 
 		readDie(textRegionImageGrayscale, dieRead, underline.foundAtThreshold, debugImagePath, debugLevel);
@@ -212,16 +209,3 @@ static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGraysc
 
 	return underlineFound && dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0;
 }
-
-
-
-// static std::vector<DieRead> orientAndReadDice(std::vector<cv::Mat> &dieGrayscaleImages, float approxPixelsPerMm, std::string debugImagePath)
-// {
-// 	std::vector<DieRead> result;
-// 	for (uint i = 0; i < dieGrayscaleImages.size(); i++) {
-// 		DieRead dieRead;
-// 		orientAndReadDie(debugImagePath + + "-" + std::to_string(i) + "-", dieGrayscaleImages[i], dieRead, approxPixelsPerMm, dieDebugLevel);
-// 		result.push_back(dieRead);
-// 	}
-// 	return result;
-// }

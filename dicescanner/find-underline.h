@@ -94,16 +94,11 @@ static uchar percentilePointInRoundedRect(cv::Mat &image, cv::RotatedRect &rect,
 
 
 static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline, const float approxPixelsPerMm) {
-	// Assume image is size of die (needs to be re-checked)
-//	const float approxPixelsPerMm = ((image.size[0] + image.size[1]) / 2) / 8.0f;
 	const float lineLengthMm = 5.5f;
 	const float mmFromDieCenterToUnderlineCenter = 2.85f;
 	const float maxMmFromDieCenterToUnderlineCenter = 2.0f * mmFromDieCenterToUnderlineCenter;
 
 	// FUTURE -- use same threshold as die rectangle to save time?
-
-	// const float maxDistanceDieCenterToUnderlineCenter = approxPixelsPerMm *
-	// 	maxMmFromDieCenterToUnderlineCenter;
 
 	bool anUnderlineWasFound = false;
 	float expectedLengthInPixels = lineLengthMm * approxPixelsPerMm;
@@ -138,11 +133,6 @@ static bool findUnderline(cv::Mat &image, RectangleDetected &closestUnderline, c
 			deviationFromExpectedLength +
 			deviationFromExpectedAngle;
 		
-		// if (distFromDieCenterToCandidateLine > maxDistanceDieCenterToUnderlineCenter) {
-		// 	// Not close enough to consider
-		// 	continue;
-		// }
-
 		// FIXME -- reject candidate if line from die center to candidate center is not perpendicular (+- 25 degrees) with long edge of rectangle
 
 		if (anUnderlineWasFound && deviation > smallestDeviation) {

@@ -7,32 +7,6 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
-//// helper function:
-//// finds a cosine of angle between vectors
-//// from pt0->pt1 and from pt0->pt2
-//static float angle(cv::Point pt1, cv::Point pt2, cv::Point pt0)
-//{
-//	float dx1 = (float)pt1.x - pt0.x;
-//	float dy1 = (float)pt1.y - pt0.y;
-//	float dx2 = (float)pt2.x - pt0.x;
-//	float dy2 = (float)pt2.y - pt0.y;
-//	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2));
-//}
-//
-//static cv::Point2d getCenter(std::vector<cv::Point> &points)
-//{
-//	float x = 0;
-//	float y = 0;
-//	for (auto& point : points) {
-//		x += point.x;
-//		y += point.y;
-//	}
-//	x /= points.size();
-//	y /= points.size();
-//	return cv::Point2d(x, y);
-//}
-
-
 
 class RectangleDetected {
 public:
@@ -79,6 +53,7 @@ public:
 	// Default constructor creates point of size 0 at origin.
 	RectangleDetected() : RectangleDetected(cv::Point2f(0,0), cv::Size2f(), 0, 0, -1) {}
 
+	// The deviation between this rectangle and square representing the face of a die
 	float deviationFromNorm(float targetArea, float targetAngle, float targetShortToLongSideRatio = 1) {
 		// The penalty for deviating from a squareness is based on the ratio of the two lengths
 		float deviationFromSideRatio = (shorterSideLength / longerSideLength) / targetShortToLongSideRatio;
