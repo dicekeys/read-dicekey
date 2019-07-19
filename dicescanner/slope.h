@@ -1,7 +1,8 @@
+#pragma once
+
 #include <float.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
-
 
 static float slope(const cv::Point & a, const cv::Point & b)
 {
