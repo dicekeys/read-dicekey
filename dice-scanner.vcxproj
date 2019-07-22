@@ -75,6 +75,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>C:\Users\stuar\github\vcpkg\installed\x64-windows\lib;C:\Users\stuar\github\vcpkg\installed\x86-windows\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\stuar\github\vcpkg\installed\x86-windows\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -107,10 +109,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,14 +156,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="dicescanner\dice-scanner.cpp" />
     <ClCompile Include="dicescanner\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dicescanner\die.h" />
+    <ClInclude Include="dicescanner\distance.h" />
     <ClInclude Include="dicescanner\find-dice.h" />
-    <ClInclude Include="dicescanner\find-squares.h" />
-    <ClInclude Include="dicescanner\find-underline.h" />
+    <ClInclude Include="dicescanner\find-undoverlines.h" />
+    <ClInclude Include="dicescanner\get-dice-from-image.h" />
     <ClInclude Include="dicescanner\rectangle.h" />
     <ClInclude Include="dicescanner\rotate.h" />
+    <ClInclude Include="dicescanner\slope.h" />
     <ClInclude Include="dicescanner\test-box.h" />
     <ClInclude Include="dicescanner\vfunctional.h" />
     <ClInclude Include="dicescanner\locate-dice.h" />

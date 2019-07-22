@@ -64,3 +64,24 @@ static NUMBER median(const std::vector<NUMBER> &numbers)
 		return (sorted[c] + sorted[c-1]) / 2;
 	}
 }
+
+template <typename NUMBER>
+static NUMBER bimodalThreshold(const std::vector<NUMBER>& numbers)
+{
+	if (numbers.size() < 2) return 0;
+
+	NUMBER maxDistanceFound = 0;
+	uint indexOfMaxDistanceFound = 1;
+	std::vector<NUMBER> sorted = numbers;
+	std::sort(sorted.begin(), sorted.end(), [](NUMBER a, NUMBER b) { return a < b; });
+	for (uint i=1; i < sorted.size(); i++) {
+		const NUMBER distance = sorted[i] - sorted[i-1];
+		if (distance > maxDistanceFound) {
+			maxDistanceFound = distance;
+			indexOfMaxDistanceFound = i;
+		}
+	}
+	// Put threshold halfway between the edges
+	const NUMBER threshold = sorted[indexOfMaxDistanceFound-1] + (maxDistanceFound / 2);
+	return threshold;
+}

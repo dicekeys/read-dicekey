@@ -21,12 +21,16 @@ public:
 	cv::Size2f size;
 	std::vector<cv::Point2f> points = std::vector<cv::Point2f>(4);
 
-	// Calculated by RotatedRect.points(), which returns in order
-	// bottomLeft, topLeft, topRight, bottomRight.
-	cv::Point bottomLeft() { return points[0]; };
-	cv::Point topLeft() { return points[1]; };
-	cv::Point topRight() { return points[2]; };
-	cv::Point bottomRight() { return points[3]; };
+	// // Calculated by RotatedRect.points(), which returns in order
+	// // bottomLeft, topLeft, topRight, bottomRight.
+	// cv::Point bottomLeft() { return points[0]; };
+	// cv::Point topLeft() { return points[1]; };
+	// cv::Point topRight() { return points[2]; };
+	// cv::Point bottomRight() { return points[3]; };
+	cv::Point bottomLeft;
+	cv::Point topLeft;
+	cv::Point topRight;
+	cv::Point bottomRight;
 
 	RectangleDetected(cv::RotatedRect rrect, float _contourArea, int _foundAtThreshold) {
 		rotatedRect = rrect;
@@ -37,6 +41,22 @@ public:
 		angle = rrect.angle;
 		// The order is bottomLeft, topLeft, topRight, bottomRight.
 		rrect.points(points.data());
+		if (rrect.size.width > rrect.size.height) {
+			// sort left to right
+			std::sort(points.begin(), points.end(), [](cv::Point2f a, cv::Point2f b) { return a.x < b.x; });
+			topLeft     = points[0].y < points[1].y ? points[0] : points[1];
+			bottomLeft  = points[0].y < points[1].y ? points[1] : points[0];
+			topRight    = points[2].y < points[3].y ? points[2] : points[3];
+			bottomRight = points[2].y < points[3].y ? points[3] : points[2];
+		} else {
+			// sort top to bottom
+			std::sort(points.begin(), points.end(), [](cv::Point2f a, cv::Point2f b) { return a.y < b.y; });
+			topLeft     = points[0].x < points[1].x ? points[0] : points[1];
+			topRight    = points[0].x < points[1].x ? points[1] : points[0];
+			bottomLeft  = points[2].x < points[3].x ? points[2] : points[3];
+			bottomRight = points[2].x < points[3].x ? points[3] : points[2];
+		}
+
 		shorterSideLength = std::min(rrect.size.width, rrect.size.height);
 		longerSideLength = std::max(rrect.size.width, rrect.size.height);
 		area = shorterSideLength * longerSideLength;
@@ -69,7 +89,7 @@ public:
 			// so cut the penalty in half for those.
 			(((area / targetArea) - 1) / 2);
 		// The penalty from deviating from the target angle
-		float deviationFromTargetAngle = 2.0f * abs(angle - targetAngle) / 90;
+		float deviationFromTargetAngle = 2.0f * float( abs( int(angle - targetAngle) % 90)) / 90.0f;
 
 		return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
 	};

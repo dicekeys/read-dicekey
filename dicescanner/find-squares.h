@@ -58,19 +58,9 @@ static std::vector<RectangleDetected> removeOverlappingRectangles(std::vector<Re
 
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, int N = 13)
+static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, uint N = 13, double minPerimeter = 50)
 {
 	std::vector<RectangleDetected> rectanglesFound;
-
-	/*
-	Future:
-	   Cluster areas by binary orders of magnitude.
-		(two sets: a from 2^i - 2^(i+1), the other from 1.5 * 2^i - 1.5 * 2^(i+1) so that we don't have boundary issues)
-	   Take largest cluster with n (20?  25?) objects
-	     Only works at one threshold.  Can do more?
-	*/
-	std::vector<RectangleDetected> candidateDiceSquares;
-	std::vector<RectangleDetected> candidateUnderlineRectangles;
 
 	 //cv::Mat pyr, timg, gray0(image.size(), CV_8U), gray;
 	 cv::Mat grayBlur, edges;
@@ -79,7 +69,7 @@ static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, int N 
 	cv::medianBlur(gray, grayBlur, 3); // was 3
 
 	// try several threshold levels
-	for (int l = 0; l < N; l++)
+	for (uint l = 0; l < N; l++)
 	{
 		// hack: use Canny instead of zero threshold level.
 		// Canny helps to catch squares with gradient shading
@@ -111,27 +101,24 @@ static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, int N 
 		std::vector<std::vector<cv::Point>> contours;
 		findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
-		contours = vfilter<std::vector<cv::Point>>(contours, [](std::vector<cv::Point> contour) -> bool {
-			return cv::arcLength(contour, false) > 50;
+		contours = vfilter<std::vector<cv::Point>>(contours, [minPerimeter](std::vector<cv::Point> contour) -> bool {
+			return cv::arcLength(contour, false) >= minPerimeter;
 		});
 
 		for (auto contour : contours) {
-			if (cv::arcLength(contour, false) > 50) {
-				rectanglesFound.push_back(RectangleDetected(contour, l == 0 ? 0 : (l + 1) * 255 / N));
-			}
+			rectanglesFound.push_back(RectangleDetected(contour, l == 0 ? 0 : (l + 1) * 255 / N));
 		}
 	}
 	return rectanglesFound;
 };
 
-const float underline_length_mm = 5.5f; // 5.5mm
-const float underline_width_mm = 0.3f; // 0.3 mm
-const float underline_rect_short_to_long_ratio = underline_width_mm / underline_length_mm;
-const float min_short_to_long_ratio = underline_rect_short_to_long_ratio / 4;
-const float max_short_to_long_ratio = underline_rect_short_to_long_ratio * 3;
+const float overunderline_length_mm = 6.0f; // 6mm
+const float overunderline_width_mm = 1.0f; // 1mm
+const float overunderline_rect_short_to_long_ratio = overunderline_width_mm / overunderline_length_mm;
+const float min_short_to_long_ratio = overunderline_rect_short_to_long_ratio / 1.5f;
+const float max_short_to_long_ratio = overunderline_rect_short_to_long_ratio * 1.5f;
 
-
-bool isRectangleShapedLikeUnderline(RectangleDetected rect) {
+bool isRectangleShapedLikeOverUnderline(RectangleDetected rect) {
 	float shortToLongRatio = rect.shorterSideLength / rect.longerSideLength;
 	return (
 		shortToLongRatio >= min_short_to_long_ratio &&
@@ -139,70 +126,136 @@ bool isRectangleShapedLikeUnderline(RectangleDetected rect) {
 	);
 }
 
+// static void readOverUnderline(RectangleDetected line)
+// {
+// 	if ( // total horizontal distance (* 2)
+// 			 abs(line.topRight.x + line.bottomRight.x - (line.topLeft.x + line.bottomLeft.x))
+// 			 <
+// 			 // total veritcal distance (* 2)
+// 			 abs(line.bottomLeft.y + line.bottomLeft.y - (line.topLeft.y + line.topRight.y))
+// 	) {
+// 		// the line is closer to vertical than horizontal
+// 		// start from half way between top left and top right and proceed to half way from bottom left and bottom right
+// 	} else {
+// 		// the line is closer to horizontal than vertical.
+// 		// start from half way between top left and bottom left and proceed from half way between top right and bottom right
+// 	}
+// 	// line.angle;
+// }
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findCandidateDiceSquares(const cv::Mat &gray, int N = 13)
+static std::vector<RectangleDetected> findCandidateOverUnderlines(const cv::Mat &gray, int N = 13)
 {
-	/*
-	Future:
-	   Cluster areas by binary orders of magnitude.
-		(two sets: a from 2^i - 2^(i+1), the other from 1.5 * 2^i - 1.5 * 2^(i+1) so that we don't have boundary issues)
-	   Take largest cluster with n (20?  25?) objects
-	     Only works at one threshold.  Can do more?
-	*/
-	
-	 //cv::Mat pyr, timg, gray0(image.size(), CV_8U), gray;
-
-	// auto clone = gray.clone();
-	// for (uint i = 0; i < contours.size(); i++)
-	// 	cv::drawContours(clone, contours, i, cv::Scalar((i * 13) % 255, (i * 41) % 255, (i * 87) % 255), 3);
-
-	// cv::imwrite(path + "contours/" + filename + // "-" + std::to_string(c) + 
-	// 	"-" + std::to_string(l) + ".png", clone);
-
-	float min_edge_length = float(std::min(gray.size[0], gray.size[1])) / 50;
-	float min_area = min_edge_length * min_edge_length;
-
 	float min_underline_length = float(std::min(gray.size[0], gray.size[1])) / 80;
 	float max_underline_length = float(std::min(gray.size[0], gray.size[1])) / 8;
 
-	std::vector<RectangleDetected> candidateDiceSquares = vfilter<RectangleDetected>(
-		findRectangles(gray, N),
-		[min_area](RectangleDetected rect) -> bool { return
-				// Rect area is above the minimum area to be considred a potential die
-				(rect.area > min_area) &&
-				// Rectangle is square enough
-				(rect.shorterSideLength / rect.longerSideLength) >= 0.75f &&
-				// the contour area is at least 60% of the area of the interpolated rectangle
-				(rect.contourArea >= rect.area * 0.6);
-		}
-	);
+	std::vector<RectangleDetected> candidateUnderOverLines = vfilter<RectangleDetected>(
+		findRectangles(gray, N), isRectangleShapedLikeOverUnderline);
 
-	if (candidateDiceSquares.size() > 0) {
+	if (candidateUnderOverLines.size() > 25) {
 		// Remove rectangles that stray from the median
 
-		float medianArea = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) -> float { return r.area; }));
+		float medianArea = median(vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }));
 		float minArea = 0.75f * medianArea;
 		float maxArea = medianArea / 0.75f;
-		candidateDiceSquares = vfilter<RectangleDetected>(candidateDiceSquares, [minArea, maxArea](RectangleDetected r) {
+		candidateUnderOverLines = vfilter<RectangleDetected>(candidateUnderOverLines, [minArea, maxArea](RectangleDetected r) {
 			return  (r.area >= minArea && r.area <= maxArea);
 			});
 
 		// Recalculate median for survivors
 		float areaHighPercentile = percentile(
-			vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) -> float { return r.area; }),
+			vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }),
 			85
 		);
 		// Calculate slope of survivors
-		float medianAngle = median(vmap<RectangleDetected, float>(candidateDiceSquares, [](RectangleDetected r) -> float { return r.angle; }));
+		float medianAngle = median(vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.angle; }));
 
-		candidateDiceSquares = removeOverlappingRectangles(candidateDiceSquares, [areaHighPercentile, medianAngle](RectangleDetected r) -> float {
-			return r.deviationFromNorm(areaHighPercentile, medianAngle, 1);
+		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, medianAngle](RectangleDetected r) -> float {
+			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / overunderline_rect_short_to_long_ratio;
+			if (deviationFromSideRatio < 1 && deviationFromSideRatio > 0) {
+				deviationFromSideRatio = 1 / deviationFromSideRatio;
+			}
+			deviationFromSideRatio -= 1;
+			float devationFromSideLengthRatioPenalty = 2.0f * deviationFromSideRatio;
+			float deviationFromTargetArea = r.area < medianAngle ?
+				// Deviation penalty for falling short of target
+				((areaHighPercentile / r.area) - 1) :
+				// The consequences of capturing extra area are smaller,
+				// so cut the penalty in half for those.
+				(((r.area / areaHighPercentile) - 1) / 2);
+			// The penalty from deviating from the target angle
+			float deviationFromTargetAngle = 2.0f * float( abs( int(r.angle - medianAngle) % 90)) / 90.0f;
+
+			return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
 		});
 	}
 
-	return candidateDiceSquares;
+	return candidateUnderOverLines;
 }
+
+// // returns sequence of squares detected on the image.
+// static std::vector<RectangleDetected> findcandidateUnderOverLines(const cv::Mat &gray, int N = 13)
+// {
+// 	/*
+// 	Future:
+// 	   Cluster areas by binary orders of magnitude.
+// 		(two sets: a from 2^i - 2^(i+1), the other from 1.5 * 2^i - 1.5 * 2^(i+1) so that we don't have boundary issues)
+// 	   Take largest cluster with n (20?  25?) objects
+// 	     Only works at one threshold.  Can do more?
+// 	*/
+	
+// 	 //cv::Mat pyr, timg, gray0(image.size(), CV_8U), gray;
+
+// 	// auto clone = gray.clone();
+// 	// for (uint i = 0; i < contours.size(); i++)
+// 	// 	cv::drawContours(clone, contours, i, cv::Scalar((i * 13) % 255, (i * 41) % 255, (i * 87) % 255), 3);
+
+// 	// cv::imwrite(path + "contours/" + filename + // "-" + std::to_string(c) + 
+// 	// 	"-" + std::to_string(l) + ".png", clone);
+
+// 	float min_edge_length = float(std::min(gray.size[0], gray.size[1])) / 50;
+// 	float min_area = min_edge_length * min_edge_length;
+
+// 	float min_underline_length = float(std::min(gray.size[0], gray.size[1])) / 80;
+// 	float max_underline_length = float(std::min(gray.size[0], gray.size[1])) / 8;
+
+// 	std::vector<RectangleDetected> candidateUnderOverLines = vfilter<RectangleDetected>(
+// 		findRectangles(gray, N),
+// 		[min_area](RectangleDetected rect) -> bool { return
+// 				// Rect area is above the minimum area to be considred a potential die
+// 				(rect.area > min_area) &&
+// 				// Rectangle is square enough
+// 				(rect.shorterSideLength / rect.longerSideLength) >= 0.75f &&
+// 				// the contour area is at least 60% of the area of the interpolated rectangle
+// 				(rect.contourArea >= rect.area * 0.6);
+// 		}
+// 	);
+
+// 	if (candidateUnderOverLines.size() > 0) {
+// 		// Remove rectangles that stray from the median
+
+// 		float medianArea = median(vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }));
+// 		float minArea = 0.75f * medianArea;
+// 		float maxArea = medianArea / 0.75f;
+// 		candidateUnderOverLines = vfilter<RectangleDetected>(candidateUnderOverLines, [minArea, maxArea](RectangleDetected r) {
+// 			return  (r.area >= minArea && r.area <= maxArea);
+// 			});
+
+// 		// Recalculate median for survivors
+// 		float areaHighPercentile = percentile(
+// 			vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }),
+// 			85
+// 		);
+// 		// Calculate slope of survivors
+// 		float medianAngle = median(vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.angle; }));
+
+// 		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, medianAngle](RectangleDetected r) -> float {
+// 			return r.deviationFromNorm(areaHighPercentile, medianAngle, 1);
+// 		});
+// 	}
+
+// 	return candidateUnderOverLines;
+// }
 	// if (candidateUnderlineRectangles.size() > 0) {
 	// 	float medianLength = median(vmap<RectangleDetected, float>(candidateUnderlineRectangles, [](RectangleDetected r) -> float { return r.longerSideLength; }));
 	// 	float minLength = medianLength * 0.85f;
@@ -225,7 +278,7 @@ static std::vector<RectangleDetected> findCandidateDiceSquares(const cv::Mat &gr
 
 	// }
 
-	// result.candidateDiceSquares = candidateDiceSquares;
+	// result.candidateUnderOverLines = candidateUnderOverLines;
 	// result.candidateUnderlineRectangles = candidateUnderlineRectangles;
 	// return result;
 // }

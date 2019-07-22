@@ -6,13 +6,12 @@
 #include <opencv2/highgui.hpp>
 
 #include <iostream>
+#include <filesystem>
 #include "vfunctional.h"
 #include "rectangle.h"
-#include "find-squares.h"
-#include "value-clusters.h"
 #include "rotate.h"
-#include "find-dice.h"
-#include "read-dice.h"
+//#include "find-dice.h"
+//#include "read-dice.h"
 #include "slope.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -45,18 +44,13 @@ int main(int argc, char** argv)
 	//std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
 	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
 	initOcr(tesseractPath);
-	std::string path = "";
+	std::string path = "img/";
 	std::string intermediateImagePath = path + "progress/";
-	std::vector<std::string> names = {
-		"1", "2", "3", "4", "5",
-		"6", "7", "8", "9"
-	};
 	help(argv[0]);
 
 	if (argc > 1)
 	{
-		names[0] = argv[1];
-		names[1] = "0";
+		path = argv[1];
 	}
 
 	// Make param1 input directory, param2 output directory
@@ -70,11 +64,23 @@ int main(int argc, char** argv)
 	// Run die test
 
 
-	for (auto& filename : names) {
-		std::string fname = path + "img/" + filename + ".jpg";
-		cv::Mat image = cv::imread(fname, cv::IMREAD_COLOR);
-		if (image.empty())
-		{
+	for (const auto& entry : std::filesystem::directory_iterator(path)) {
+		if (!entry.is_regular_file()) {
+			continue;
+		}
+		const auto filepath = entry.path().generic_string();
+		const auto filename = entry.path().filename().generic_string();
+		if (filename.length() < 5) {
+			continue;
+		}
+		const auto extension = filename.substr(filename.length() - 4);
+		if (extension != ".jpg" && extension != ".JPG") {
+			continue;
+		}
+				
+//		std::string fname = path + "img/" + filename + ".jpg";
+		cv::Mat image = cv::imread(filepath, cv::IMREAD_COLOR);
+		if (image.empty()) {
 			std::cout << "Couldn't load " << filename << std::endl;
 			continue;
 		}

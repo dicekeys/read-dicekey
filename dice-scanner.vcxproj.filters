@@ -2,9 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="dicescanner\main.cpp" />
+    <ClCompile Include="dicescanner\dice-scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dicescanner\find-squares.h" />
     <ClInclude Include="dicescanner\rectangle.h" />
     <ClInclude Include="dicescanner\vfunctional.h" />
     <ClInclude Include="dicescanner\locate-dice.h" />
@@ -12,8 +12,13 @@
     <ClInclude Include="dicescanner\read-dice.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="dicescanner\find-underline.h" />
     <ClInclude Include="dicescanner\find-dice.h" />
+    <ClInclude Include="dicescanner\distance.h" />
+    <ClInclude Include="dicescanner\get-dice-from-image.h" />
+    <ClInclude Include="dicescanner\slope.h" />
+    <ClInclude Include="dicescanner\test-box.h" />
+    <ClInclude Include="dicescanner\die.h" />
+    <ClInclude Include="dicescanner\find-undoverlines.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

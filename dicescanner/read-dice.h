@@ -41,7 +41,10 @@ tesseract::TessBaseAPI* initOcr(std::string tesseractPath = "/dev/null") {
 	static bool tess_initialized = false;
 	static tesseract::TessBaseAPI* ocr = new tesseract::TessBaseAPI();
 	if (!tess_initialized) {
-		const char* alphabet = "ABCDEGHJKLMNPQRTVWXYabdfr123456";
+		// const char* alphabet = "ABCDEGHJKLMNPQRTVWXYabdfr123456";
+		const char* alphabet = "ABCDEFGHIJKLMNOPRSTUVWXYZ123456";
+		const char* alphabetLetters = "ABCDEFGHIJKLMNOPRSTUVWXY";
+		const char* alphabetDigis = "123456";
 		if (tesseractPath == "/dev/null") {
 			throw "initOcr called before tesseract path provided";
 		}
@@ -110,7 +113,8 @@ bool readDie(cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, std::s
 		float letterConfidence = iterator->Confidence(level);
 		char letter = *symbol;
 		delete symbol;
-		static const std::string validLetters = "aAbBCdDEGHJKLMNPQrRTVWXY";
+		//		static const std::string validLetters = "aAbBCdDEGHJKLMNPQrRTVWXY";
+		static const std::string validLetters = "ABCDEFGHIJKLMNOPRSTUVWXYZ";
 		if (letterConfidence > dieRead.letterConfidence && validLetters.find(letter) != std::string::npos ) {
 			dieRead.letter = letter;
 			dieRead.letterConfidence = iterator->Confidence(level);
@@ -140,74 +144,74 @@ bool readDie(cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, std::s
 }
 
 
-static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGrayscale, DieRead &dieRead, float approxPixelsPerMm, int debugLevel = 0) {
-	float centerX = ((float) dieImageGrayscale.size[0]) / 2;
-	float centerY = ((float) dieImageGrayscale.size[1]) / 2;
+// static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGrayscale, DieRead &dieRead, float approxPixelsPerMm, int debugLevel = 0) {
+// 	float centerX = ((float) dieImageGrayscale.size[0]) / 2;
+// 	float centerY = ((float) dieImageGrayscale.size[1]) / 2;
 
-	// FUTURE orient based on underline angle, rather than rotating entire die.
+// 	// FUTURE orient based on underline angle, rather than rotating entire die.
 
-	bool underlineFound;
-	RectangleDetected underline;
-	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
-	if (underlineFound) {
-		cv::Mat textRegionImageGrayscale;
-		if (debugImagePath.size() > 0) {
-			auto underlineImage = dieImageGrayscale.clone();
-			std::vector<cv::Point> points = vmap<cv::Point2f, cv::Point>(underline.points, [](cv::Point2f point) -> cv::Point {
-				return cv::Point(point);
-			});
-			const cv::Point* p = points.data();
-			int n = (int)points.size();
-			polylines(underlineImage, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
-			if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 1) {
-				cv::imwrite(debugImagePath + "underline.png", underlineImage);
-			}
-		}
+// 	bool underlineFound;
+// 	RectangleDetected underline;
+// 	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
+// 	if (underlineFound) {
+// 		cv::Mat textRegionImageGrayscale;
+// 		if (debugImagePath.size() > 0) {
+// 			auto underlineImage = dieImageGrayscale.clone();
+// 			std::vector<cv::Point> points = vmap<cv::Point2f, cv::Point>(underline.points, [](cv::Point2f point) -> cv::Point {
+// 				return cv::Point(point);
+// 			});
+// 			const cv::Point* p = points.data();
+// 			int n = (int)points.size();
+// 			polylines(underlineImage, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
+// 			if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 1) {
+// 				cv::imwrite(debugImagePath + "underline.png", underlineImage);
+// 			}
+// 		}
 
-		const float distx = abs(underline.center.x - centerX);
-		const float disty = abs(underline.center.y - centerY);
-		if (disty > distx) {
-			// The underline is above or below the center,
-			// indicating horizontal lettering (rotated 0 or 180)
-			dieRead.orientationInDegrees = (underline.center.y < centerY) ? 180 : 0;
-			// std::cout << "Die " << dieIndex << " at angle " << dieRead.orientationInDegrees << "\n";
-			float width = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
-			float left = underline.center.x - width / 2.0f;
-			float height = 2.0f * (disty - 0.2f);
-			float top =   dieRead.orientationInDegrees == 180 ?
-					// Select safely below the underline
-					underline.center.y + 0.3f * approxPixelsPerMm :
-					// Select safely above the underline
-					underline.center.y - (0.3f * approxPixelsPerMm) - height;
-			auto cropRect = cropLTWH(dieImageGrayscale.size(), left, top, width, height);
-			cv::Mat dieImage = dieImageGrayscale(cropRect);
-			if (dieRead.orientationInDegrees == 180) {
-				// The underline is above the die center.  It's up-side down.
-				// Rotate 180
-				cv::rotate(dieImage, textRegionImageGrayscale, cv::ROTATE_180);
-			} else {
-				textRegionImageGrayscale = dieImage;
-			}
-		} else {
-			dieRead.orientationInDegrees = underline.center.x < centerX ? 90 : 270;
-			// std::cout << "Die " << dieIndex << " at angle " << dieRead.orientationInDegrees << "\n";
-			float height = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
-			float top = underline.center.y - height / 2.0f;
-			float width = 2.0f * (distx - 0.2f);
-			float left = dieRead.orientationInDegrees == 90 ?
-				// Select safely to right of funderline
-				underline.center.x + 0.3f * approxPixelsPerMm :
-				// Select safely to left of underline and the width of the area to be read
-				underline.center.x - (0.3f * approxPixelsPerMm) - width
-			;
-			float right = left + width;
-			auto cropRect = cropLTWH(dieImageGrayscale.size(), left, top, width, height);
-			dieRead.imageFedToOCR = dieImageGrayscale(cropRect);
-			cv::rotate(dieRead.imageFedToOCR, textRegionImageGrayscale, dieRead.orientationInDegrees == 90 ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
-		}
+// 		const float distx = abs(underline.center.x - centerX);
+// 		const float disty = abs(underline.center.y - centerY);
+// 		if (disty > distx) {
+// 			// The underline is above or below the center,
+// 			// indicating horizontal lettering (rotated 0 or 180)
+// 			dieRead.orientationInDegrees = (underline.center.y < centerY) ? 180 : 0;
+// 			// std::cout << "Die " << dieIndex << " at angle " << dieRead.orientationInDegrees << "\n";
+// 			float width = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
+// 			float left = underline.center.x - width / 2.0f;
+// 			float height = 2.0f * (disty - 0.2f);
+// 			float top =   dieRead.orientationInDegrees == 180 ?
+// 					// Select safely below the underline
+// 					underline.center.y + 0.3f * approxPixelsPerMm :
+// 					// Select safely above the underline
+// 					underline.center.y - (0.3f * approxPixelsPerMm) - height;
+// 			auto cropRect = cropLTWH(dieImageGrayscale.size(), left, top, width, height);
+// 			cv::Mat dieImage = dieImageGrayscale(cropRect);
+// 			if (dieRead.orientationInDegrees == 180) {
+// 				// The underline is above the die center.  It's up-side down.
+// 				// Rotate 180
+// 				cv::rotate(dieImage, textRegionImageGrayscale, cv::ROTATE_180);
+// 			} else {
+// 				textRegionImageGrayscale = dieImage;
+// 			}
+// 		} else {
+// 			dieRead.orientationInDegrees = underline.center.x < centerX ? 90 : 270;
+// 			// std::cout << "Die " << dieIndex << " at angle " << dieRead.orientationInDegrees << "\n";
+// 			float height = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
+// 			float top = underline.center.y - height / 2.0f;
+// 			float width = 2.0f * (distx - 0.2f);
+// 			float left = dieRead.orientationInDegrees == 90 ?
+// 				// Select safely to right of funderline
+// 				underline.center.x + 0.3f * approxPixelsPerMm :
+// 				// Select safely to left of underline and the width of the area to be read
+// 				underline.center.x - (0.3f * approxPixelsPerMm) - width
+// 			;
+// 			float right = left + width;
+// 			auto cropRect = cropLTWH(dieImageGrayscale.size(), left, top, width, height);
+// 			dieRead.imageFedToOCR = dieImageGrayscale(cropRect);
+// 			cv::rotate(dieRead.imageFedToOCR, textRegionImageGrayscale, dieRead.orientationInDegrees == 90 ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
+// 		}
 
-		readDie(textRegionImageGrayscale, dieRead, underline.foundAtThreshold, debugImagePath, debugLevel);
-	}
+// 		readDie(textRegionImageGrayscale, dieRead, underline.foundAtThreshold, debugImagePath, debugLevel);
+// 	}
 
-	return underlineFound && dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0;
-}
+// 	return underlineFound && dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0;
+// }
