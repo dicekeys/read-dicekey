@@ -19,6 +19,7 @@
     <ClInclude Include="dicescanner\test-box.h" />
     <ClInclude Include="dicescanner\die.h" />
     <ClInclude Include="dicescanner\find-undoverlines.h" />
+    <ClInclude Include="dicescanner\ocr.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

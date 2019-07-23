@@ -10,17 +10,17 @@
 #include <iostream>
 #include "vfunctional.h"
 #include "rectangle.h"
-
-static float angleToMod90(float angle) {
-	float angleMod90 = angle;
-	while (angleMod90 > 90) {
-		angleMod90 -= 90;
-	}
-	while (angleMod90 < 0) {
-		angleMod90 += 90;
-	}
-	return angleMod90;
-}
+//
+//static float angleToMod90(float angle) {
+//	float angleMod90 = angle;
+//	while (angleMod90 > 90) {
+//		angleMod90 -= 90;
+//	}
+//	while (angleMod90 < 0) {
+//		angleMod90 += 90;
+//	}
+//	return angleMod90;
+//}
 
 
 static std::vector<RectangleDetected> removeOverlappingRectangles(std::vector<RectangleDetected> rectangles, std::function<float(RectangleDetected)> comparatorLowerIsBetter) {
@@ -112,20 +112,6 @@ static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, uint N
 	return rectanglesFound;
 };
 
-const float overunderline_length_mm = 6.0f; // 6mm
-const float overunderline_width_mm = 1.0f; // 1mm
-const float overunderline_rect_short_to_long_ratio = overunderline_width_mm / overunderline_length_mm;
-const float min_short_to_long_ratio = overunderline_rect_short_to_long_ratio / 1.5f;
-const float max_short_to_long_ratio = overunderline_rect_short_to_long_ratio * 1.5f;
-
-bool isRectangleShapedLikeOverUnderline(RectangleDetected rect) {
-	float shortToLongRatio = rect.shorterSideLength / rect.longerSideLength;
-	return (
-		shortToLongRatio >= min_short_to_long_ratio &&
-		shortToLongRatio <= max_short_to_long_ratio
-	);
-}
-
 // static void readOverUnderline(RectangleDetected line)
 // {
 // 	if ( // total horizontal distance (* 2)
@@ -144,54 +130,54 @@ bool isRectangleShapedLikeOverUnderline(RectangleDetected rect) {
 // }
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findCandidateOverUnderlines(const cv::Mat &gray, int N = 13)
-{
-	float min_underline_length = float(std::min(gray.size[0], gray.size[1])) / 80;
-	float max_underline_length = float(std::min(gray.size[0], gray.size[1])) / 8;
-
-	std::vector<RectangleDetected> candidateUnderOverLines = vfilter<RectangleDetected>(
-		findRectangles(gray, N), isRectangleShapedLikeOverUnderline);
-
-	if (candidateUnderOverLines.size() > 25) {
-		// Remove rectangles that stray from the median
-
-		float medianArea = median(vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }));
-		float minArea = 0.75f * medianArea;
-		float maxArea = medianArea / 0.75f;
-		candidateUnderOverLines = vfilter<RectangleDetected>(candidateUnderOverLines, [minArea, maxArea](RectangleDetected r) {
-			return  (r.area >= minArea && r.area <= maxArea);
-			});
-
-		// Recalculate median for survivors
-		float areaHighPercentile = percentile(
-			vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }),
-			85
-		);
-		// Calculate slope of survivors
-		float medianAngle = median(vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.angle; }));
-
-		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, medianAngle](RectangleDetected r) -> float {
-			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / overunderline_rect_short_to_long_ratio;
-			if (deviationFromSideRatio < 1 && deviationFromSideRatio > 0) {
-				deviationFromSideRatio = 1 / deviationFromSideRatio;
-			}
-			deviationFromSideRatio -= 1;
-			float devationFromSideLengthRatioPenalty = 2.0f * deviationFromSideRatio;
-			float deviationFromTargetArea = r.area < medianAngle ?
-				// Deviation penalty for falling short of target
-				((areaHighPercentile / r.area) - 1) :
-				// The consequences of capturing extra area are smaller,
-				// so cut the penalty in half for those.
-				(((r.area / areaHighPercentile) - 1) / 2);
-			// The penalty from deviating from the target angle
-			float deviationFromTargetAngle = 2.0f * float( abs( int(r.angle - medianAngle) % 90)) / 90.0f;
-
-			return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
-		});
-	}
-
-	return candidateUnderOverLines;
-}
+//static std::vector<RectangleDetected> findCandidateOverUnderlines(const cv::Mat &gray, int N = 13)
+//{
+//	float min_underline_length = float(std::min(gray.size[0], gray.size[1])) / 80;
+//	float max_underline_length = float(std::min(gray.size[0], gray.size[1])) / 8;
+//
+//	std::vector<RectangleDetected> candidateUnderOverLines = vfilter<RectangleDetected>(
+//		findRectangles(gray, N), isRectangleShapedLikeUndoverline);
+//
+//	if (candidateUnderOverLines.size() > 25) {
+//		// Remove rectangles that stray from the median
+//
+//		float medianArea = median(vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }));
+//		float minArea = 0.75f * medianArea;
+//		float maxArea = medianArea / 0.75f;
+//		candidateUnderOverLines = vfilter<RectangleDetected>(candidateUnderOverLines, [minArea, maxArea](RectangleDetected r) {
+//			return  (r.area >= minArea && r.area <= maxArea);
+//			});
+//
+//		// Recalculate median for survivors
+//		float areaHighPercentile = percentile(
+//			vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }),
+//			85
+//		);
+//		// Calculate slope of survivors
+//		float medianAngle = median(vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.angle; }));
+//
+//		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, medianAngle](RectangleDetected r) -> float {
+//			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / undoverlineWidthOverLength;
+//			if (deviationFromSideRatio < 1 && deviationFromSideRatio > 0) {
+//				deviationFromSideRatio = 1 / deviationFromSideRatio;
+//			}
+//			deviationFromSideRatio -= 1;
+//			float devationFromSideLengthRatioPenalty = 2.0f * deviationFromSideRatio;
+//			float deviationFromTargetArea = r.area < medianAngle ?
+//				// Deviation penalty for falling short of target
+//				((areaHighPercentile / r.area) - 1) :
+//				// The consequences of capturing extra area are smaller,
+//				// so cut the penalty in half for those.
+//				(((r.area / areaHighPercentile) - 1) / 2);
+//			// The penalty from deviating from the target angle
+//			float deviationFromTargetAngle = 2.0f * float( abs( int(r.angle - medianAngle) % 90)) / 90.0f;
+//
+//			return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
+//		});
+//	}
+//
+//	return candidateUnderOverLines;
+//}
 
 // // returns sequence of squares detected on the image.
 // static std::vector<RectangleDetected> findcandidateUnderOverLines(const cv::Mat &gray, int N = 13)

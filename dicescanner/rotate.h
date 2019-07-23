@@ -1,76 +1,24 @@
 
 #pragma once
 
-#include <float.h>
 #include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
 
-#include "vfunctional.h"
-#include "rectangle.h"
-#include "find-squares.h"
-#include "value-clusters.h"
+static cv::Mat copyRotatedRectangle(cv::Mat srcImageMatrix, cv::Point2f centerOfRectToBeCopiedFromSource, float angleInDegrees, cv::Size sizeOfRectangleToCopied)
+{
+	// get rotation matrix for rotating the image around its center in pixel coordinates
+	cv::Mat rot = cv::getRotationMatrix2D(centerOfRectToBeCopiedFromSource, angleInDegrees, 1.0);
 
+	// adjust transformation matrix so that the center of the source rectangle
+	// maps to the center of the destination rectangle
+	rot.at<double>(0, 2) += sizeOfRectangleToCopied.width / 2.0 - centerOfRectToBeCopiedFromSource.x;
+	rot.at<double>(1, 2) += sizeOfRectangleToCopied.height / 2.0 - centerOfRectToBeCopiedFromSource.y;
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+	// Allocate a destination matrix to store the copied rectangle
+	cv::Mat destImageMatrix = cv::Mat(sizeOfRectangleToCopied, srcImageMatrix.type());
 
-static cv::Mat rotateImageAndRectanglesFound(cv::Mat image, std::vector<RectangleDetected>& candidateDiceSquares, float slope) {
-	auto angleRadians = atan(slope);
-
-	const float radians45Degrees = 45.0f * 2.0f * (float)M_PI / 360.0f;
-	const float radians90Degrees = 90.0f * 2.0f * (float)M_PI / 360.0f;
-	while (angleRadians > radians45Degrees) {
-		angleRadians -= radians90Degrees;
-	}
-	while (angleRadians < -radians45Degrees) {
-		angleRadians += radians90Degrees;
-	}
-	auto angleDegrees = angleRadians * 360 / (2 * (float)M_PI);
-
-	cv::Point2f center = cv::Point2f(image.size[0] / 2.0f, image.size[1] / 2.0f);
-	const float sinAngle = sin(angleRadians);
-	const float cosAngle = cos(angleRadians);
-
-	cv::Mat rotatedImage;
-	// Rotate around the center of the image to remove the angle
-	auto rotationMatrix = cv::getRotationMatrix2D(center, -angleDegrees, 1.0f);
-
-	cv::warpAffine(image, rotatedImage, rotationMatrix, image.size());
-
-	auto rotatePoint = [center, sinAngle, cosAngle](cv::Point2f point) -> cv::Point2f {
-		// Get point relative to center
-		auto x_c = point.x - center.x;
-		auto y_c = point.y - center.y;
-
-		// Rotate
-		auto x = (x_c * cosAngle) - (y_c * sinAngle);
-		auto y = (x_c * sinAngle) + (y_c * cosAngle);
-
-		// Get point relative to 0,0 by adding back in center
-		return cv::Point2f(x + center.x, y + center.y);
-	};
-
-	// Rotate candidate dice
-	//const auto area90thPercentile = percentile(vmap<RectangleDetected, float>(rects.candidateDiceSquares, [](RectangleDetected r) -> float {
-	//	r.area;
-	//	}), 90.0f);
-	// const float squareEdgeLength = sqrt(area90thPercentile) * 1.15; // Add 15% to make sure we don't miss anything
-
-	candidateDiceSquares = vmap<RectangleDetected, RectangleDetected>(candidateDiceSquares,
-		[rotatePoint, angleDegrees](RectangleDetected r) -> RectangleDetected {
-			return RectangleDetected(rotatePoint(r.center), r.size, r.angle + angleDegrees, r.contourArea, r.foundAtThreshold);
-		});
-
-	//// Rotate candidate underlines
-	//rects.candidateUnderlineRectangles = vmap<RectangleDetected, RectangleDetected>(rects.candidateUnderlineRectangles,
-	//	[rotatePoint, angleDegrees](RectangleDetected r) -> RectangleDetected {
-	//		return RectangleDetected(rotatePoint(r.center), r.size, r.angle + angleDegrees, r.contourArea);
-	//	});
-
-	return rotatedImage;
+	// Copy the rectangle into the destination matrix and return it
+	cv::warpAffine(srcImageMatrix, destImageMatrix, rot, sizeOfRectangleToCopied);
+	return destImageMatrix;
 }
 
-
+// from: https://stackoverflow.com/questions/22041699/rotate-an-image-without-cropping-in-opencv-in-c

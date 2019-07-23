@@ -15,6 +15,7 @@
 #include "slope.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "ocr.h"
 #include "get-dice-from-image.h"
 
 static void help(const char* programName)
