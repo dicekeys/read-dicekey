@@ -28,3 +28,12 @@ static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
 		shortToLongRatio <= maxWidthOverLength
 		);
 }
+
+static uchar decodeLetterAndDigitByteFromOverline(uchar b) {
+	return ~(
+		( (b & 0xf0) >> 4) |
+		( (b & 12) << 2)   |
+		( (b & 2) << 5) |
+		( (b & 1) << 7)
+	);
+}
