@@ -39,9 +39,19 @@ public:
 		center = rrect.center;
 		size = rrect.size;
 		angle = rrect.angle;
+		float minX = points[0].x, maxX = points[0].x;
+		float minY = points[0].y, maxY = points[0].y;
+		for (size_t i = 1; i < 4; i++) {
+			minX = MIN(minX, points[i].x);
+			maxX = MAX(maxX, points[i].x);
+			minY = MIN(minY, points[i].y);
+			maxY = MAX(maxY, points[i].y);
+		}
+		const float width = maxX - minX;
+		const float height = maxY - minY;
 		// The order is bottomLeft, topLeft, topRight, bottomRight.
 		rrect.points(points.data());
-		if (rrect.size.width > rrect.size.height) {
+		if (width > height) {
 			// sort left to right
 			std::sort(points.begin(), points.end(), [](cv::Point2f a, cv::Point2f b) { return a.x < b.x; });
 			topLeft     = points[0].y < points[1].y ? points[0] : points[1];
@@ -56,6 +66,7 @@ public:
 			bottomLeft  = points[2].x < points[3].x ? points[2] : points[3];
 			bottomRight = points[2].x < points[3].x ? points[3] : points[2];
 		}
+		rrect.points(points.data());
 
 		shorterSideLength = std::min(rrect.size.width, rrect.size.height);
 		longerSideLength = std::max(rrect.size.width, rrect.size.height);

@@ -16,19 +16,7 @@
 #include "rotate.h"
 #include "ocr.h"
 
-
-static uint reverseBits(uint bitsToReverse, uint lengthInBits)
-{
-	uint reversedBits = 0;
-	for (uint i = 0; i < lengthInBits; i++) {
-		reversedBits <<= 1;
-		if (bitsToReverse & 1) {
-			reversedBits += 1;
-		}
-		bitsToReverse >>= 1;
-	}
-	return reversedBits;
-}
+using namespace cv;
 
 static float normalizeAngle(float angle)
 {
@@ -91,188 +79,275 @@ static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int 
 }
 
 
-
-struct undoverline {
-	public:
-		char letter;
-		char digit;
-		cv::Point2f center;
-		float slope;
-		float length;
-};
-
-const size_t NumberOfDotsInUndoverline = 11;
-
-
-uchar reverseCharBits(uchar b) {
-   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-   return b;
+cv::Point2f pointBetween(cv::Point a, cv::Point b)
+{
+	return cv::Point2f(
+		(a.x + b.x) / 2.0f,
+		(a.y + b.y) / 2.0f
+	);
 }
 
-class UndoverlineShape {
-public:
-	RectangleDetected line;
-	bool isVertical;
-	cv::Point2f lineThroughMidWidthStart;
-	cv::Point2f lineThroughMidWidthEnd;
-	float length;
-	float angle;
-
-	UndoverlineShape(RectangleDetected _line) {
-		line = _line;
-		const int lineHeight = MAX(line.bottomLeft.y, line.bottomRight.y) - MIN(line.topLeft.y, line.topRight.y);
-		const int lineWidth = MAX(line.topRight.x, line.bottomRight.x) - MIN(line.topLeft.x, line.topRight.x);
-		bool isVertical = lineHeight > lineWidth;
-
-		if (isVertical) {
-			// the line is closer to vertical than horizontal
-			// start from half way between top left and top right and proceed to half way from bottom left and bottom right
-			lineThroughMidWidthStart = cv::Point2f(
-				float(line.topLeft.x + line.topRight.x) / 2.0f,
-				float(line.topLeft.y + line.topRight.y) / 2.0f
-			);
-			lineThroughMidWidthEnd = cv::Point2f(
-				float(line.bottomLeft.x + line.bottomRight.x) / 2.0f,
-				float(line.bottomLeft.y + line.bottomRight.y) / 2.0f
-			);
-		}
-		else {
-			// the line is closer to horizontal than vertical.
-			// start from half way between top left and bottom left and proceed from half way between top right and bottom right
-			lineThroughMidWidthStart = cv::Point2f(
-				float(line.topLeft.x + line.bottomLeft.x) / 2.0f,
-				float(line.topLeft.y + line.bottomLeft.y) / 2.0f
-			);
-			lineThroughMidWidthEnd = cv::Point2f(
-				float(line.topRight.x + line.bottomRight.x) / 2.0f,
-				float(line.topRight.y + line.bottomRight.y) / 2.0f
-			);
-		}
-		const float deltaH = lineThroughMidWidthEnd.x - lineThroughMidWidthStart.x;
-		const float deltaV = lineThroughMidWidthEnd.y - lineThroughMidWidthStart.y;
-		length = sqrt(deltaH * deltaH + deltaV * deltaV);
-	 	angle = float( atan2(
-			lineThroughMidWidthEnd.y - lineThroughMidWidthStart.y,
-			lineThroughMidWidthEnd.x - lineThroughMidWidthStart.x
-		 ) * 180 / M_PI );
-	}
+struct UndoverlineShape {
+	bool isVertical = false;
+	cv::Point2f lineThroughMidWidthStart = cv::Point2f(0, 0);
+	cv::Point2f lineThroughMidWidthEnd = cv::Point2f(0, 0);
+	cv::Point2f center = cv::Point2f(0,0);
+	uchar whiteBlackThreshold = 128;
+	float length = 0.0f;
+	float height = 0.0f;
+	float angle = 0.0f;
+	std::vector<uchar> medianPixelValues = std::vector<uchar>(NumberOfDotsInUndoverline);
+	uint binaryCodingReadForwardOrBackward = 0;
 };
 
-static std::vector<uchar> readUndoverlinePoints(cv::Mat image, UndoverlineShape undoeverline)
-{
-	const float length_x = undoeverline.lineThroughMidWidthEnd.x - undoeverline.lineThroughMidWidthStart.x;
-	const float length_y = undoeverline.lineThroughMidWidthEnd.y - undoeverline.lineThroughMidWidthStart.y;
-	const float length = sqrt(length_x * length_x + length_y * length_y);
-	const float width = length / 6.0f;
-	// 6mm, line, eges of 0.25, leaving 5.5mm for dots 11 dots, or 0.5mm per dot
-	// the center of the first one starts 0.25 + 0.5/2 = 0.5mm from edge
-	std::vector<uchar> dotValues = std::vector<uchar>(11);
-	for (size_t i=0; i < NumberOfDotsInUndoverline; i++) {
-		const float dotFraction = (0.5f + (i * 0.5f)) / 6.0f;		
-		const int x = int(round(undoeverline.lineThroughMidWidthStart.x + (dotFraction * length_x)));
-		const int y = int(round(undoeverline.lineThroughMidWidthStart.y + (dotFraction * length_y)));
-		const std::vector<uchar> valuesAroundCenter = {
-			image.at<uchar>(cv::Point(x, y)),
-			image.at<uchar>(cv::Point(x + 1, y)),
-			image.at<uchar>(cv::Point(x - 1, y)),
-			image.at<uchar>(cv::Point(x, y + 1)),
-			image.at<uchar>(cv::Point(x, y - 1))
-		};
-		const uchar medianValue	= median(valuesAroundCenter);
-		dotValues[i] = medianValue;
+const	std::vector<cv::Point>	SampleOffsets = {
+	cv::Point(0, 0),
+	// 1
+	cv::Point(+1, 0),
+	cv::Point(-1, 0),
+	cv::Point(0, +1),
+	cv::Point(0, -1),
+	// 5
+	cv::Point(+1, +1),
+	cv::Point(-1, -1),
+	cv::Point(+1, -1),
+	cv::Point(-1, +1),
+	// 9
+	cv::Point(+2, 0),
+	cv::Point(-2, 0),
+	cv::Point(0, +2),
+	cv::Point(0, -2),
+	// 13
+	cv::Point(+2, -1),
+	cv::Point(-2, -1),
+	cv::Point(-1, +2),
+	cv::Point(-1, -2),
+	cv::Point(+2, +1),
+	cv::Point(-2, +1),
+	cv::Point(+1, +2),
+	cv::Point(+1, -2),
+	// 21
+};
+
+static std::vector<uchar> samplePoints(
+	cv::Mat image,
+	Point2f firstPointsCenter,
+	Point2f lastPointsCenter,
+	size_t numPoints,
+	size_t samplesPerPoint = MAXSIZE_T
+) {
+	std::vector<uchar> medianSamples = std::vector<uchar>(numPoints);
+
+	samplesPerPoint = MIN(samplesPerPoint, SampleOffsets.size());
+	float distanceBetweenPixelsX = (lastPointsCenter.x - firstPointsCenter.x) / MAX(numPoints-1, 1);
+	float distanceBetweenPixelsY = (lastPointsCenter.y - firstPointsCenter.y) / MAX(numPoints-1, 1);
+
+	for (size_t i = 0; i < NumberOfDotsInUndoverline; i++) {
+		const float dotFraction = (mmDieUndoverlineRightLeftMargin + (i * mmDieUndoverlineDotWidth)) / mmDieUndoverlineLength;
+		const int x = int(round(firstPointsCenter.x + (i * distanceBetweenPixelsX)));
+		const int y = int(round(firstPointsCenter.y + (i * distanceBetweenPixelsY)));
+		std::vector<uchar> pixelsAroundSamplePoint = std::vector<uchar>(samplesPerPoint);
+		for (size_t s = 0; s < samplesPerPoint; s++) {
+			pixelsAroundSamplePoint.push_back(image.at<uchar>(cv::Point(x + SampleOffsets[s].x, y + SampleOffsets[s].y)));
+		}
+		medianSamples.push_back(median(pixelsAroundSamplePoint));
 	}
-	return dotValues;
+	return medianSamples;
 }
 
 
-static uint undoverlinePixelValuesToBits(std::vector<uchar> dotValues)
-{
-	uchar threshold = bimodalThreshold(dotValues);
+static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line) {
+	UndoverlineShape result;
+
+	const int lineHeight = MAX(line.bottomLeft.y, line.bottomRight.y) - MIN(line.topLeft.y, line.topRight.y);
+	const int lineWidth = MAX(line.topRight.x, line.bottomRight.x) - MIN(line.topLeft.x, line.bottomLeft.x);
+	result.isVertical = lineHeight > lineWidth;
+	cv::Point2f start, end;
+	float pixelStepX, pixelStepY;
+
+	if (result.isVertical) {
+		// Vertical (the line is closer to vertical than horizontal)
+		// start from half way between top left and top right and proceed to half way from bottom left and bottom right
+		start = pointBetween(line.topLeft, line.topRight);
+		end = pointBetween(line.bottomLeft, line.bottomRight);
+		// A step moving one Y pixel moves a fraction of a pixel in the x direction
+		pixelStepY = 1;
+		pixelStepX = ((end.x - start.x) / (end.y - start.y));
+	}
+	else {
+		// Horizontal (the line is closer to horizontal than vertical)
+		// start from half way between top left and bottom left and proceed from half way between top right and bottom right
+		start = pointBetween(line.topLeft, line.bottomLeft);
+		end = pointBetween(line.topRight, line.bottomRight);
+		// A step moving one X pixel moves a fraction of a pixel in the Y direction
+		pixelStepX = 1;
+		pixelStepY = ((end.y - start.y) / (end.x - start.x));
+	}
+
+	// Extend start and end .15mm to side in case we cut off the edge
+	float fractionToExtend = 0.15f / 6.0f;
+	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
+	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
+	start.x -= fractionToExtendH;
+	start.y -= fractionToExtendV;
+	end.x += fractionToExtendH;
+	end.y += fractionToExtendV;
+
+
+	// Take 25 samples of points between start and end so that we can find
+	// theshold between light and dark.
+	float deltaH = end.x - start.x;
+	float deltaV = end.y - start.y;
+	const size_t numSamples = NumberOfDotsInUndoverline + 2;
+	std::vector<uchar> pixelSamples = samplePoints(image, start, end, numSamples, 5);
+	float minFractionOfZerosAndOnes = 3.0f / float(numSamples);
+	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, minFractionOfZerosAndOnes, minFractionOfZerosAndOnes);
+
+	// Trim the start of the line by moving the start closer to the end,
+	// until we reach the first black pixel	
+	while (image.at<uchar>(start) > whiteBlackThreshold && (start.x < end.x || start.y < end.y)) {
+		// The starting point hasn't reached the black underline.
+		start.x += pixelStepX;
+		start.y += pixelStepY;
+	}
+
+	// Trim the end of the line by moving the end closer to the start,
+	// until we reach the first black pixel	
+	while (image.at<uchar>(end) > whiteBlackThreshold && (start.x < end.x || start.y < end.y)) {
+		// The starting point hasn't reached the black underline.
+		end.x -= pixelStepX;
+		end.y -= pixelStepY;
+	}
+
+	// Recalculate distances based on new start/end point
+	deltaH = end.x - start.x;
+	deltaV = end.y - start.y;
+	result.length = sqrt(deltaH * deltaH + deltaV * deltaV);
+	result.height = undoverlineWidthOverLength * result.length;
+
+	float fractionToFirstPixelCenter = float((
+		mmDieUndoverlineRightLeftMargin +
+		0.5 * mmDieUndoverlineDotWidth	
+	) / mmDieUndoverlineLength);
+	cv::Point2f centerOfFirstDot = cv::Point2f(
+		start.x + fractionToFirstPixelCenter * deltaH,
+		start.y + fractionToFirstPixelCenter  * deltaV
+	);
+	cv::Point2f centerOfLastDot = cv::Point2f(
+		start.x - fractionToFirstPixelCenter * deltaH,
+		start.y - fractionToFirstPixelCenter  * deltaV
+	);
+
+	float distanceBetweenPixels = result.length * mmDieUndoverlineDotWidth / mmDieUndoverlineLength;
+	// float distanceBetweenPixelsX = deltaH * mmDieUndoverlineDotWidth / mmDieUndoverlineLength;
+	// float distanceBetweenPixelsY = deltaV * mmDieUndoverlineDotWidth / mmDieUndoverlineLength;
+
+	size_t numberOfPixelsToSampleAroundPoint =
+		distanceBetweenPixels < 2.0f ? 1 :
+		distanceBetweenPixels < 3.0f ? 5 :
+		distanceBetweenPixels < 3.5 ? 9 :
+		distanceBetweenPixels < 4.5 ? 13 :
+		21;
+	result.medianPixelValues = samplePoints(image, centerOfFirstDot, centerOfLastDot, NumberOfDotsInUndoverline, numberOfPixelsToSampleAroundPoint);
+
+	// The smallest number of white blocks would be
+	//   1 for the orientation
+	//   1 for the letter (true even if permuted and inverted)
+	//   1 for digit (true even if permuted and inverted)
+	minFractionOfZerosAndOnes = float(3.0f / float(NumberOfDotsInUndoverline));
+	result.whiteBlackThreshold = bimodalThreshold(result.medianPixelValues, minFractionOfZerosAndOnes, minFractionOfZerosAndOnes);
 
 	// The binary coding has 11 bits,
 	// from most significant (10) to least (0)
 	//   Bit 10:   always 1
 	//   Bit  9:   1 if overline, 0 if underline
-	//   Bits 8-4: letter code (1-25, never 0, or 26-31)
-	//   Bits 3-1: digit code  (1-6, never 0, 7)
+	//   Bits 8-1: Letter/digit byte (permuted & negated in overlines)
 	//   Bit  0:   always 0 
-	uint binaryCodingReadForwardOrBackward = 0;
+	result.binaryCodingReadForwardOrBackward = 0;
 	for (size_t i = 0; i < NumberOfDotsInUndoverline; i++) {
 		// 1s are white, or lower values)
-		binaryCodingReadForwardOrBackward <<= 1;
-		if (dotValues[i] > threshold) {
-			binaryCodingReadForwardOrBackward += 1;
+		result.binaryCodingReadForwardOrBackward <<= 1;
+		if (result.medianPixelValues[i] > result.whiteBlackThreshold) {
+			result.binaryCodingReadForwardOrBackward += 1;
 		}
 	}
-	return binaryCodingReadForwardOrBackward;
+
+	result.lineThroughMidWidthStart = start;
+	result.lineThroughMidWidthEnd = end;
+	result.center = pointBetween(start, end);
+	result.angle = float( (atan2(deltaV, deltaH) * 180 / M_PI) );
+	return result;
 }
 
-static void readUndoverline(cv::Mat image, RectangleDetected line)
+
+//
+//static uint undoverlinePixelValuesToBits(std::vector<uchar> dotValues)
+//{
+//	// The smallest number of white blocks would be
+//	//   1 for the orientation
+//	//   1 for the letter (true even if permuted and inverted)
+//	//   1 for digit (true even if permuted and inverted)
+//	float minFractionOfZerosAndOnes = 3.0f / 11.0f;
+//	uchar threshold = bimodalThreshold(dotValues, minFractionOfZerosAndOnes, minFractionOfZerosAndOnes);
+//
+//	// The binary coding has 11 bits,
+//	// from most significant (10) to least (0)
+//	//   Bit 10:   always 1
+//	//   Bit  9:   1 if overline, 0 if underline
+//	//   Bits 8-1: Letter/digit byte (permuted & negated in overlines)
+//	//   Bit  0:   always 0 
+//	uint binaryCodingReadForwardOrBackward = 0;
+//	for (size_t i = 0; i < NumberOfDotsInUndoverline; i++) {
+//		// 1s are white, or lower values)
+//		binaryCodingReadForwardOrBackward <<= 1;
+//		if (dotValues[i] > threshold) {
+//			binaryCodingReadForwardOrBackward += 1;
+//		}
+//	}
+//	return binaryCodingReadForwardOrBackward;
+//}
+
+static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected line)
 {
-	UndoverlineShape undoverline = UndoverlineShape(line);
-	auto undoverlinePixelValues = readUndoverlinePoints(image, undoverline);
-	uint binaryCodingReadForwardOrBackward = undoverlinePixelValuesToBits(undoverlinePixelValues);
+	Mat imageCopy = imageColor.clone();
 
-	// The binary coding has 11 bits,
-	// from most significant (10) to least (0)
-	//   Bit 10:   always 1
-	//   Bit  9:   1 if overline, 0 if underline
-	//   Bits 8-4: letter code (1-25, never 0, or 26-31)
-	//   Bits 3-1: digit code  (1-6, never 0, 7)
-	//   Bit  0:   always 0 
+	const Point points[4] = {
+		cv::Point(line.bottomLeft),
+		cv::Point(line.topLeft),
+		cv::Point(line.topRight),
+		cv::Point(line.bottomRight),
+	};
 
-	// First, we need to determine if we read the code in the
-	// forward order (the first bit is 1) or the reverse order
-	// (such that the last bit is 1).
-	const bool firstBitRead = ( binaryCodingReadForwardOrBackward >> (NumberOfDotsInUndoverline - 1) ) == 1;
-	const bool lastBitRead = binaryCodingReadForwardOrBackward & 1;
-	if ( (firstBitRead ^ lastBitRead) != 1 ) {
-		// The direction bit is a white box at the left (starting) edge
-		// of the underline.
-		// Thus, either the first or last bit should be set to 1,
-		// but never neither or both.
-		// FIXME
+	const Point* ppoints[1] = {
+		points
+	};
+
+	int npt[] = { 4 };
+
+	UndoverlineShape undoverline = isolateUndoverline(image, line);
+
+	polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
+	cv::imwrite("underline-within-image.png", imageCopy);
+	cv::imwrite("underline-isolated.png", copyRotatedRectangle(image, undoverline.center, undoverline.angle, cv::Size2f(undoverline.length, undoverline.length/6.0f)));
+	// auto undoverlinePixelValues = readUndoverlinePoints(image, undoverline);
+	// uint binaryCodingReadForwardOrBackward = undoverlinePixelValuesToBits(undoverlinePixelValues);
+
+	auto decodedUndoverline = decodeUndoverlineBits(undoverline.binaryCodingReadForwardOrBackward, undoverline.isVertical);
+
+	if (!decodedUndoverline.isValid) {
 		return;
 	}
 
-	const bool readInReverseOrder = lastBitRead;
 	// Correct the angle of the undoverline since we read it in the reverse direction
 	// by offsetting it by 180 degress
-	if (readInReverseOrder) {
+	if (decodedUndoverline.wasReadInReverseOrder) {
 		undoverline.angle = undoverline.angle < 0 ?
 			undoverline.angle + 180 :
 			undoverline.angle - 180;
 	}
-	// Get the bits in the correct order, with the lowest-order
-	// bit 0 (the always-black last bit in the underline)
-	const uint binaryEncoding = readInReverseOrder ?
-		reverseBits(binaryCodingReadForwardOrBackward, 11) : binaryCodingReadForwardOrBackward;
-	const bool isOverline = (binaryEncoding >> 9) & 1;
-	const uchar letterCode = ((binaryEncoding >> 4) & 0x1F);
-	const uchar digitCode = ((binaryEncoding >> 1) & 0x7);
-	if ( (letterCode < 1) || (letterCode > DieLetters.length() ) )  {
-		// FIXME
-		return;
-	} else if ( (digitCode < 1) || (digitCode > DieDigits.length() ) ) {
-		// FIXME
-		return;
-	}
-
-	char letter = DieLetters[letterCode - 1];
-	char digit = DieDigits[digitCode - 1];
-	uchar rotationStep = undoverline.isVertical ? (
-			// vertical
-			readInReverseOrder ? 3 : 1
-		) : (
-			// horizontal
-			readInReverseOrder ? 2 : 0
-	);
-	uint rotation = rotationStep * 90;
 
 	float upAngleInDegrees =
-		undoverline.angle + (isOverline ? 90 : -90);
+		undoverline.angle + (decodedUndoverline.isOverline ? 90 : -90);
 	float upAngleInRadians = float(upAngleInDegrees * (2 * M_PI / 360.0));
 
 	// pixels per mm the length of the overline in pixels of it's length in mm,
@@ -307,7 +382,18 @@ static void readUndoverline(cv::Mat image, RectangleDetected line)
 	const auto l = readCharacter(letterImage, false);
 	const auto d = readCharacter(digitImage, true);
 
-	std::string result = std::string("") + letter + digit + char('0' + rotationStep);
+	static int error = 1;
+	if (l.confidence > 50.0f && decodedUndoverline.letter != l.charRead) {
+		std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, decodedUndoverline.letter) + "-as-" + std::string(1, l.charRead);
+		cv::imwrite(errBase + "-line.png", copyRotatedRectangle(image, line.center, line.angle, cv::Size2f( line.size.width + 2, line.size.height + 2)));
+		cv::imwrite(errBase + ".png", letterImage);
+	}
+	if (d.confidence > 50.0f && decodedUndoverline.digit != d.charRead) {
+		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, decodedUndoverline.digit) + "-as-" + std::string(1, d.charRead) + ".png", digitImage);
+	}
+
+
+	std::string result = std::string("") + decodedUndoverline.letter + decodedUndoverline.digit + char('0' + decodedUndoverline.numberOf90DegreeeClockwiseRotationsFromUpright);
 	
 	// line.angle;
 }

@@ -46,7 +46,7 @@ static void getDiceFromImage(cv::Mat image, std::string fileIdentifier, std::str
 	// Step one: find the underlines
 	auto undoverlines = findUndoverlines(gray);
 	for (auto undoverline: undoverlines) {
-		readUndoverline(gray, undoverline);
+		readUndoverline(image, gray, undoverline);
 	}
 
 	//
