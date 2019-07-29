@@ -15,6 +15,7 @@
 #include "die.h"
 #include "rotate.h"
 #include "ocr.h"
+#include "sample-points-along-line.h"
 
 using namespace cv;
 
@@ -99,60 +100,6 @@ struct UndoverlineShape {
 	std::vector<uchar> medianPixelValues = std::vector<uchar>(NumberOfDotsInUndoverline);
 	uint binaryCodingReadForwardOrBackward = 0;
 };
-
-const	std::vector<cv::Point>	SampleOffsets = {
-	cv::Point(0, 0),
-	// 1
-	cv::Point(+1, 0),
-	cv::Point(-1, 0),
-	cv::Point(0, +1),
-	cv::Point(0, -1),
-	// 5
-	cv::Point(+1, +1),
-	cv::Point(-1, -1),
-	cv::Point(+1, -1),
-	cv::Point(-1, +1),
-	// 9
-	cv::Point(+2, 0),
-	cv::Point(-2, 0),
-	cv::Point(0, +2),
-	cv::Point(0, -2),
-	// 13
-	cv::Point(+2, -1),
-	cv::Point(-2, -1),
-	cv::Point(-1, +2),
-	cv::Point(-1, -2),
-	cv::Point(+2, +1),
-	cv::Point(-2, +1),
-	cv::Point(+1, +2),
-	cv::Point(+1, -2),
-	// 21
-};
-
-static std::vector<uchar> samplePointsAlongLine(
-	const cv::Mat image,
-	const Point2f start,
-	const Point2f end,
-	const std::vector<float> pointsAsFractionsOfDistanceFromStartToEnd,
-	size_t samplesPerPoint = MAXSIZE_T
-) {
-	std::vector<uchar> samplesRead(pointsAsFractionsOfDistanceFromStartToEnd.size());
-	float deltaX = end.x - start.x;
-	float deltaY = end.y - start.y;
-	samplesPerPoint = MIN(samplesPerPoint, SampleOffsets.size());
-	std::vector<uchar> pixelsAroundSamplePoint = std::vector<uchar>(samplesPerPoint);
-	for (size_t i = 0; i < 1 + DieDimensionsFractional::dotCentersAsFractionOfUndoverline.size(); i++) {
-		const float dotFraction = DieDimensionsFractional::dotCentersAsFractionOfUndoverline[i];
-		const int x = int(round(start.x + (dotFraction * deltaX)));
-		const int y = int(round(start.y + (dotFraction * deltaY)));
-		for (size_t s = 0; s < samplesPerPoint; s++) {
-			pixelsAroundSamplePoint[s] = (image.at<uchar>(cv::Point(x + SampleOffsets[s].x, y + SampleOffsets[s].y)));
-		}
-		samplesRead.push_back(median(pixelsAroundSamplePoint));
-	}
-	return samplesRead;
-}
-
 
 static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line) {
 	UndoverlineShape result;
