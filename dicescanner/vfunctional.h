@@ -49,20 +49,26 @@ static NUMBER percentile(const std::vector<NUMBER>& numbers, float percentileOf1
 	return (sorted[lower] + sorted[upper]) / 2;
 }
 
+template <typename NUMBER>
+static NUMBER medianInPlace(std::vector<NUMBER> &numbers)
+{
+	std::sort(numbers.begin(), numbers.end(), [](NUMBER a, NUMBER b) { return a < b; });
+	if (numbers.size() == 0) {
+		return 0;
+	} else if (numbers.size() % 2 > 0) {
+		return numbers[numbers.size() / 2];
+	} else {
+		auto c = numbers.size() / 2;
+		return (numbers[c] + numbers[c-1]) / 2;
+	}
+}
+
 
 template <typename NUMBER>
 static NUMBER median(const std::vector<NUMBER> &numbers)
 {
-	std::vector<NUMBER> sorted = numbers;
-	std::sort(sorted.begin(), sorted.end(), [](NUMBER a, NUMBER b) { return a < b; });
-	if (sorted.size() == 0) {
-		return 0;
-	} else if (sorted.size() % 2 > 0) {
-		return sorted[sorted.size() / 2];
-	} else {
-		auto c = sorted.size() / 2;
-		return (sorted[c] + sorted[c-1]) / 2;
-	}
+	std::vector<NUMBER> sortable = numbers;
+	return medianInPlaced(sortable);
 }
 
 template <typename NUMBER>
