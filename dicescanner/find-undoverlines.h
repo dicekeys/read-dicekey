@@ -129,30 +129,28 @@ const	std::vector<cv::Point>	SampleOffsets = {
 	// 21
 };
 
-static std::vector<uchar> samplePoints(
-	cv::Mat image,
-	Point2f firstPointsCenter,
-	Point2f lastPointsCenter,
-	size_t numPoints,
+static std::vector<uchar> samplePointsAlongLine(
+	const cv::Mat image,
+	const Point2f start,
+	const Point2f end,
+	const std::vector<float> pointsAsFractionsOfDistanceFromStartToEnd,
 	size_t samplesPerPoint = MAXSIZE_T
 ) {
-	std::vector<uchar> medianSamples = std::vector<uchar>(numPoints);
-
+	std::vector<uchar> samplesRead(pointsAsFractionsOfDistanceFromStartToEnd.size());
+	float deltaX = end.x - start.x;
+	float deltaY = end.y - start.y;
 	samplesPerPoint = MIN(samplesPerPoint, SampleOffsets.size());
-	float distanceBetweenPixelsX = (lastPointsCenter.x - firstPointsCenter.x) / MAX(numPoints-1, 1);
-	float distanceBetweenPixelsY = (lastPointsCenter.y - firstPointsCenter.y) / MAX(numPoints-1, 1);
-
-	for (size_t i = 0; i < NumberOfDotsInUndoverline; i++) {
-		const float dotFraction = (mmDieUndoverlineRightLeftMargin + (i * mmDieUndoverlineDotWidth)) / mmDieUndoverlineLength;
-		const int x = int(round(firstPointsCenter.x + (i * distanceBetweenPixelsX)));
-		const int y = int(round(firstPointsCenter.y + (i * distanceBetweenPixelsY)));
-		std::vector<uchar> pixelsAroundSamplePoint = std::vector<uchar>(samplesPerPoint);
+	std::vector<uchar> pixelsAroundSamplePoint = std::vector<uchar>(samplesPerPoint);
+	for (size_t i = 0; i < 1 + DieDimensionsFractional::dotCentersAsFractionOfUndoverline.size(); i++) {
+		const float dotFraction = DieDimensionsFractional::dotCentersAsFractionOfUndoverline[i];
+		const int x = int(round(start.x + (dotFraction * deltaX)));
+		const int y = int(round(start.y + (dotFraction * deltaY)));
 		for (size_t s = 0; s < samplesPerPoint; s++) {
-			pixelsAroundSamplePoint.push_back(image.at<uchar>(cv::Point(x + SampleOffsets[s].x, y + SampleOffsets[s].y)));
+			pixelsAroundSamplePoint[s] = (image.at<uchar>(cv::Point(x + SampleOffsets[s].x, y + SampleOffsets[s].y)));
 		}
-		medianSamples.push_back(median(pixelsAroundSamplePoint));
+		samplesRead.push_back(median(pixelsAroundSamplePoint));
 	}
-	return medianSamples;
+	return samplesRead;
 }
 
 
@@ -198,9 +196,13 @@ static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line
 	// theshold between light and dark.
 	float deltaH = end.x - start.x;
 	float deltaV = end.y - start.y;
+	const std::vector<float> UndoverlineWhiteDarkSamplePoints = { 0,
+		0.05f, 0.1f, 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f, 0.5f,
+		0.55f, 0.6f, 0.65f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1
+	};
 	const size_t numSamples = NumberOfDotsInUndoverline + 2;
-	std::vector<uchar> pixelSamples = samplePoints(image, start, end, numSamples, 5);
-	float minFractionOfZerosAndOnes = 3.0f / float(numSamples);
+	std::vector<uchar> pixelSamples = samplePointsAlongLine(image, start, end, UndoverlineWhiteDarkSamplePoints, 5);
+	float minFractionOfZerosAndOnes = 3.0f / float(UndoverlineWhiteDarkSamplePoints.size());
 	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, minFractionOfZerosAndOnes, minFractionOfZerosAndOnes);
 
 	// Trim the start of the line by moving the start closer to the end,
@@ -225,30 +227,22 @@ static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line
 	result.length = sqrt(deltaH * deltaH + deltaV * deltaV);
 	result.height = undoverlineWidthOverLength * result.length;
 
-	float fractionToFirstPixelCenter = float((
-		mmDieUndoverlineRightLeftMargin +
-		0.5 * mmDieUndoverlineDotWidth	
-	) / mmDieUndoverlineLength);
-	cv::Point2f centerOfFirstDot = cv::Point2f(
-		start.x + fractionToFirstPixelCenter * deltaH,
-		start.y + fractionToFirstPixelCenter  * deltaV
-	);
-	cv::Point2f centerOfLastDot = cv::Point2f(
-		start.x - fractionToFirstPixelCenter * deltaH,
-		start.y - fractionToFirstPixelCenter  * deltaV
-	);
-
-	float distanceBetweenPixels = result.length * mmDieUndoverlineDotWidth / mmDieUndoverlineLength;
-	// float distanceBetweenPixelsX = deltaH * mmDieUndoverlineDotWidth / mmDieUndoverlineLength;
-	// float distanceBetweenPixelsY = deltaV * mmDieUndoverlineDotWidth / mmDieUndoverlineLength;
+	// Calculate the width in pixels of the dots that encode data in undoverline's
+	// by taking the length of the line in pixels * the fraction of a line consumed
+	// by each dot.
+	const float undoverlineDotWidthInPixels = result.length * DieDimensionsFractional::undoverlineDotWidth;
 
 	size_t numberOfPixelsToSampleAroundPoint =
-		distanceBetweenPixels < 2.0f ? 1 :
-		distanceBetweenPixels < 3.0f ? 5 :
-		distanceBetweenPixels < 3.5 ? 9 :
-		distanceBetweenPixels < 4.5 ? 13 :
+		undoverlineDotWidthInPixels < 2.0f ? 1 :
+		undoverlineDotWidthInPixels < 3.0f ? 5 :
+		undoverlineDotWidthInPixels < 3.5 ? 9 :
+		undoverlineDotWidthInPixels < 4.5 ? 13 :
 		21;
-	result.medianPixelValues = samplePoints(image, centerOfFirstDot, centerOfLastDot, NumberOfDotsInUndoverline, numberOfPixelsToSampleAroundPoint);
+	result.medianPixelValues = samplePointsAlongLine(
+		image, start, end,
+		DieDimensionsFractional::dotCentersAsFractionOfUndoverline,
+		numberOfPixelsToSampleAroundPoint
+	);
 
 	// The smallest number of white blocks would be
 	//   1 for the orientation
@@ -352,11 +346,13 @@ static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected
 
 	// pixels per mm the length of the overline in pixels of it's length in mm,
 	// or, undoverline.length / mmDieUndoverlineLength;
-	double mmToPixels = double(undoverline.length) / mmDieUndoverlineLength;
+	double mmToPixels = double(undoverline.length) / DieDimensionsMm::undoverlineLength;
 	float pixelsFromCenterOfUnderlineToCenterOfDie = float(
-		mmFromCenterOfUndoverlineToCenterOfDie * mmToPixels);
-	int textHeightPixels = int(ceil(mmDieTextRegionHeight * mmToPixels));
-	int textWidthPixels = int(ceil(mmDieTextRegionWidth * mmToPixels));
+		DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
+		// mmFromCenterOfUndoverlineToCenterOfDie *
+		mmToPixels);
+	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
+	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
 	// Use an even text region width so we can even split it in two at the center;
 	if ((textWidthPixels % 2) == 1) {
 		textWidthPixels += 1;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 std::string DieLetters = "ABCDEFGHIJKLMNOPRSTUVWXYZ";
 std::string DieDigits = "123456";
@@ -25,74 +26,93 @@ const uchar underlineCodeToLetterIndexTimesSixPlusDigitIndex[256] = {
 
 
 struct LetterDigitEncoding {
-	uchar underlineEncoding = 0;
-	uchar overlineEncoding = 0;
+  uchar underlineEncoding = 0;
+  uchar overlineEncoding = 0;
 };
 
 static LetterDigitEncoding encodeLetterAndDigit(char letter, char digit) {
-	LetterDigitEncoding result;
-	size_t letterIndex = DieLetters.find_first_of(letter, 0);
-	size_t digitIndex = DieLetters.find_first_of(digit, 0);
-	if (letterIndex != std::string::npos || digitIndex != std::string::npos) {
-		size_t letterIndexTimesSixPlusDigitIndex = (letterIndex * 6) + digitIndex;
-		result.overlineEncoding = letterIndexTimesSixPlusDigitIndexToOverlineCode[letterIndexTimesSixPlusDigitIndex];
-		result.underlineEncoding = letterIndexTimesSixPlusDigitIndexToUnderlineCode[letterIndexTimesSixPlusDigitIndex];
-	}
-	return result;
+  LetterDigitEncoding result;
+  size_t letterIndex = DieLetters.find_first_of(letter, 0);
+  size_t digitIndex = DieLetters.find_first_of(digit, 0);
+  if (letterIndex != std::string::npos || digitIndex != std::string::npos) {
+    size_t letterIndexTimesSixPlusDigitIndex = (letterIndex * 6) + digitIndex;
+    result.overlineEncoding = letterIndexTimesSixPlusDigitIndexToOverlineCode[letterIndexTimesSixPlusDigitIndex];
+    result.underlineEncoding = letterIndexTimesSixPlusDigitIndexToUnderlineCode[letterIndexTimesSixPlusDigitIndex];
+  }
+  return result;
 }
 
 namespace DieDimensionsMm {
-	const float size = float(8);
-	const float undoverlineLength = float(6);
-	const float undoverlineThickness = float(1);
-	const float overlineTop = float(0.75);
-	const float underlineTop = float(6.25);
-	const float undoverlineMarginAtLineStartAndEnd = float(0.5);
-	const float undoverlineMarginAlongLength = float(0.25);
-	const float textBaselineY = float(5.5);
-	const float fontSize = float(5);
-	const float center = float(4);
-	const float undoverlineLeftEdge = float(1);
-	const float undoverlineFirstDotLeftEdge = float(1.5);
-	const float undoverlineDotWidth = float(0.45454545454545453);
-	const float undoverlineDotHeight = float(0.5);
-	const float overlineDotTop = float(1);
-	const float underlineDotTop = float(6.5);
+  const float size = float(8);
+  const float undoverlineLength = float(6);
+  const float undoverlineThickness = float(1);
+  const float overlineTop = float(0.75);
+  const float underlineTop = float(6.25);
+  const float undoverlineMarginAtLineStartAndEnd = float(0.5);
+  const float undoverlineMarginAlongLength = float(0.25);
+  const float textBaselineY = float(5.5);
+  const float fontSize = float(5);
+  const float textRegionWidth = float(6);
+  const float center = float(4);
+  const float undoverlineLeftEdge = float(1);
+  const float undoverlineFirstDotLeftEdge = float(1.5);
+  const float undoverlineDotWidth = float(0.45454545454545453);
+  const float undoverlineDotHeight = float(0.5);
+  const float centerOfUndoverlineToCenterOfDie = float(2.75);
+  const float textRegionHeight = float(3.9);
+  const float overlineDotTop = float(1);
+  const float underlineDotTop = float(6.5);
 };
 
 namespace DieDimensionsFractional {
-	const float size = float(1);
-	const float center = float(0.5);
-	const float undoverlineLength = float(0.75);
-	const float undoverlineThickness = float(0.125);
-	const float overlineTop = float(0.09375);
-	const float underlineTop = float(0.78125);
-	const float undoverlineMarginAtLineStartAndEnd = float(0.0625);
-	const float undoverlineMarginAlongLength = float(0.03125);
-	const float textBaselineY = float(0.6875);
-	const float fontSize = float(0.625);
-	const float undoverlineLeftEdge = float(0.125);
-	const float undoverlineFirstDotLeftEdge = float(0.1875);
-	const float undoverlineDotWidth = float(0.056818181818181816);
-	const float undoverlineDotHeight = float(0.0625);
-	const float overlineDotTop = float(0.125);
-	const float underlineDotTop = float(0.8125);
+  const float size = float(1);
+  const float center = float(0.5);
+  const float centerOfUndoverlineToCenterOfDie = float(0.34375);
+  const float undoverlineLength = float(0.75);
+  const float undoverlineThickness = float(0.125);
+  const float overlineTop = float(0.09375);
+  const float underlineTop = float(0.78125);
+  const float undoverlineMarginAtLineStartAndEnd = float(0.0625);
+  const float undoverlineMarginAlongLength = float(0.03125);
+  const float textBaselineY = float(0.6875);
+  const float textRegionHeight = float(0.4875);
+  const float textRegionWidth = float(0.75);
+  const float fontSize = float(0.625);
+  const float undoverlineLeftEdge = float(0.125);
+  const float undoverlineFirstDotLeftEdge = float(0.1875);
+  const float undoverlineDotWidth = float(0.056818181818181816);
+  const float undoverlineDotHeight = float(0.0625);
+  const float overlineDotTop = float(0.125);
+  const float underlineDotTop = float(0.8125);
+  std::vector<float> dotCentersAsFractionOfUndoverline = {
+    float(0.2159090909090909),
+    float(0.2727272727272727),
+    float(0.32954545454545453),
+    float(0.38636363636363635),
+    float(0.4431818181818182),
+    float(0.5),
+    float(0.5568181818181819),
+    float(0.6136363636363636),
+    float(0.6704545454545454),
+    float(0.7272727272727273),
+    float(0.7840909090909091),
+  };
 };
 
 
-const float mmDieSize = 8;
-const float mmDieMargin = 0.75;
-const float mmDieUndoverlineLength = 6.0f;
-const float mmDieUndoverlineRightLeftMargin = 0.5;
-const float mmDieUndoverlineWidth = 1.0f;
-const float mmDieUndoverlineDotWidth = (mmDieUndoverlineWidth - (2* mmDieUndoverlineDotWidth)) / float(NumberOfDotsInUndoverline);
-const float mmBetweenUndoverlines = mmDieSize - 2.0f * (mmDieMargin + mmDieUndoverlineWidth);
-const float mmFromCenterOfUndoverlineToCenterOfDie = (mmBetweenUndoverlines + mmDieUndoverlineWidth) / 2.0f;
+// const float mmDieSize = 8;
+// const float mmDieMargin = 0.75;
+// const float mmDieUndoverlineLength = 6.0f;
+// const float mmDieUndoverlineRightLeftMargin = 0.5;
+// const float mmDieUndoverlineWidth = 1.0f;
+// const float mmDieUndoverlineDotWidth = (mmDieUndoverlineWidth - (2* mmDieUndoverlineDotWidth)) / float(NumberOfDotsInUndoverline);
+// const float mmBetweenUndoverlines = mmDieSize - 2.0f * (mmDieMargin + mmDieUndoverlineWidth);
+// const float mmFromCenterOfUndoverlineToCenterOfDie = (mmBetweenUndoverlines + mmDieUndoverlineWidth) / 2.0f;
 
-const float mmDieTextRegionWidth = 6.0f;
-const float mmDieTextRegionHeight = mmBetweenUndoverlines - 0.6f;
+// const float mmDieTextRegionWidth = 6.0f;
+// const float mmDieTextRegionHeight = mmBetweenUndoverlines - 0.6f;
 
-const float undoverlineWidthOverLength = mmDieUndoverlineWidth / mmDieUndoverlineLength;
+const float undoverlineWidthOverLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
 
 
 const float minWidthOverLength = undoverlineWidthOverLength / 1.5f;
@@ -173,7 +193,7 @@ static decodeUndoverlineBitsResult decodeUndoverlineBits(uint binaryCodingReadFo
 	//   Bit 10:   always 1
 	//   Bit  9:   1 if overline, 0 if underline
 	//   Bits 8-1: byte encoding letter and digit
-	//   Bit  0:   always 0 
+	//   Bit  0:   always 0
 
 	// First, we need to determine if we read the code in the
 	// forward order (the first bit is 1) or the reverse order
@@ -208,7 +228,7 @@ static decodeUndoverlineBitsResult decodeUndoverlineBits(uint binaryCodingReadFo
 
 	const unsigned char letterDigitByte =
 		decodeLetterAndDigitByte((binaryEncoding >> 1) & 0xff, result.isOverline);
-	
+
 	const uchar letterCode = (letterDigitByte >> 3) & 0x1f;
 	const uchar digitCode = letterDigitByte & 0x7;
 	if ( (letterCode < 1) || (letterCode > DieLetters.length() ) )  {
@@ -216,7 +236,7 @@ static decodeUndoverlineBitsResult decodeUndoverlineBits(uint binaryCodingReadFo
 	} else {
 		result.letter = DieLetters[letterCode - 1];
 	}
-	
+
 	if ( (digitCode < 1) || (digitCode > DieDigits.length() ) ) {
 		decodeErrorPresent = true;
 	} else {
