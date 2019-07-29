@@ -15,7 +15,7 @@
 #include "die.h"
 #include "rotate.h"
 #include "ocr.h"
-#include "sample-points-along-line.h"
+#include "sample-point.h"
 
 using namespace cv;
 

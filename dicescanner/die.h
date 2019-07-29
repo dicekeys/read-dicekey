@@ -99,19 +99,6 @@ namespace DieDimensionsFractional {
   };
 };
 
-
-// const float mmDieSize = 8;
-// const float mmDieMargin = 0.75;
-// const float mmDieUndoverlineLength = 6.0f;
-// const float mmDieUndoverlineRightLeftMargin = 0.5;
-// const float mmDieUndoverlineWidth = 1.0f;
-// const float mmDieUndoverlineDotWidth = (mmDieUndoverlineWidth - (2* mmDieUndoverlineDotWidth)) / float(NumberOfDotsInUndoverline);
-// const float mmBetweenUndoverlines = mmDieSize - 2.0f * (mmDieMargin + mmDieUndoverlineWidth);
-// const float mmFromCenterOfUndoverlineToCenterOfDie = (mmBetweenUndoverlines + mmDieUndoverlineWidth) / 2.0f;
-
-// const float mmDieTextRegionWidth = 6.0f;
-// const float mmDieTextRegionHeight = mmBetweenUndoverlines - 0.6f;
-
 const float undoverlineWidthOverLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
 
 
