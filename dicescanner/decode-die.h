@@ -18,24 +18,15 @@ static unsigned int reverseBits(unsigned int bitsToReverse, unsigned int lengthI
 	return reversedBits;
 }
 
-struct decodeUndoverlineBitsResult {
-//	bool binaryCodingReadForwardOrBackward
-	bool isValid;
-	bool wasReadInReverseOrder;
-	bool isOverline;
-	char letter;
-	char digit;
-	unsigned char numberOf90DegreeeClockwiseRotationsFromUpright;
+struct UndoverlineTypeOrientationAndEncoding {
+	bool isValid = false;
+	bool wasReadInReverseOrder = false;
+	bool isOverline = false;
+	unsigned char numberOf90DegreeeClockwiseRotationsFromUpright = 0;
+	unsigned char letterDigitEncoding = 0;
 };
 
-static decodeUndoverlineBitsResult decodeUndoverlineBits(unsigned int binaryCodingReadForwardOrBackward, bool isVertical) {
-	decodeUndoverlineBitsResult result;
-	result.isValid = false;
-	result.letter = 0;
-	result.digit = 0;
-	result.numberOf90DegreeeClockwiseRotationsFromUpright = 0;
-	result.wasReadInReverseOrder = 0;
-
+static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned int binaryCodingReadForwardOrBackward, bool isVertical) {
 	bool decodeErrorPresent = false;
 
 	// The binary coding has 11 bits,
@@ -55,36 +46,45 @@ static decodeUndoverlineBitsResult decodeUndoverlineBits(unsigned int binaryCodi
 		// of the underline.
 		// Thus, either the first or last bit should be set to 1,
 		// but never neither or both.
-		result.isValid = false;
-		return result;
+		return {false};
 	}
 
-	result.wasReadInReverseOrder = lastBitRead;
+	const bool wasReadInReverseOrder = lastBitRead;
 
-	result.numberOf90DegreeeClockwiseRotationsFromUpright = isVertical ? (
+	const unsigned char numberOf90DegreeeClockwiseRotationsFromUpright = isVertical ? (
 			// vertical
-			result.wasReadInReverseOrder ? 3 : 1
+			wasReadInReverseOrder ? 3 : 1
 		) : (
 			// horizontal
-			result.wasReadInReverseOrder ? 2 : 0
+			wasReadInReverseOrder ? 2 : 0
 	);
 
 	// Get the bits in the correct order, with the lowest-order
 	// bit 0 (the always-black last bit in the underline)
-	const unsigned int binaryEncoding = result.wasReadInReverseOrder ?
+	const unsigned int binaryEncoding = wasReadInReverseOrder ?
 		reverseBits(binaryCodingReadForwardOrBackward, 11) : binaryCodingReadForwardOrBackward;
 
-	result.isOverline = (binaryEncoding >> 9) & 1;
-	const unsigned char letterDigitEncodingByte = (binaryEncoding >> 1) & 0xff;
+	const bool isOverline = (binaryEncoding >> 9) & 1;
+	const unsigned char letterDigitEncoding = (binaryEncoding >> 1) & 0xff;
+	return {
+		true, // isValid = true, encdoing was valid
+		wasReadInReverseOrder,
+		isOverline,
+		numberOf90DegreeeClockwiseRotationsFromUpright,
+		letterDigitEncoding
+	};
+}
 
-	const auto dieFaceCodes = result.isOverline ?
-	overlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte] :
-	underlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];
+static DieFaceCodes decodeUnderlineByte(unsigned char letterDigitEncodingByte) {
+	underlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];	
+}
 
-	decodeErrorPresent = dieFaceCodes.letter == 0;
-	result.letter = dieFaceCodes.letter;
-	result.digit = dieFaceCodes.digit;
+static DieFaceCodes decodeOverlineByte(unsigned char letterDigitEncodingByte) {
+	underlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];	
+}
 
-	result.isValid = !decodeErrorPresent;
-	return result;
+static DieFaceCodes decodeUndoverlineByte(bool isOverline, unsigned char letterDigitEncodingByte) {
+	return isOverline ?
+		decodeOverlineByte(letterDigitEncodingByte) :
+		decodeUnderlineByte(letterDigitEncodingByte);
 }

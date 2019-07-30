@@ -245,11 +245,13 @@ static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected
 	cv::imwrite("undoverline-within-image.png", imageCopy);
 	cv::imwrite("undoverline-isolated.png", copyRotatedRectangle(image, center, angle, cv::Size2f(undoverlineLength, undoverlineLength/6.0f)));
 
-	auto decodedUndoverline = decodeUndoverlineBits(binaryCodingReadForwardOrBackward, isVertical);
+	const auto decodedUndoverline = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
 
 	if (!decodedUndoverline.isValid) {
 		return;
 	}
+
+	const auto face = decodeUndoverlineByte(decodedUndoverline.isOverline, decodedUndoverline.letterDigitEncoding);
 
 	// Correct the angle of the undoverline since we read it in the reverse direction
 	// by offsetting it by 180 degress
@@ -298,13 +300,13 @@ static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected
 	const auto d = readCharacter(digitImage, true);
 
 	static int error = 1;
-	if (l.confidence > 50.0f && decodedUndoverline.letter != l.charRead) {
-		std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, decodedUndoverline.letter) + "-as-" + std::string(1, l.charRead);
+	if (l.confidence > 50.0f && face.letter != l.charRead) {
+		std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, face.letter) + "-as-" + std::string(1, l.charRead);
 		cv::imwrite(errBase + "-line.png", copyRotatedRectangle(image, rectEncompassingLine.center, rectEncompassingLine.angle, cv::Size2f( rectEncompassingLine.size.width + 2, rectEncompassingLine.size.height + 2)));
 		cv::imwrite(errBase + ".png", letterImage);
 	}
-	if (d.confidence > 50.0f && decodedUndoverline.digit != d.charRead) {
-		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, decodedUndoverline.digit) + "-as-" + std::string(1, d.charRead) + ".png", digitImage);
+	if (d.confidence > 50.0f && face.digit != d.charRead) {
+		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, face.digit) + "-as-" + std::string(1, d.charRead) + ".png", digitImage);
 	}
 
 }
