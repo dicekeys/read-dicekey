@@ -1,21 +1,36 @@
 #pragma once
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+struct Line {
+	cv::Point2f start;
+	cv::Point2f end;
+};
+
 static float distance2f(const cv::Point2f & a, const cv::Point2f & b) {
 	float dx = a.x - b.x;
 	float dy = a.y - b.y;
 	return sqrt(dx * dx + dy * dy);
 }
+static float lineLength(Line line) {
+	return distance2f(line.start, line.end);
+}
 
 
-cv::Point2f pointBetween2f(cv::Point a, cv::Point b)
+static cv::Point2f pointBetween2f(cv::Point a, cv::Point b)
 {
 	return cv::Point2f(
 		(a.x + b.x) / 2.0f,
 		(a.y + b.y) / 2.0f
 	);
 }
+static cv::Point2f pointBetween2f(Line line) {
+	return pointBetween2f(line.start, line.end);
+}
 
-bool isPointBetween2f(float x, float y, cv::Point bound1, cv::Point bound2)
+static bool isPointBetween2f(float x, float y, cv::Point2f bound1, cv::Point2f bound2)
 {
 	return
 		(x >= MIN(bound1.x, bound2.x)) &&
@@ -24,7 +39,20 @@ bool isPointBetween2f(float x, float y, cv::Point bound1, cv::Point bound2)
 		(y <= MAX(bound1.y, bound2.y));
 }
 
-bool isPointBetween2f(cv::Point p, cv::Point bound1, cv::Point bound2)
+static bool isPointBetween2f(cv::Point2f p, cv::Point2f bound1, cv::Point bound2)
 {
 	return isPointBetween2f(p.x, p.y, bound1, bound2);
+}
+
+static float angle2f(cv::Point2f start, cv::Point2f end) {
+	return float( (atan2(double(end.y - start.y), double(end.x - start.x)) * 180) / M_PI );
+}
+static float angle2f(Line line) {
+	return angle2f(line.start, line.end);
+}
+
+static float normalizeAngle(float angle)
+{
+	const float normalizedAngle = angle - round(angle / 90) * 90;
+	return normalizedAngle;
 }

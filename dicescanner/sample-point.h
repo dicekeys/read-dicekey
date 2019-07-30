@@ -1,6 +1,7 @@
 #pragma once
 
 #include <float.h>
+#include <math.h>
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
@@ -58,13 +59,25 @@ static uchar samplePoint(
 	return medianInPlace(pixelsAroundSamplePoint);
 }
 
+static size_t getNumberOfPixelsToSample(float physicalPixelWidthPerLogicalPixelWidth) {
+	return
+		physicalPixelWidthPerLogicalPixelWidth < 2.0f ? 1 :
+		physicalPixelWidthPerLogicalPixelWidth < 3.0f ? 5 :
+		physicalPixelWidthPerLogicalPixelWidth < 3.5 ? 9 :
+		physicalPixelWidthPerLogicalPixelWidth < 4.5 ? 13 :
+		21;
+}
+
 static std::vector<uchar> samplePointsAlongLine(
 	const cv::Mat image,
 	const cv::Point2f start,
 	const cv::Point2f end,
 	const std::vector<float> pointsAsFractionsOfDistanceFromStartToEnd,
-	const size_t samplesPerPoint = SampleOffsets.size()
+	size_t samplesPerPoint = 0
 ) {
+	if (samplesPerPoint <= 0) {
+		samplesPerPoint = getNumberOfPixelsToSample(distance2f(start, end) / pointsAsFractionsOfDistanceFromStartToEnd.size());
+	}
 	std::vector<uchar> samplesRead(pointsAsFractionsOfDistanceFromStartToEnd.size());
 	float deltaX = end.x - start.x;
 	float deltaY = end.y - start.y;
