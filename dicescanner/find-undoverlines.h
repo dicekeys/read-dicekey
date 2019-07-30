@@ -19,11 +19,6 @@
 #include "sample-point.h"
 #include "decode-die.h"
 
-static float normalizeAngle(float angle)
-{
-	const float normalizedAngle = angle - round(angle / 90) * 90;
-	return normalizedAngle;
-}
 
 const float undoverlineWidthOverLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
 const float minWidthOverLength = undoverlineWidthOverLength / 1.5f;
@@ -194,94 +189,6 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 
 
 static uint readUndoverlineBits(cv::Mat grayscaleImage, Line undoverline) {
-	//const int lineHeight = MAX(line.bottomLeft.y, line.bottomRight.y) - MIN(line.topLeft.y, line.topRight.y);
-	//const int lineWidth = MAX(line.topRight.x, line.bottomRight.x) - MIN(line.topLeft.x, line.bottomLeft.x);
-	//result.isVertical = lineHeight > lineWidth;
-	//cv::Point2f start, end;
-	//float pixelStepX, pixelStepY;
-
-	//if (result.isVertical) {
-	//	// Vertical (the line is closer to vertical than horizontal)
-	//	// start from half way between top left and top right and proceed to half way from bottom left and bottom right
-	//	start = pointBetween2f(line.topLeft, line.topRight);
-	//	end = pointBetween2f(line.bottomLeft, line.bottomRight);
-	//	// A step moving one Y pixel moves a fraction of a pixel in the x direction
-	//	pixelStepY = 1;
-	//	pixelStepX = ((end.x - start.x) / (end.y - start.y));
-	//}
-	//else {
-	//	// Horizontal (the line is closer to horizontal than vertical)
-	//	// start from half way between top left and bottom left and proceed from half way between top right and bottom right
-	//	start = pointBetween2f(line.topLeft, line.bottomLeft);
-	//	end = pointBetween2f(line.topRight, line.bottomRight);
-	//	// A step moving one X pixel moves a fraction of a pixel in the Y direction
-	//	pixelStepX = 1;
-	//	pixelStepY = ((end.y - start.y) / (end.x - start.x));
-	//}
-	//assert(abs(pixelStepX) <= 1);
-	//assert(abs(pixelStepY) <= 1);
-
-
-	//// Take 25 samples of points between start and end so that we can find
-	//// theshold between light and dark.
-	//const std::vector<float> UndoverlineWhiteDarkSamplePoints = { 0,
-	//	0.05f, 0.1f, 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f, 0.5f,
-	//	0.55f, 0.6f, 0.65f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1
-	//};
-	//const size_t numSamples = NumberOfDotsInUndoverline + 2;
-	//std::vector<uchar> pixelSamples = samplePointsAlongLine(grayscaleImage, start, end, UndoverlineWhiteDarkSamplePoints, 5);
-	//uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, 4, 4);
-
-	//// Recalculate center and angle by finding point halfway between the sides at
-	//// at 10%, 90% of distance.
-	//// We can then re-approximate start and end by 
-	//// Angle is angle between 10% and 90% point.
-	//// looking for top and bottom borders
-	////FIXME
-	//
-	//// Extend start and end .15mm to side in case we cut off the edge
-	//float fractionToExtend = 0.15f / 6.0f;
-	//float fractionToExtendH = (end.x - start.x) * fractionToExtend;
-	//float fractionToExtendV = (end.y - start.y) * fractionToExtend;
-	//start.x = MAX(0, MIN(start.x - fractionToExtendH, grayscaleImage.rows - 1));
-	//start.y = MAX(0, MIN(start.y - fractionToExtendV, grayscaleImage.rows - 1));
-	//end.x = MAX(0, MIN(end.x + fractionToExtendH, grayscaleImage.rows - 1));
-	//end.y = MAX(0, MIN(end.y + fractionToExtendV, grayscaleImage.rows - 1));
-
-	//// Trim the start of the line by moving the start closer to the end,
-	//// until we reach the first black pixel
-	//cv::Point2f oldStart = start;
-	//cv::Point2f oldEnd = end;
-	//while (
-	//	grayscaleImage.at<uchar>(start) > whiteBlackThreshold &&
-	//	isPointBetween2f(start.x + pixelStepX, start.y + pixelStepY, oldStart, oldEnd)
-	//) {
-	//	// The starting point hasn't reached the black underline.
-	//	start.x += pixelStepX;
-	//	start.y += pixelStepY;
-	//}
-
-	//// Trim the end of the line by moving the end closer to the start,
-	//// until we reach the first black pixel	
-	//while (
-	//	grayscaleImage.at<uchar>(end) > whiteBlackThreshold &&
-	//	isPointBetween2f( end.x - pixelStepX, end.y - pixelStepY, start, oldEnd)
-	//) {
-	//	// The starting point hasn't reached the black underline.
-	//	end.x -= pixelStepX;
-	//	end.y -= pixelStepY;
-	//}
-
-	//// Recalculate distances based on new start/end point
-	//result.length = distance2f(start, end);
-	//result.height = undoverlineWidthOverLength * result.length;
-
-	//if (result.length < NumberOfDotsInUndoverline) {
-	//	// There are no longer enough pixels to read.
-	//	// Return now so that this line can be invalidated.
-	//	return result;
-	//}
-
 	// Calculate the width in pixels of the dots that encode data in undoverline's
 	// by taking the length of the line in pixels * the fraction of a line consumed
 	// by each dot.
