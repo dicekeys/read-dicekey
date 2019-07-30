@@ -160,6 +160,7 @@
     <ClCompile Include="dicescanner\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dicescanner\decode-die.h" />
     <ClInclude Include="dicescanner\die.h" />
     <ClInclude Include="dicescanner\distance.h" />
     <ClInclude Include="dicescanner\find-dice.h" />

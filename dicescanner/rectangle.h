@@ -34,6 +34,7 @@ public:
 
 	RectangleDetected(cv::RotatedRect rrect, float _contourArea, int _foundAtThreshold) {
 		rotatedRect = rrect;
+		rrect.points(points.data());
 		contourArea = _contourArea;
 		foundAtThreshold = _foundAtThreshold;
 		center = rrect.center;

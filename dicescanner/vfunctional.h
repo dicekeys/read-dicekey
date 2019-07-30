@@ -75,11 +75,12 @@ static NUMBER median(const std::vector<NUMBER> &numbers)
 template <typename NUMBER>
 static NUMBER bimodalThreshold(
 	const std::vector<NUMBER>& numbers,
-	size_t minCountBelowThreshold = 0,
-	size_t minCountAboveThreshold = 0
+	size_t minCountBelowThreshold = 1,
+	size_t minCountAboveThreshold = 1
 ) {
-	size_t minIndex = numbers.size() + MIN(minCountBelowThreshold, numbers.size() - 1);
-	size_t maxIndex = MAX(numbers.size() - minCountAboveThreshold, 0);
+	// Must be at least 1, but cannot be greater than the last element
+	size_t minIndex = MIN(MAX(1, minCountBelowThreshold), numbers.size() - 1);
+	size_t maxIndex = numbers.size() - MAX(1, minCountAboveThreshold);
 	if (maxIndex <= minIndex) {
 		// There's no valid range to search
 		return 0;
@@ -90,7 +91,7 @@ static NUMBER bimodalThreshold(
 	std::vector<NUMBER> sorted = numbers;
 	std::sort(sorted.begin(), sorted.end(), [](NUMBER a, NUMBER b) { return a < b; });
 
-	for (size_t i = minIndex + 1; i < maxIndex; i++) {
+	for (size_t i = minIndex; i <= maxIndex; i++) {
 		const NUMBER distance = sorted[i] - sorted[i - 1];
 		if (distance > maxDistanceFound) {
 			maxDistanceFound = distance;

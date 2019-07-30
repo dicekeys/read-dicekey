@@ -10,12 +10,14 @@
 #include <iostream>
 #include <math.h>
 #include "vfunctional.h"
+#include "distance.h"
 #include "rectangle.h"
 #include "find-squares.h"
 #include "die.h"
 #include "rotate.h"
 #include "ocr.h"
 #include "sample-point.h"
+#include "decode-die.h"
 
 using namespace cv;
 
@@ -23,6 +25,18 @@ static float normalizeAngle(float angle)
 {
 	const float normalizedAngle = angle - round(angle / 90) * 90;
 	return normalizedAngle;
+}
+
+const float undoverlineWidthOverLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
+const float minWidthOverLength = undoverlineWidthOverLength / 1.5f;
+const float maxWidthOverLength = undoverlineWidthOverLength * 1.5f;
+
+static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
+	float shortToLongRatio = rect.shorterSideLength / rect.longerSideLength;
+	return (
+		shortToLongRatio >= minWidthOverLength &&
+		shortToLongRatio <= maxWidthOverLength
+		);
 }
 
 // returns sequence of squares detected on the image.
@@ -101,7 +115,7 @@ struct UndoverlineShape {
 	uint binaryCodingReadForwardOrBackward = 0;
 };
 
-static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line) {
+static UndoverlineShape readUndoverlineBits(cv::Mat image, RectangleDetected line) {
 	UndoverlineShape result;
 
 	const int lineHeight = MAX(line.bottomLeft.y, line.bottomRight.y) - MIN(line.topLeft.y, line.topRight.y);
@@ -136,16 +150,14 @@ static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line
 	float fractionToExtend = 0.15f / 6.0f;
 	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
 	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
-	start.x -= fractionToExtendH;
-	start.y -= fractionToExtendV;
-	end.x += fractionToExtendH;
-	end.y += fractionToExtendV;
+	start.x = MAX(0, MIN(start.x - fractionToExtendH, image.rows - 1));
+	start.y = MAX(0, MIN(start.y - fractionToExtendV, image.rows - 1));
+	end.x = MAX(0, MIN(end.x + fractionToExtendH, image.rows - 1));
+	end.y = MAX(0, MIN(end.y + fractionToExtendV, image.rows - 1));
 
 
 	// Take 25 samples of points between start and end so that we can find
 	// theshold between light and dark.
-	float deltaH = end.x - start.x;
-	float deltaV = end.y - start.y;
 	const std::vector<float> UndoverlineWhiteDarkSamplePoints = { 0,
 		0.05f, 0.1f, 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f, 0.5f,
 		0.55f, 0.6f, 0.65f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1
@@ -171,9 +183,7 @@ static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line
 	}
 
 	// Recalculate distances based on new start/end point
-	deltaH = end.x - start.x;
-	deltaV = end.y - start.y;
-	result.length = sqrt(deltaH * deltaH + deltaV * deltaV);
+	result.length = distance2f(start, end);
 	result.height = undoverlineWidthOverLength * result.length;
 
 	// Calculate the width in pixels of the dots that encode data in undoverline's
@@ -209,50 +219,14 @@ static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line
 	// In finding a white/black threshold, the sampling should ensure
 	// there are at least enough zeros an dones above/below the threshold.
 	result.whiteBlackThreshold = bimodalThreshold(result.medianPixelValues, minNumberOf0s, minNumberOf1s);
-
-	result.binaryCodingReadForwardOrBackward = 0;
-	for (size_t i = 0; i < NumberOfDotsInUndoverline; i++) {
-		// 1s are white, or lower values)
-		result.binaryCodingReadForwardOrBackward <<= 1;
-		if (result.medianPixelValues[i] > result.whiteBlackThreshold) {
-			result.binaryCodingReadForwardOrBackward += 1;
-		}
-	}
+	result.binaryCodingReadForwardOrBackward = sampledPointsToBits(result.medianPixelValues, result.whiteBlackThreshold);
 
 	result.lineThroughMidWidthStart = start;
 	result.lineThroughMidWidthEnd = end;
 	result.center = pointBetween(start, end);
-	result.angle = float( (atan2(deltaV, deltaH) * 180 / M_PI) );
+	result.angle = float( (atan2(end.y - start.y, end.x - start.x) * 180 / M_PI) );
 	return result;
 }
-
-
-//
-//static uint undoverlinePixelValuesToBits(std::vector<uchar> dotValues)
-//{
-//	// The smallest number of white blocks would be
-//	//   1 for the orientation
-//	//   1 for the letter (true even if permuted and inverted)
-//	//   1 for digit (true even if permuted and inverted)
-//	float minFractionOfZerosAndOnes = 3.0f / 11.0f;
-//	uchar threshold = bimodalThreshold(dotValues, minFractionOfZerosAndOnes, minFractionOfZerosAndOnes);
-//
-//	// The binary coding has 11 bits,
-//	// from most significant (10) to least (0)
-//	//   Bit 10:   always 1
-//	//   Bit  9:   1 if overline, 0 if underline
-//	//   Bits 8-1: Letter/digit byte (permuted & negated in overlines)
-//	//   Bit  0:   always 0 
-//	uint binaryCodingReadForwardOrBackward = 0;
-//	for (size_t i = 0; i < NumberOfDotsInUndoverline; i++) {
-//		// 1s are white, or lower values)
-//		binaryCodingReadForwardOrBackward <<= 1;
-//		if (dotValues[i] > threshold) {
-//			binaryCodingReadForwardOrBackward += 1;
-//		}
-//	}
-//	return binaryCodingReadForwardOrBackward;
-//}
 
 static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected line)
 {
@@ -271,13 +245,11 @@ static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected
 
 	int npt[] = { 4 };
 
-	UndoverlineShape undoverline = isolateUndoverline(image, line);
+	UndoverlineShape undoverline = readUndoverlineBits(image, line);
 
 	polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
-	cv::imwrite("underline-within-image.png", imageCopy);
-	cv::imwrite("underline-isolated.png", copyRotatedRectangle(image, undoverline.center, undoverline.angle, cv::Size2f(undoverline.length, undoverline.length/6.0f)));
-	// auto undoverlinePixelValues = readUndoverlinePoints(image, undoverline);
-	// uint binaryCodingReadForwardOrBackward = undoverlinePixelValuesToBits(undoverlinePixelValues);
+	cv::imwrite("undoverline-within-image.png", imageCopy);
+	cv::imwrite("undoverline-isolated.png", copyRotatedRectangle(image, undoverline.center, undoverline.angle, cv::Size2f(undoverline.length, undoverline.length/6.0f)));
 
 	auto decodedUndoverline = decodeUndoverlineBits(undoverline.binaryCodingReadForwardOrBackward, undoverline.isVertical);
 

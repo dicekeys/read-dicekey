@@ -82,3 +82,15 @@ static std::vector<uchar> samplePointsAlongLine(
 		}
 	);
 }
+
+static unsigned int sampledPointsToBits(std::vector<uchar> sampledPoints, uchar thresholdAboveWhichPointIsOneBit)
+{
+	unsigned int resultBits = 0;
+	for (size_t i = 0; i < sampledPoints.size(); i++) {
+		resultBits <<= 1;
+		if (sampledPoints[i] > thresholdAboveWhichPointIsOneBit) {
+			resultBits += 1;
+		}
+	}
+	return resultBits;
+}
