@@ -67,25 +67,30 @@ static NUMBER medianInPlace(std::vector<NUMBER> &numbers)
 template <typename NUMBER>
 static NUMBER median(const std::vector<NUMBER> &numbers)
 {
-	std::vector<NUMBER> sortable = numbers;
-	return medianInPlaced(sortable);
+	std::vector<NUMBER> sortable(numbers);
+	return medianInPlace(sortable);
 }
+
 
 template <typename NUMBER>
 static NUMBER bimodalThreshold(
 	const std::vector<NUMBER>& numbers,
-	float minDensityBelowThreshold = 0.0f,
-	float minDensityAboveThreshold = 0.0f
+	size_t minCountBelowThreshold = 0,
+	size_t minCountAboveThreshold = 0
 ) {
-	if (numbers.size() < 2) return 0;
+	size_t minIndex = numbers.size() + MIN(minCountBelowThreshold, numbers.size() - 1);
+	size_t maxIndex = MAX(numbers.size() - minCountAboveThreshold, 0);
+	if (maxIndex <= minIndex) {
+		// There's no valid range to search
+		return 0;
+	}
 
 	NUMBER maxDistanceFound = 0;
 	size_t indexOfMaxDistanceFound = 1;
 	std::vector<NUMBER> sorted = numbers;
 	std::sort(sorted.begin(), sorted.end(), [](NUMBER a, NUMBER b) { return a < b; });
-	size_t minIndex = size_t(ceil(sorted.size() * minDensityBelowThreshold));
-	size_t maxIndex = MIN(size_t(ceil(sorted.size() * (1 - minDensityAboveThreshold))), sorted.size() - 1);
-	for (size_t i = minIndex; i <= maxIndex; i++) {
+
+	for (size_t i = minIndex + 1; i < maxIndex; i++) {
 		const NUMBER distance = sorted[i] - sorted[i - 1];
 		if (distance > maxDistanceFound) {
 			maxDistanceFound = distance;
@@ -93,6 +98,19 @@ static NUMBER bimodalThreshold(
 		}
 	}
 	// Put threshold halfway between the edges
-	const NUMBER threshold = sorted[indexOfMaxDistanceFound - 1] + (maxDistanceFound / 2);
+	const NUMBER threshold = (sorted[indexOfMaxDistanceFound - 1] + sorted[indexOfMaxDistanceFound]) / 2;
 	return threshold;
+}
+
+template <typename NUMBER>
+static NUMBER bimodalThresholdWithFractionalDensities(
+	const std::vector<NUMBER>& numbers,
+	float minDensityBelowThreshold,
+	float minDensityAboveThreshold
+) {
+	return bimodalThreshold(
+		numbers,
+		ceil(minDensityBelowThreshold * numbers.size()),
+		ceil(minDensityAboveThreshold * numbers.size())
+	);
 }
