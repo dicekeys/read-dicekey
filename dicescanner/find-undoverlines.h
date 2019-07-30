@@ -10,16 +10,14 @@
 #include <iostream>
 #include <math.h>
 #include "vfunctional.h"
-#include "distance.h"
+#include "point-operations.h"
+#include "find-rectangles.h"
 #include "rectangle.h"
-#include "find-squares.h"
 #include "die.h"
 #include "rotate.h"
 #include "ocr.h"
 #include "sample-point.h"
 #include "decode-die.h"
-
-using namespace cv;
 
 static float normalizeAngle(float angle)
 {
@@ -93,15 +91,6 @@ static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int 
 	return candidateUnderOverLines;
 }
 
-
-cv::Point2f pointBetween(cv::Point a, cv::Point b)
-{
-	return cv::Point2f(
-		(a.x + b.x) / 2.0f,
-		(a.y + b.y) / 2.0f
-	);
-}
-
 struct UndoverlineShape {
 	bool isVertical = false;
 	cv::Point2f lineThroughMidWidthStart = cv::Point2f(0, 0);
@@ -127,8 +116,8 @@ static UndoverlineShape readUndoverlineBits(cv::Mat image, RectangleDetected lin
 	if (result.isVertical) {
 		// Vertical (the line is closer to vertical than horizontal)
 		// start from half way between top left and top right and proceed to half way from bottom left and bottom right
-		start = pointBetween(line.topLeft, line.topRight);
-		end = pointBetween(line.bottomLeft, line.bottomRight);
+		start = pointBetween2f(line.topLeft, line.topRight);
+		end = pointBetween2f(line.bottomLeft, line.bottomRight);
 		// A step moving one Y pixel moves a fraction of a pixel in the x direction
 		pixelStepY = 1;
 		pixelStepX = ((end.x - start.x) / (end.y - start.y));
@@ -136,24 +125,14 @@ static UndoverlineShape readUndoverlineBits(cv::Mat image, RectangleDetected lin
 	else {
 		// Horizontal (the line is closer to horizontal than vertical)
 		// start from half way between top left and bottom left and proceed from half way between top right and bottom right
-		start = pointBetween(line.topLeft, line.bottomLeft);
-		end = pointBetween(line.topRight, line.bottomRight);
+		start = pointBetween2f(line.topLeft, line.bottomLeft);
+		end = pointBetween2f(line.topRight, line.bottomRight);
 		// A step moving one X pixel moves a fraction of a pixel in the Y direction
 		pixelStepX = 1;
 		pixelStepY = ((end.y - start.y) / (end.x - start.x));
 	}
-	if (abs(pixelStepX) > 1 || abs(pixelStepY) > 1) {
-		std::cerr << "Pixel step error " <<pixelStepX << ", " << pixelStepY;
-	}
-
-	// Extend start and end .15mm to side in case we cut off the edge
-	float fractionToExtend = 0.15f / 6.0f;
-	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
-	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
-	start.x = MAX(0, MIN(start.x - fractionToExtendH, image.rows - 1));
-	start.y = MAX(0, MIN(start.y - fractionToExtendV, image.rows - 1));
-	end.x = MAX(0, MIN(end.x + fractionToExtendH, image.rows - 1));
-	end.y = MAX(0, MIN(end.y + fractionToExtendV, image.rows - 1));
+	assert(abs(pixelStepX) <= 1);
+	assert(abs(pixelStepY) <= 1);
 
 
 	// Take 25 samples of points between start and end so that we can find
@@ -166,9 +145,30 @@ static UndoverlineShape readUndoverlineBits(cv::Mat image, RectangleDetected lin
 	std::vector<uchar> pixelSamples = samplePointsAlongLine(image, start, end, UndoverlineWhiteDarkSamplePoints, 5);
 	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, 4, 4);
 
+	// Recalculate center and angle by finding point halfway between the sides at
+	// at 10%, 90% of distance.
+	// We can then re-approximate start and end by 
+	// Angle is angle between 10% and 90% point.
+	// looking for top and bottom borders
+	//FIXME
+	
+	// Extend start and end .15mm to side in case we cut off the edge
+	float fractionToExtend = 0.15f / 6.0f;
+	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
+	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
+	start.x = MAX(0, MIN(start.x - fractionToExtendH, image.rows - 1));
+	start.y = MAX(0, MIN(start.y - fractionToExtendV, image.rows - 1));
+	end.x = MAX(0, MIN(end.x + fractionToExtendH, image.rows - 1));
+	end.y = MAX(0, MIN(end.y + fractionToExtendV, image.rows - 1));
+
 	// Trim the start of the line by moving the start closer to the end,
-	// until we reach the first black pixel	
-	while (image.at<uchar>(start) > whiteBlackThreshold && (start.x < end.x || start.y < end.y)) {
+	// until we reach the first black pixel
+	cv::Point2f oldStart = start;
+	cv::Point2f oldEnd = end;
+	while (
+		image.at<uchar>(start) > whiteBlackThreshold &&
+		isPointBetween2f(start.x + pixelStepX, start.y + pixelStepY, oldStart, oldEnd)
+	) {
 		// The starting point hasn't reached the black underline.
 		start.x += pixelStepX;
 		start.y += pixelStepY;
@@ -176,7 +176,10 @@ static UndoverlineShape readUndoverlineBits(cv::Mat image, RectangleDetected lin
 
 	// Trim the end of the line by moving the end closer to the start,
 	// until we reach the first black pixel	
-	while (image.at<uchar>(end) > whiteBlackThreshold && (start.x < end.x || start.y < end.y)) {
+	while (
+		image.at<uchar>(end) > whiteBlackThreshold &&
+		isPointBetween2f( end.x - pixelStepX, end.y - pixelStepY, start, oldEnd)
+	) {
 		// The starting point hasn't reached the black underline.
 		end.x -= pixelStepX;
 		end.y -= pixelStepY;
@@ -185,6 +188,12 @@ static UndoverlineShape readUndoverlineBits(cv::Mat image, RectangleDetected lin
 	// Recalculate distances based on new start/end point
 	result.length = distance2f(start, end);
 	result.height = undoverlineWidthOverLength * result.length;
+
+	if (result.length < NumberOfDotsInUndoverline) {
+		// There are no longer enough pixels to read.
+		// Return now so that this line can be invalidated.
+		return result;
+	}
 
 	// Calculate the width in pixels of the dots that encode data in undoverline's
 	// by taking the length of the line in pixels * the fraction of a line consumed
@@ -223,23 +232,23 @@ static UndoverlineShape readUndoverlineBits(cv::Mat image, RectangleDetected lin
 
 	result.lineThroughMidWidthStart = start;
 	result.lineThroughMidWidthEnd = end;
-	result.center = pointBetween(start, end);
+	result.center = pointBetween2f(start, end);
 	result.angle = float( (atan2(end.y - start.y, end.x - start.x) * 180 / M_PI) );
 	return result;
 }
 
 static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected line)
 {
-	Mat imageCopy = imageColor.clone();
+	cv::Mat imageCopy = imageColor.clone();
 
-	const Point points[4] = {
+	const cv::Point points[4] = {
 		cv::Point(line.bottomLeft),
 		cv::Point(line.topLeft),
 		cv::Point(line.topRight),
 		cv::Point(line.bottomRight),
 	};
 
-	const Point* ppoints[1] = {
+	const cv::Point* ppoints[1] = {
 		points
 	};
 
@@ -313,8 +322,4 @@ static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected
 		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, decodedUndoverline.digit) + "-as-" + std::string(1, d.charRead) + ".png", digitImage);
 	}
 
-
-	std::string result = std::string("") + decodedUndoverline.letter + decodedUndoverline.digit + char('0' + decodedUndoverline.numberOf90DegreeeClockwiseRotationsFromUpright);
-	
-	// line.angle;
 }

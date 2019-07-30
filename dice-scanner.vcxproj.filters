@@ -7,13 +7,10 @@
   <ItemGroup>
     <ClInclude Include="dicescanner\rectangle.h" />
     <ClInclude Include="dicescanner\vfunctional.h" />
-    <ClInclude Include="dicescanner\locate-dice.h" />
     <ClInclude Include="dicescanner\value-clusters.h" />
     <ClInclude Include="dicescanner\read-dice.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="dicescanner\find-dice.h" />
-    <ClInclude Include="dicescanner\distance.h" />
     <ClInclude Include="dicescanner\get-dice-from-image.h" />
     <ClInclude Include="dicescanner\slope.h" />
     <ClInclude Include="dicescanner\test-box.h" />
@@ -22,6 +19,8 @@
     <ClInclude Include="dicescanner\ocr.h" />
     <ClInclude Include="dicescanner\sample-point.h" />
     <ClInclude Include="dicescanner\decode-die.h" />
+    <ClInclude Include="dicescanner\point-operations.h" />
+    <ClInclude Include="dicescanner\find-rectangles.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

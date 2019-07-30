@@ -12,7 +12,6 @@
 #include "find-undoverlines.h"
 #include "value-clusters.h"
 #include "rotate.h"
-#include "find-dice.h"
 #include "read-dice.h"
 #include "slope.h"
 #define _USE_MATH_DEFINES
