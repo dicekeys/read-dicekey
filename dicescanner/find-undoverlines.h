@@ -128,6 +128,9 @@ static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line
 		pixelStepX = 1;
 		pixelStepY = ((end.y - start.y) / (end.x - start.x));
 	}
+	if (abs(pixelStepX) > 1 || abs(pixelStepY) > 1) {
+		std::cerr << "Pixel step error " <<pixelStepX << ", " << pixelStepY;
+	}
 
 	// Extend start and end .15mm to side in case we cut off the edge
 	float fractionToExtend = 0.15f / 6.0f;
@@ -149,8 +152,7 @@ static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line
 	};
 	const size_t numSamples = NumberOfDotsInUndoverline + 2;
 	std::vector<uchar> pixelSamples = samplePointsAlongLine(image, start, end, UndoverlineWhiteDarkSamplePoints, 5);
-	float minFractionOfZerosAndOnes = 3.0f / float(UndoverlineWhiteDarkSamplePoints.size());
-	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, minFractionOfZerosAndOnes, minFractionOfZerosAndOnes);
+	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, 4, 4);
 
 	// Trim the start of the line by moving the start closer to the end,
 	// until we reach the first black pixel	
@@ -191,19 +193,23 @@ static UndoverlineShape isolateUndoverline(cv::Mat image, RectangleDetected line
 		numberOfPixelsToSampleAroundPoint
 	);
 
-	// The smallest number of white blocks would be
-	//   1 for the orientation
-	//   1 for the letter (true even if permuted and inverted)
-	//   1 for digit (true even if permuted and inverted)
-	minFractionOfZerosAndOnes = float(3.0f / float(NumberOfDotsInUndoverline));
-	result.whiteBlackThreshold = bimodalThreshold(result.medianPixelValues, minFractionOfZerosAndOnes, minFractionOfZerosAndOnes);
-
 	// The binary coding has 11 bits,
 	// from most significant (10) to least (0)
 	//   Bit 10:   always 1
 	//   Bit  9:   1 if overline, 0 if underline
-	//   Bits 8-1: Letter/digit byte (permuted & negated in overlines)
+	//   Bits 8-1: underline/overline-specific encoding that maps to letter and digit
+	//             underline encoding always has at least two 1s and one 0
+	//             overline encoding always has at leat two 0s and one 1
 	//   Bit  0:   always 0 
+	//
+	// Thus, all 11-bit encodings have at least four 0s and four 1s.]
+	const size_t minNumberOf0s = 4, minNumberOf1s = 4;
+	// minFractionOfZerosAndOnes = float(4.0f / float(NumberOfDotsInUndoverline));
+
+	// In finding a white/black threshold, the sampling should ensure
+	// there are at least enough zeros an dones above/below the threshold.
+	result.whiteBlackThreshold = bimodalThreshold(result.medianPixelValues, minNumberOf0s, minNumberOf1s);
+
 	result.binaryCodingReadForwardOrBackward = 0;
 	for (size_t i = 0; i < NumberOfDotsInUndoverline; i++) {
 		// 1s are white, or lower values)
