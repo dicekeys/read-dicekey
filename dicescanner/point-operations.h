@@ -9,6 +9,10 @@ struct Line {
 	cv::Point2f end;
 };
 
+static Line reverseLineDirection(Line line) {
+	return { line.end, line.start };
+}
+
 static float distance2f(const cv::Point2f & a, const cv::Point2f & b) {
 	float dx = a.x - b.x;
 	float dy = a.y - b.y;
