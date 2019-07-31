@@ -32,15 +32,6 @@ static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
 		);
 }
 
-struct DieRead {
-	Line underline;
-	Line overline;
-	unsigned char underlineEncoding = 0, overlineEncoding = 0;
-	cv::Point2f centerInferred;
-	char letterRead = 0, digitRead = 0;
-	float letterConfidence, digitConfidence;
-};
-
 // returns sequence of squares detected on the image.
 static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int N = 13)
 {
@@ -94,16 +85,6 @@ static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int 
 
 	return candidateUnderOverLines;
 }
-
-// struct UndoverlineShape {
-// 	// bool isVertical = false;
-// 	cv::Point2f start = cv::Point2f(0, 0);
-// 	cv::Point2f end = cv::Point2f(0, 0);
-// 	uchar whiteBlackThreshold = 128;
-// 	// std::vector<uchar> medianPixelValues = std::vector<uchar>(NumberOfDotsInUndoverline);
-// 	// uint binaryCodingReadForwardOrBackward = 0;
-// };
-
 
 static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected lineBoundaryRect) {
 	const int lineHeight = MAX(lineBoundaryRect.bottomLeft.y, lineBoundaryRect.bottomRight.y) - MIN(lineBoundaryRect.topLeft.y, lineBoundaryRect.topRight.y);
@@ -216,6 +197,117 @@ static uint readUndoverlineBits(cv::Mat grayscaleImage, Line undoverline) {
 	uint binaryCodingReadForwardOrBackward = sampledPointsToBits(medianPixelValues, whiteBlackThreshold);
 	return binaryCodingReadForwardOrBackward;
 }
+
+
+struct Undoverline {
+	Line line;
+	unsigned int binaryCodingReadForwardOrBackward;
+	UndoverlineTypeOrientationAndEncoding decoded;
+	cv::Point2f inferredDieCenter;
+};
+
+
+struct ValidUndoverlines {
+	std::vector<Undoverline> underlines;
+	std::vector<Undoverline> overlines;
+};
+
+static ValidUndoverlines findValidUndoverlines(cv::Mat imageColor, cv::Mat image, std::vector<RectangleDetected> rectanglesEncompassingLines)
+{
+	std::vector<Undoverline> underlines(25);
+	std::vector<Undoverline> overlines(25);
+	std::vector<DieRead> diceFound(25);
+
+	for (auto rectEncompassingLine: rectanglesEncompassingLines) {
+		Line undoverline = undoverlineRectToLine(image, rectEncompassingLine);
+		const float undoverlineLength = lineLength(undoverline);
+		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(image, undoverline);
+		const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
+		float angle = angle2f(undoverline);
+		cv::Point2f center = pointBetween2f(undoverline);
+
+		// polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
+		// cv::imwrite("undoverline-within-image.png", imageCopy);
+		// cv::imwrite("undoverline-isolated.png", copyRotatedRectangle(image, center, angle, cv::Size2f(undoverlineLength, undoverlineLength/6.0f)));
+
+		const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
+		if (!decoded.isValid) {
+			continue;
+		}
+		Undoverline thisUndoverline = {
+			undoverline, binaryCodingReadForwardOrBackward, decoded, pointBetween2f(undoverline)
+		};
+		if (decoded.isOverline) {
+			underlines.push_back(thisUndoverline);
+		} else {
+			overlines.push_back(thisUndoverline);
+		}
+	}
+
+	// Sort underlines and overlines on y axis
+	std::sort( underlines.begin(), underlines.end(), [](Undoverline a, Undoverline b) {return a.inferredDieCenter.y < b.inferredDieCenter.y; } );
+	std::sort( overlines.begin(), overlines.end(), [](Undoverline a, Undoverline b) {return a.inferredDieCenter.y < b.inferredDieCenter.y; } );
+
+	return {underlines, overlines};
+}
+
+
+struct DieRead {
+	Undoverline underline;
+	Undoverline overline;
+	cv::Point2f inferredDieCenter;
+	char letterRead = 0, digitRead = 0;
+	float letterConfidence, digitConfidence;
+};
+
+struct DiceFound {
+	std::vector<DieRead> diceFound;
+	std::vector<Undoverline> strayUndoverlines;
+};
+
+static DiceFound findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> rectanglesEncompassingUndoverlines)
+{
+	const auto undoverlines = findValidUndoverlines(colorImage, grayscaleImage, rectanglesEncompassingUndoverlines);
+
+	std::vector<Undoverline> underlines(undoverlines.underlines);
+	std::vector<Undoverline> overlines(undoverlines.overlines);
+
+	const float medianUnderlineLength = medianInPlace(
+		vmap<Undoverline, float>(underlines, [](Undoverline underline) { return lineLength(underline.line); } )
+	);
+	const float maxDistanceBetweenInferredCenters = medianUnderlineLength / 3; // 6mm / 3 => 2mm.
+
+	std::vector<Undoverline> strayUndoverlines(0);
+	std::vector<DieRead> diceFound(25);
+
+	for (auto underline: underlines) {
+		// Search for overline with inferred die center near that of underline.
+		bool found = false;
+		for (size_t i = 0; i < overlines.size() && !found; i++) {
+			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters ) {
+				// We have a match
+				found = true;
+				diceFound.push_back({
+					underline, overlines[i],
+					// inferredDieCenter
+					pointBetween2f( underline.inferredDieCenter, overlines[i].inferredDieCenter ),
+					// Leave reading of letter/digit for later.
+					0, 0, 0, 0
+				});
+				// Remove the ith element of overlines
+				overlines.erase(overlines.begin() + i);
+			}
+		}
+		if(!found) {
+			strayUndoverlines.push_back(underline);
+		}
+	}
+
+	strayUndoverlines.insert(strayUndoverlines.end(), overlines.begin(), overlines.end());
+
+	return {diceFound, strayUndoverlines};
+}
+
 
 static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected rectEncompassingLine)
 {
