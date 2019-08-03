@@ -43,10 +43,11 @@ static void getDiceFromImage(cv::Mat image, std::string fileIdentifier, std::str
 	cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
 	// Step one: find the underlines
-	auto undoverlines = findUndoverlines(gray);
-	for (auto undoverline: undoverlines) {
-		readUndoverline(image, gray, undoverline);
-	}
+	auto candidateUndoverlines = findCandidateUndoverlines(gray);
+	auto dice = readDice(image, gray, candidateUndoverlines);
+	//for (auto undoverline: candidateUndoverlines) {
+	//	readUndoverline(image, gray, undoverline);
+	//}
 
 	//
 	// Step one: identify the dice box by identifying the 25 squares formed by the 25 dice

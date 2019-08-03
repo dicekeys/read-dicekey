@@ -1,73 +1,55 @@
-//#pragma once
-//
-//#include <opencv2/opencv.hpp>
-//#include <opencv2/core.hpp>
-//#include <opencv2/imgproc.hpp>
-//#include <opencv2/imgcodecs.hpp>
-//#include <opencv2/highgui.hpp>
-//
-//#pragma warning(disable : 4996)
-//
-//#include <tesseract/baseapi.h>
-//#include <tesseract/genericvector.h>
-//
-//#include "find-underline.h"
-//
-//class DieRead {
-//	public:
-//		// Degrees rotated clockwsise from rightside up
-//		// 0 => rightside-up
-//		// 90 => facing right, with underline to left
-//		// 180 => upside-down
-//		// 270 => facing left, with underline to right
-//	uint orientationInDegrees = 0;
-//	char letter = 0;
-//	char digit = 0;
-//	float letterConfidence = 0;
-//	float digitConfidence = 0;
-//	cv::Mat imageFedToOCR;
-//};
-//
-//static cv::Rect cropLTWH(const cv::Size size, float _left, float _top, float _width, float _height) {
-//	int top = std::max( 0, (int) std::round(_top));
-//	int left = std::max( 0, (int) std::round(_left));
-//	int width = std::min( (int) std::round(_width), size.width - left );
-//	int height = std::min( (int) std::round(_height), size.height - top );
-//
-//	return cv::Rect(left, top, width, height);
-//}
-//
-//tesseract::TessBaseAPI* initOcr(std::string tesseractPath = "/dev/null") {
-//	static bool tess_initialized = false;
-//	static tesseract::TessBaseAPI* ocr = new tesseract::TessBaseAPI();
-//	if (!tess_initialized) {
-//		// const char* alphabet = "ABCDEGHJKLMNPQRTVWXYabdfr123456";
-//		const char* alphabet = "ABCDEFGHIJKLMNOPRSTUVWXYZ123456";
-//		const char* alphabetLetters = "ABCDEFGHIJKLMNOPRSTUVWXY";
-//		const char* alphabetDigis = "123456";
-//		if (tesseractPath == "/dev/null") {
-//			throw "initOcr called before tesseract path provided";
-//		}
-//		auto varNames = GenericVector<STRING>();
-//		varNames.push_back("load_system_dawg");
-//		varNames.push_back("load_freq_dawg");
-//		varNames.push_back("tessedit_char_whitelist");
-//		auto varValues = GenericVector<STRING>();
-//		varValues.push_back("0");
-//		varValues.push_back("0");
-//		varValues.push_back(alphabet);
-//	
-//		// Initialize tesseract to use English (eng) and the LSTM OCR engine.
-//		ocr->Init(tesseractPath.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varNames, &varValues, false);
-//		tess_initialized = true;
-//		ocr->SetVariable("tessedit_char_whitelist", alphabet);
-//		ocr->SetPageSegMode(tesseract::PSM_RAW_LINE);
-//	}
-//	return ocr;
-//}
-//
-//
-//
+#pragma once
+
+#pragma once
+
+#include <float.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
+#include <iostream>
+#include <math.h>
+#include "vfunctional.h"
+#include "point-operations.h"
+#include "die.h"
+//#include "rotate.h"
+//#include "sample-point.h"
+#include "ocr.h"
+#include "decode-die.h"
+#include "find-undoverlines.h"
+
+
+
+
+static std::vector<DieRead> readDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
+{
+	FindDiceResult findDiceResult = findDice(colorImage, grayscaleImage, candidateUndoverlineRects);
+	std::vector<DieRead>& diceFound = findDiceResult.diceFound;
+
+	for (auto die : diceFound) {
+		// Average the angle of the underline and overline
+		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngle, findDiceResult.pixelsPerMm);
+		die.ocrLetter = charsRead.letter;
+		die.ocrDigit = charsRead.digit;
+	}
+
+	float angleOfDice = normalizeAngle(findPointOnCircularNumberLineClosestToCenterOfMass(
+		vmap<DieRead, float>(findDiceResult.diceFound,
+			[](DieRead d) -> float { return d.inferredAngle; }),
+		float(90)));
+
+	// calculate the average angle mod 90 so we can generate a rotation function
+	for (size_t i = 0; i < diceFound.size(); i++) {
+		diceFound[i].angleAdjustedCenter = adjustPointForAngle(diceFound[i].center, angleOfDice);
+	}
+
+	// Find the central die (minimizes the distance square function)
+
+	return findDiceResult.diceFound;
+}
+
 //bool readDie(cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, std::string debugImagePath = "/dev/null", int debugLevel = 0) {
 //	const uint N = 20;
 //	static bool tess_initialized = false;

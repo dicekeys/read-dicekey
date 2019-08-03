@@ -30,7 +30,7 @@ static cv::Point2f pointBetween2f(cv::Point a, cv::Point b)
 		(a.y + b.y) / 2.0f
 	);
 }
-static cv::Point2f pointBetween2f(Line line) {
+static cv::Point2f pointAtCenterOfLine(Line line) {
 	return pointBetween2f(line.start, line.end);
 }
 
@@ -57,6 +57,20 @@ static float angle2f(Line line) {
 
 static float normalizeAngle(float angle)
 {
-	const float normalizedAngle = angle - round(angle / 90) * 90;
+	float normalizedAngle = angle - round(angle / 90) * 90;
+	if (normalizedAngle > 45.0f) {
+		normalizedAngle -= 90.0f;
+	}
+	else if (normalizedAngle <= -45.0f) {
+		normalizedAngle += 90.0f;
+	}
 	return normalizedAngle;
+}
+
+// FIXME -- is this correct?
+static cv::Point2f adjustPointForAngle(cv::Point2f point, float angle) {
+	return cv::Point2f(
+		point.x,
+		point.y - sin(angle)
+	);
 }

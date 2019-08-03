@@ -20,9 +20,9 @@
 #include "decode-die.h"
 
 
-const float undoverlineWidthOverLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
-const float minWidthOverLength = undoverlineWidthOverLength / 1.5f;
-const float maxWidthOverLength = undoverlineWidthOverLength * 1.5f;
+const float undoverlineWidthAsFractionOfLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
+const float minWidthOverLength = undoverlineWidthAsFractionOfLength / 1.5f;
+const float maxWidthOverLength = undoverlineWidthAsFractionOfLength * 1.5f;
 
 static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
 	float shortToLongRatio = rect.shorterSideLength / rect.longerSideLength;
@@ -33,7 +33,7 @@ static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
 }
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int N = 13)
+static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& gray, int N = 13)
 {
 	float min_underline_length = float(std::min(gray.size[0], gray.size[1])) / 80;
 	float max_underline_length = float(std::min(gray.size[0], gray.size[1])) / 8;
@@ -57,12 +57,17 @@ static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int 
 			vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }),
 			85
 		);
-		// Calculate slope of survivors
-		float medianAngle = median(vmap<RectangleDetected, float>(candidateUnderOverLines,
-			[](RectangleDetected r) -> float { return normalizeAngle(r.angle); }));
+		// Calculate the modal slope of the surviving undoverlines (mod 90) so that we can
+		// favor underlines with similar slopes
+		// (mod 90 because undoverlines may be at one of four 90-degree rotations,
+		//  and on a cicular line so that angles of 1 and 89 are distance 2, not distance 88)
+		float targetAngle = findPointOnCircularNumberLineClosestToCenterOfMass(
+			vmap<RectangleDetected, float>(candidateUnderOverLines,
+				[](RectangleDetected r) -> float { return r.angle; }),
+			float(90));
 
-		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, medianAngle](RectangleDetected r) -> float {
-			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / undoverlineWidthOverLength;
+		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, targetAngle](RectangleDetected r) -> float {
+			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / undoverlineWidthAsFractionOfLength;
 			if (deviationFromSideRatio < 1 && deviationFromSideRatio > 0) {
 				deviationFromSideRatio = 1 / deviationFromSideRatio;
 			}
@@ -75,8 +80,7 @@ static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int 
 				// so cut the penalty in half for those.
 				(((r.area / areaHighPercentile) - 1) / 2);
 			// The penalty from deviating from the target angle
-			float angleDiff = normalizeAngle(r.angle) - medianAngle;
-			angleDiff = MIN(angleDiff, 90.0f - angleDiff);
+			const float angleDiff = distanceModN(r.angle, targetAngle, float(90));
 			float deviationFromTargetAngle = 2.0f * angleDiff;
 
 			return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
@@ -207,38 +211,55 @@ struct Undoverline {
 };
 
 
-struct ValidUndoverlines {
+struct UnderlinesAndOverlines {
 	std::vector<Undoverline> underlines;
 	std::vector<Undoverline> overlines;
 };
 
-static ValidUndoverlines findValidUndoverlines(cv::Mat imageColor, cv::Mat image, std::vector<RectangleDetected> rectanglesEncompassingLines)
+static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
 {
 	std::vector<Undoverline> underlines(25);
 	std::vector<Undoverline> overlines(25);
-	std::vector<DieRead> diceFound(25);
 
-	for (auto rectEncompassingLine: rectanglesEncompassingLines) {
-		Line undoverline = undoverlineRectToLine(image, rectEncompassingLine);
+	for (auto rectEncompassingLine: candidateUndoverlineRects) {
+		Line undoverline = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
 		const float undoverlineLength = lineLength(undoverline);
-		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(image, undoverline);
+		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverline);
 		const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
-		float angle = angle2f(undoverline);
-		cv::Point2f center = pointBetween2f(undoverline);
-
-		// polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
-		// cv::imwrite("undoverline-within-image.png", imageCopy);
-		// cv::imwrite("undoverline-isolated.png", copyRotatedRectangle(image, center, angle, cv::Size2f(undoverlineLength, undoverlineLength/6.0f)));
 
 		const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
 		if (!decoded.isValid) {
 			continue;
 		}
+
+		if (decoded.wasReadInReverseOrder) {
+			undoverline = reverseLineDirection(undoverline);
+		}
+
+		float upAngleInDegrees =
+			angle2f(undoverline) + (decoded.isOverline ? 90 : -90);
+		float upAngleInRadians = float(upAngleInDegrees * (2 * M_PI / 360.0));
+
+		// pixels per mm the length of the overline in pixels of it's length in mm,
+		// or, undoverlineLength / mmDieUndoverlineLength;
+		double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
+
+		float pixelsFromCenterOfUnderlineToCenterOfDie = float(
+			DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
+			mmToPixels);
+
+		const cv::Point2f lineCenter = pointAtCenterOfLine(undoverline);
+		const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
+		const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
+		const cv::Point2f dieCenter = cv::Point2f(x, y);
+
+
 		Undoverline thisUndoverline = {
 			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline,
 			binaryCodingReadForwardOrBackward,
 			decoded,
-			pointBetween2f(undoverline)
+			// FIXME -- this 
+			pointAtCenterOfLine(undoverline)
 		};
 		if (decoded.isOverline) {
 			underlines.push_back(thisUndoverline);
@@ -256,28 +277,31 @@ static ValidUndoverlines findValidUndoverlines(cv::Mat imageColor, cv::Mat image
 
 
 struct DieRead {
-	Undoverline underline;
-	Undoverline overline;
-	cv::Point2f inferredDieCenter;
-	float inferredAngle;
-	ReadCharacterResult ocrLetter, ocrDigit;
+	Undoverline underline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
+	Undoverline overline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
+	cv::Point2f center = cv::Point2f{ 0, 0 };
+	float inferredAngle = 0;
+	cv::Point2f angleAdjustedCenter{ 0, 0 };
+	ReadCharacterResult ocrLetter = { 0, 0 };
+	ReadCharacterResult ocrDigit = { 0, 0 };
 };
 
-struct DiceFound {
+struct FindDiceResult {
 	std::vector<DieRead> diceFound;
 	std::vector<Undoverline> strayUndoverlines;
+	float pixelsPerMm;
 };
 
-static DiceFound findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> rectanglesEncompassingUndoverlines)
+static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
 {
-	const auto undoverlines = findValidUndoverlines(colorImage, grayscaleImage, rectanglesEncompassingUndoverlines);
+	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage, candidateUndoverlineRects);
 
 	std::vector<Undoverline> underlines(undoverlines.underlines);
 	std::vector<Undoverline> overlines(undoverlines.overlines);
 
-	const float medianUnderlineLength = medianInPlace(
-		vmap<Undoverline, float>(underlines, [](Undoverline underline) { return lineLength(underline.line); } )
-	);
+	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
+		[](Undoverline underline) { return lineLength(underline.line); });
+	const float medianUnderlineLength = medianInPlace(underlineLengths);
 	const float pixelsPerMm = medianUnderlineLength / DieDimensionsMm::undoverlineLength;
 	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
 
@@ -291,12 +315,13 @@ static DiceFound findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vecto
 			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters ) {
 				// We have a match
 				found = true;
+				const float angle = (angle2f(underline.line) + angle2f(overlines[i].line)) / 2;
+				// Re-infer the center of the die by drawing a line betwen the center of the
+				// underline and the center of the overline, then taking the center of that line.					
+				const cv::Point2f center = pointBetween2f(pointAtCenterOfLine(underline.line), pointAtCenterOfLine(overlines[i].line));
+				const cv::Point2f angleAdjustedCenter = adjustPointForAngle(center, normalizeAngle(angle));
 				diceFound.push_back({
-					underline, overlines[i],
-					// inferredDieCenter
-					pointBetween2f( underline.inferredDieCenter, overlines[i].inferredDieCenter ),
-					// Inferred angle
-					(angle2f(underline.line) + angle2f(overlines[i].line)) / 2,
+					underline, overlines[i], center, angle, angleAdjustedCenter,
 					// letter read (not yet set)
 					{0, 0},
 					// digit read (not yet set)
@@ -309,19 +334,13 @@ static DiceFound findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vecto
 		if(!found) {
 			strayUndoverlines.push_back(underline);
 		}
-
-		for (auto die: diceFound) {
-			// Average the angle of the underline and overline
-			const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.inferredDieCenter, die.inferredAngle, pixelsPerMm);
-			die.ocrLetter = charsRead.letter;
-			die.ocrDigit = charsRead.digit;
-		}
 	}
 
 	strayUndoverlines.insert(strayUndoverlines.end(), overlines.begin(), overlines.end());
 
-	return {diceFound, strayUndoverlines};
+	return {diceFound, strayUndoverlines, pixelsPerMm};
 }
+
 
 // struct DieCharactersRead {
 // 	const ReadCharacterResult letter;
@@ -367,105 +386,105 @@ static DiceFound findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vecto
 
 // 	return {letter, digit};
 // }
-
-
-static void readUndoverline(cv::Mat imageColor, cv::Mat image, RectangleDetected rectEncompassingLine)
-{
-	cv::Mat imageCopy = imageColor.clone();
-
-	const cv::Point points[4] = {
-		cv::Point(rectEncompassingLine.bottomLeft),
-		cv::Point(rectEncompassingLine.topLeft),
-		cv::Point(rectEncompassingLine.topRight),
-		cv::Point(rectEncompassingLine.bottomRight),
-	};
-
-	const cv::Point* ppoints[1] = {
-		points
-	};
-
-	int npt[] = { 4 };
-
-	Line undoverline = undoverlineRectToLine(image, rectEncompassingLine);
-	const float undoverlineLength = lineLength(undoverline);
-	const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(image, undoverline);
-	const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
-	cv::Point2f center = pointBetween2f(undoverline);
-
-	polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
-	cv::imwrite("undoverline-within-image.png", imageCopy);
-	cv::imwrite("undoverline-isolated.png", copyRotatedRectangle(image, center, angle2f(undoverline), cv::Size2f(undoverlineLength, undoverlineLength/6.0f)));
-
-	const auto decodedUndoverline = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
-
-	if (!decodedUndoverline.isValid) {
-		return;
-	}
-
-	const auto face = decodeUndoverlineByte(decodedUndoverline.isOverline, decodedUndoverline.letterDigitEncoding);
-
-	// Calculate the angle from the line (correcting direction if it was read backward)
-	float angle = angle2f(
-		decodedUndoverline.wasReadInReverseOrder ?
-			reverseLineDirection(undoverline) :
-			undoverline
-	);
-
-	// if (decodedUndoverline.wasReadInReverseOrder) {
-	// 	angle = angle < 0 ?
-	// 		angle + 180 :
-	// 		angle - 180;
-	// }
-
-	float upAngleInDegrees =
-		angle + (decodedUndoverline.isOverline ? 90 : -90);
-	float upAngleInRadians = float(upAngleInDegrees * (2 * M_PI / 360.0));
-
-	// pixels per mm the length of the overline in pixels of it's length in mm,
-	// or, undoverlineLength / mmDieUndoverlineLength;
-	double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
-
-	float pixelsFromCenterOfUnderlineToCenterOfDie = float(
-		DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
-		// mmFromCenterOfUndoverlineToCenterOfDie *
-		mmToPixels);
-	// int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
-	// int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
-	// // Use an even text region width so we can even split it in two at the center;
-	// if ((textWidthPixels % 2) == 1) {
-	// 	textWidthPixels += 1;
-	// }
-	// cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
-
-	const auto x = rectEncompassingLine.center.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
-	const auto y = rectEncompassingLine.center.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
-	const cv::Point2f dieCenter = cv::Point2f(x, y);
-
-	cv::imwrite("image-being-processed.png", image);
-	const auto ocrResult = readDieCharacters(imageColor, image, dieCenter, angle, mmToPixels, face.letter, face.digit);
-
-	//	const auto textImage = copyRotatedRectangle(image, dieCenter, angle, textRegionSize);
-	// Setup a rectangle to define your region of interest
-	// const cv::Rect letterRect(0,0, textRegionSize.width / 2, textRegionSize.height);
-	// const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
-	// auto letterImage = textImage(letterRect);
-	// auto digitImage = textImage(digitRect);
-
-	// cv::imwrite("text-region.png", textImage);
-	// cv::imwrite("letter.png", letterImage);
-	// cv::imwrite("digit.png", digitImage);
-
-	// const auto l = readCharacter(letterImage, false);
-	// const auto d = readCharacter(digitImage, true);
-
-	// static int error = 1;
-	// if (ocrResult.letter.confidence > 50.0f && face.letter != ocrResult.letter.charRead) {
-	// 	std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, face.letter) + "-as-" + std::string(1, l.charRead);
-	// 	cv::imwrite(errBase + "-line.png", copyRotatedRectangle(image, rectEncompassingLine.center, rectEncompassingLine.angle, cv::Size2f( rectEncompassingLine.size.width + 2, rectEncompassingLine.size.height + 2)));
-	// 	cv::imwrite(errBase + ".png", letterImage);
-	// }
-	// if (ocrResult.digit.confidence > 50.0f && face.digit != ocrResult.digit.charRead) {
-	// 	cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, face.digit) + "-as-" + std::string(1, d.charRead) + ".png", digitImage);
-	// }
-
-}
+//
+//
+//static void readUndoverline(cv::Mat colorImage, cv::Mat grayscaleImage, RectangleDetected candidateUndoverlineRect)
+//{
+//	cv::Mat imageCopy = colorImage.clone();
+//
+//	const cv::Point points[4] = {
+//		cv::Point(candidateUndoverlineRect.bottomLeft),
+//		cv::Point(candidateUndoverlineRect.topLeft),
+//		cv::Point(candidateUndoverlineRect.topRight),
+//		cv::Point(candidateUndoverlineRect.bottomRight),
+//	};
+//
+//	const cv::Point* ppoints[1] = {
+//		points
+//	};
+//
+//	int npt[] = { 4 };
+//
+//	Line undoverline = undoverlineRectToLine(grayscaleImage, candidateUndoverlineRect);
+//	const float undoverlineLength = lineLength(undoverline);
+//	const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverline);
+//	const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
+//	cv::Point2f center = pointBetween2f(undoverline);
+//
+//	polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
+//	cv::imwrite("undoverline-within-image.png", imageCopy);
+//	cv::imwrite("undoverline-isolated.png", copyRotatedRectangle(grayscaleImage, center, angle2f(undoverline), cv::Size2f(undoverlineLength, undoverlineLength/6.0f)));
+//
+//	const auto decodedUndoverline = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
+//
+//	if (!decodedUndoverline.isValid) {
+//		return;
+//	}
+//
+//	const auto face = decodeUndoverlineByte(decodedUndoverline.isOverline, decodedUndoverline.letterDigitEncoding);
+//
+//	// Calculate the angle from the line (correcting direction if it was read backward)
+//	float angle = angle2f(
+//		decodedUndoverline.wasReadInReverseOrder ?
+//			reverseLineDirection(undoverline) :
+//			undoverline
+//	);
+//
+//	// if (decodedUndoverline.wasReadInReverseOrder) {
+//	// 	angle = angle < 0 ?
+//	// 		angle + 180 :
+//	// 		angle - 180;
+//	// }
+//
+//	float upAngleInDegrees =
+//		angle + (decodedUndoverline.isOverline ? 90 : -90);
+//	float upAngleInRadians = float(upAngleInDegrees * (2 * M_PI / 360.0));
+//
+//	// pixels per mm the length of the overline in pixels of it's length in mm,
+//	// or, undoverlineLength / mmDieUndoverlineLength;
+//	double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
+//
+//	float pixelsFromCenterOfUnderlineToCenterOfDie = float(
+//		DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
+//		// mmFromCenterOfUndoverlineToCenterOfDie *
+//		mmToPixels);
+//	// int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
+//	// int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
+//	// // Use an even text region width so we can even split it in two at the center;
+//	// if ((textWidthPixels % 2) == 1) {
+//	// 	textWidthPixels += 1;
+//	// }
+//	// cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
+//
+//	const auto x = candidateUndoverlineRect.center.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
+//	const auto y = candidateUndoverlineRect.center.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
+//	const cv::Point2f dieCenter = cv::Point2f(x, y);
+//
+//	cv::imwrite("image-being-processed.png", grayscaleImage);
+//	const auto ocrResult = readDieCharacters(colorImage, grayscaleImage, dieCenter, angle, mmToPixels, face.letter, face.digit);
+//
+//	//	const auto textImage = copyRotatedRectangle(image, dieCenter, angle, textRegionSize);
+//	// Setup a rectangle to define your region of interest
+//	// const cv::Rect letterRect(0,0, textRegionSize.width / 2, textRegionSize.height);
+//	// const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
+//	// auto letterImage = textImage(letterRect);
+//	// auto digitImage = textImage(digitRect);
+//
+//	// cv::imwrite("text-region.png", textImage);
+//	// cv::imwrite("letter.png", letterImage);
+//	// cv::imwrite("digit.png", digitImage);
+//
+//	// const auto l = readCharacter(letterImage, false);
+//	// const auto d = readCharacter(digitImage, true);
+//
+//	// static int error = 1;
+//	// if (ocrResult.letter.confidence > 50.0f && face.letter != ocrResult.letter.charRead) {
+//	// 	std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, face.letter) + "-as-" + std::string(1, l.charRead);
+//	// 	cv::imwrite(errBase + "-line.png", copyRotatedRectangle(image, rectEncompassingLine.center, rectEncompassingLine.angle, cv::Size2f( rectEncompassingLine.size.width + 2, rectEncompassingLine.size.height + 2)));
+//	// 	cv::imwrite(errBase + ".png", letterImage);
+//	// }
+//	// if (ocrResult.digit.confidence > 50.0f && face.digit != ocrResult.digit.charRead) {
+//	// 	cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, face.digit) + "-as-" + std::string(1, d.charRead) + ".png", digitImage);
+//	// }
+//
+//}

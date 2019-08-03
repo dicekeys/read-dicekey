@@ -19,7 +19,7 @@ static T vreduce(const std::vector<T>& vectorToReduce,
 }
 
 template <typename T, typename U>
-static std::vector<U> vmap(const std::vector<T>& data, const std::function<U(T)> mapper) {
+static std::vector<U> vmap(const std::vector<T>& data, const std::function<U(const T)> mapper) {
 	std::vector<U> result;
 	for (auto e : data) {
 		result.push_back(mapper(e));
@@ -28,7 +28,7 @@ static std::vector<U> vmap(const std::vector<T>& data, const std::function<U(T)>
 }
 
 template <typename T>
-static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(T)> filterFn) {
+static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(const T)> filterFn) {
 	std::vector<T> result = data;
 	result.erase(remove_if(result.begin(), result.end(), [filterFn](T element) {
 		return !filterFn(element);
@@ -114,4 +114,43 @@ static NUMBER bimodalThresholdWithFractionalDensities(
 		ceil(minDensityBelowThreshold * numbers.size()),
 		ceil(minDensityAboveThreshold * numbers.size())
 	);
+}
+
+template <typename NUMBER>
+static NUMBER modFloatingPoint(const NUMBER x, const NUMBER mod) {
+	return x - (round(x / mod) * mod);
+}
+
+template <typename NUMBER>
+static NUMBER distanceModNForModNInputs(const NUMBER aModN, const NUMBER bModN, const NUMBER N) {
+	const NUMBER absDist = abs(aModN - bModN);
+	return absDist * 2 > N ? N - absDist : absDist; 
+}
+
+template <typename NUMBER>
+static NUMBER distanceModN(const NUMBER a, const NUMBER b, const NUMBER N) {
+	return distanceModNForModNInputs(modFloatingPoint(a, N), modFloatingPoint(b, N), N);
+}
+
+
+static float findPointOnCircularNumberLineClosestToCenterOfMass(const std::vector<float> points, const float N) {
+	if (points.size() == 0)
+		return NAN;
+	std::vector<float> pointsModN = vmap<float, float>(points, [N](const float point) {
+		return modFloatingPoint(point, N);
+		});
+	float minDistance = std::numeric_limits<float>::max();
+	size_t indexAtWhichMinDistanceFound = 0;
+	for (size_t candidateIndex = 0; candidateIndex < pointsModN.size(); candidateIndex++) {
+		float distance = 0;
+		float candidatePointModN = pointsModN[candidateIndex];
+		for (const float otherPointModN : pointsModN) {
+			distance += distanceModNForModNInputs(candidatePointModN, otherPointModN, N);
+		}
+		if (distance < minDistance) {
+			minDistance = distance;
+			indexAtWhichMinDistanceFound = candidateIndex;
+		}
+	}
+	return points[indexAtWhichMinDistanceFound];
 }

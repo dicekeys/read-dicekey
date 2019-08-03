@@ -76,11 +76,11 @@ static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned in
 }
 
 static DieFaceCodes decodeUnderlineByte(unsigned char letterDigitEncodingByte) {
-	underlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];	
+	return underlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];	
 }
 
 static DieFaceCodes decodeOverlineByte(unsigned char letterDigitEncodingByte) {
-	underlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];	
+	return underlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];	
 }
 
 static DieFaceCodes decodeUndoverlineByte(bool isOverline, unsigned char letterDigitEncodingByte) {
