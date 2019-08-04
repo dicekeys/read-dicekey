@@ -8,22 +8,34 @@
 
 namespace fs = std::experimental::filesystem;
 
-//bool validateDieRead(const DieRead& dieRead, std::string dieAsString)
-//{
-//	const auto letter = dieAsString[0];
-//	const char digit = dieAsString[1];
-//	const char orientationChar = dieAsString[2];
-//	const int orientationInDegrees = 90 * (int)(orientationChar - '0');
-//	if (dieRead.orientationInDegrees != orientationInDegrees)
-//		return false;
-//	if (dieRead.letter != letter) {
-//		return false;
-//	}
-//	if (dieRead.digit != digit) {
-//		return false;
-//	}
-//	return true;
-//}
+bool validateDieRead(const DieRead& dieRead, std::string dieAsString)
+{
+	const auto letter = dieAsString[0];
+	const char digit = dieAsString[1];
+	const char orientationChar = dieAsString[2];
+	const int orientationInDegrees = 90 * (int)(orientationChar - '0');
+	if (('0' + dieRead.orientationInClockswiseTurnsFromUpright) != orientationChar)
+		return false;
+	if (dieRead.ocrLetter.charRead != letter) {
+		return false;
+	}
+	if (dieRead.ocrDigit.charRead != digit) {
+		return false;
+	}
+	return true;
+}
+
+bool validateDiceRead(const std::vector<DieRead> diceRead, std::string dieAsString)
+{
+	if (diceRead.size() != 25) {
+		return false;
+	}
+	bool isValid = true;
+	for (size_t dieIndex = 0; dieIndex < diceRead.size(); dieIndex++) {
+		isValid &= validateDieRead(diceRead[dieIndex], dieAsString.substr(dieIndex * 3, 3));
+	}
+	return isValid;
+}
 //
 //void runTests(std::string inputPath)
 //{

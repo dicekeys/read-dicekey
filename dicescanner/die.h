@@ -23,14 +23,14 @@ std::string DieDigits = "123456";
 
 const size_t NumberOfDotsInUndoverline = 11;
 
-struct DieFaceCodes {
-	char letter = 0;
-	char digit = 0;
-	unsigned char underlineCode = 0;
-	unsigned char overlineCode = 0;
+struct DieFaceSpecification {
+	char letter;
+	char digit;
+	unsigned char underlineCode;
+	unsigned char overlineCode;
 };
 
-const std::vector<DieFaceCodes> letterIndexTimesSixPlusDigitIndexToOverlineCode = {
+const std::vector<DieFaceSpecification> letterIndexTimesSixPlusDigitIndexToOverlineCode = {
   {'A', '1', 0x7, 0xf4},
   {'A', '2', 0xb, 0xf8},
   {'A', '3', 0xd, 0xf0},
@@ -182,7 +182,7 @@ const std::vector<DieFaceCodes> letterIndexTimesSixPlusDigitIndexToOverlineCode 
   {'Z', '5', 0xd8, 0x2e},
   {'Z', '6', 0xd9, 0x2d}
 };
-const std::vector<DieFaceCodes> overlineCodeToLetterIndexTimesSixPlusDigitIndex = {
+const std::vector<DieFaceSpecification> overlineCodeToLetterIndexTimesSixPlusDigitIndex = {
   {},
   {},
   {},
@@ -440,7 +440,7 @@ const std::vector<DieFaceCodes> overlineCodeToLetterIndexTimesSixPlusDigitIndex 
   {},
   {}
 };
-const std::vector<DieFaceCodes> underlineCodeToLetterIndexTimesSixPlusDigitIndex = {
+const std::vector<DieFaceSpecification> underlineCodeToLetterIndexTimesSixPlusDigitIndex = {
   {},
   {},
   {},

@@ -122,11 +122,18 @@ static NUMBER signedModReal(const NUMBER x, const NUMBER mod) {
 }
 
 template <typename NUMBER>
-static NUMBER reduceToSignedRange(const NUMBER x, const NUMBER mod) {
-	if (x == mod || x == -mod) {
-		return mod;
+static NUMBER reduceToSignedRange(const NUMBER x, const NUMBER magnitudeInPlusAndMinusDirection) {
+	const NUMBER range = 2 * magnitudeInPlusAndMinusDirection;
+	const float xModRange = x - (round(x / range) * range);
+	if (xModRange > magnitudeInPlusAndMinusDirection) {
+		return xModRange - range;
 	}
-	return x - (round(x / mod) * mod);
+	else if (xModRange <= -magnitudeInPlusAndMinusDirection) {
+		return xModRange + range;
+	}
+	else {
+		return xModRange;
+	}
 }
 
 template <typename NUMBER>

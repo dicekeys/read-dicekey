@@ -116,7 +116,8 @@ static DieCharactersRead readDieCharacters(cv::Mat imageColor, cv::Mat grayscale
 	char writeErrorUnlessThisSigitIsRead = 0
 )
 {
-	const float angleDegrees = radiansToDegrees(angleRadians);
+	// Rotate to remove the angle of the die
+	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
 	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
 	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
 	// Use an even text region width so we can even split it in two at the center;
@@ -125,7 +126,7 @@ static DieCharactersRead readDieCharacters(cv::Mat imageColor, cv::Mat grayscale
 	}
 	cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
 
-	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, angleDegrees, textRegionSize);
+	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, degreesToRotateToRemoveAngleOfDie, textRegionSize);
 	// Setup a rectangle to define your region of interest
 	const cv::Rect letterRect(0, 0, textRegionSize.width / 2, textRegionSize.height);
 	const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);

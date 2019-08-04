@@ -208,6 +208,7 @@ struct Undoverline {
 	unsigned int binaryCodingReadForwardOrBackward;
 	UndoverlineTypeOrientationAndEncoding decoded;
 	cv::Point2f inferredDieCenter;
+	DieFaceSpecification dieFaceInferred;
 };
 
 
@@ -231,6 +232,8 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 		if (!decoded.isValid) {
 			continue;
 		}
+
+		DieFaceSpecification dieFace = decodeUndoverlineByte(decoded.isOverline, decoded.letterDigitEncoding);
 
 		if (decoded.wasReadInReverseOrder) {
 			undoverline = reverseLineDirection(undoverline);
@@ -257,12 +260,13 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline,
 			binaryCodingReadForwardOrBackward,
 			decoded,
-			dieCenter
+			dieCenter,
+			dieFace
 		};
 		if (decoded.isOverline) {
-			underlines.push_back(thisUndoverline);
-		} else {
 			overlines.push_back(thisUndoverline);
+		} else {
+			underlines.push_back(thisUndoverline);
 		}
 	}
 
@@ -278,10 +282,11 @@ struct DieRead {
 	Undoverline underline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
 	Undoverline overline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
 	cv::Point2f center = cv::Point2f{ 0, 0 };
-	float inferredAngleRadians = 0;
+	float inferredAngleInRadians = 0;
 	cv::Point2f angleAdjustedCenter{ 0, 0 };
 	ReadCharacterResult ocrLetter = { 0, 0 };
 	ReadCharacterResult ocrDigit = { 0, 0 };
+	unsigned char orientationInClockswiseTurnsFromUpright;
 };
 
 struct FindDiceResult {
@@ -310,7 +315,7 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 		// Search for overline with inferred die center near that of underline.
 		bool found = false;
 		for (size_t i = 0; i < overlines.size() && !found; i++) {
-			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters ) {
+			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters) {
 				// We have a match
 				found = true;
 				// Re-infer the center of the die and its angle by drawing a line from
@@ -320,9 +325,12 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 				};
 				// The center of the die is the midpoint of that line.
 				const cv::Point2f center = pointAtCenterOfLine(lineFromUnderlineCenterToOverlineCenter);
-				// The angle of the die is the angle of that line, plus 90 degrees clockwise.
-				float angleInRadians = angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter) - NinetyDegreesAsRadians;
-				if (angleInRadians > (2 * M_PI)) {
+				// The angle of the die is the angle of that line, plus 90 degrees clockwise
+				const float angleOfLineFromUnderlineToOverlineCenterInRadians =
+					angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter);
+				float angleInRadians = angleOfLineFromUnderlineToOverlineCenterInRadians +
+					NinetyDegreesAsRadians;
+				if (angleInRadians > (M_PI)) {
 					angleInRadians -= float(2 * M_PI);
 				}
 				const cv::Point2f angleAdjustedCenter = rotatePointAroundOrigin(center, normalizeAngleSignedRadians(angleInRadians));
@@ -331,7 +339,8 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 					// letter read (not yet set)
 					{0, 0},
 					// digit read (not yet set)
-					{0,0}
+					{0,0},
+					0
 				});
 				// Remove the ith element of overlines
 				overlines.erase(overlines.begin() + i);
@@ -346,151 +355,3 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 
 	return {diceFound, strayUndoverlines, pixelsPerMm};
 }
-
-
-// struct DieCharactersRead {
-// 	const ReadCharacterResult letter;
-// 	const ReadCharacterResult digit;
-// };
-
-// static DieCharactersRead readDieCharacters(cv::Mat imageColor, cv::Mat grayscaleImage, cv::Point2f dieCenter, float angle, float mmToPixels,
-// 	char writeErrorUnlessThisLetterIsRead = 0,
-// 	char writeErrorUnlessThisSigitIsRead = 0
-// )
-// {
-// 	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
-// 	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
-// 	// Use an even text region width so we can even split it in two at the center;
-// 	if ((textWidthPixels % 2) == 1) {
-// 		textWidthPixels += 1;
-// 	}
-// 	cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
-
-// 	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, angle, textRegionSize);
-// 	// Setup a rectangle to define your region of interest
-// 	const cv::Rect letterRect(0, 0, textRegionSize.width / 2, textRegionSize.height);
-// 	const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
-// 	auto letterImage = textImage(letterRect);
-// 	auto digitImage = textImage(digitRect);
-
-// 	// cv::imwrite("text-region.png", textImage);
-// 	// cv::imwrite("letter.png", letterImage);
-// 	// cv::imwrite("digit.png", digitImage);
-
-// 	const ReadCharacterResult letter = readCharacter(letterImage, false);
-// 	const ReadCharacterResult digit = readCharacter(digitImage, true);
-
-// 	// FIXME -- remove after development debugging
-// 	static int error = 1;
-// 	if (writeErrorUnlessThisLetterIsRead != 0 && writeErrorUnlessThisLetterIsRead != letter.charRead) {
-// 		std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) + "-as-" + std::string(1, letter.charRead);
-// 		cv::imwrite(errBase + ".png", letterImage);
-// 	}
-// 	if (writeErrorUnlessThisSigitIsRead != 0 && writeErrorUnlessThisSigitIsRead != digit.charRead) {
-// 		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisSigitIsRead) + "-as-" + std::string(1, digit.charRead) + ".png", digitImage);
-// 	}
-
-// 	return {letter, digit};
-// }
-//
-//
-//static void readUndoverline(cv::Mat colorImage, cv::Mat grayscaleImage, RectangleDetected candidateUndoverlineRect)
-//{
-//	cv::Mat imageCopy = colorImage.clone();
-//
-//	const cv::Point points[4] = {
-//		cv::Point(candidateUndoverlineRect.bottomLeft),
-//		cv::Point(candidateUndoverlineRect.topLeft),
-//		cv::Point(candidateUndoverlineRect.topRight),
-//		cv::Point(candidateUndoverlineRect.bottomRight),
-//	};
-//
-//	const cv::Point* ppoints[1] = {
-//		points
-//	};
-//
-//	int npt[] = { 4 };
-//
-//	Line undoverline = undoverlineRectToLine(grayscaleImage, candidateUndoverlineRect);
-//	const float undoverlineLength = lineLength(undoverline);
-//	const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverline);
-//	const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
-//	cv::Point2f center = pointBetween2f(undoverline);
-//
-//	polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
-//	cv::imwrite("undoverline-within-image.png", imageCopy);
-//	cv::imwrite("undoverline-isolated.png", copyRotatedRectangle(grayscaleImage, center, angle2f(undoverline), cv::Size2f(undoverlineLength, undoverlineLength/6.0f)));
-//
-//	const auto decodedUndoverline = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
-//
-//	if (!decodedUndoverline.isValid) {
-//		return;
-//	}
-//
-//	const auto face = decodeUndoverlineByte(decodedUndoverline.isOverline, decodedUndoverline.letterDigitEncoding);
-//
-//	// Calculate the angle from the line (correcting direction if it was read backward)
-//	float angle = angle2f(
-//		decodedUndoverline.wasReadInReverseOrder ?
-//			reverseLineDirection(undoverline) :
-//			undoverline
-//	);
-//
-//	// if (decodedUndoverline.wasReadInReverseOrder) {
-//	// 	angle = angle < 0 ?
-//	// 		angle + 180 :
-//	// 		angle - 180;
-//	// }
-//
-//	float upAngleInDegrees =
-//		angle + (decodedUndoverline.isOverline ? 90 : -90);
-//	float upAngleInRadians = float(upAngleInDegrees * (2 * M_PI / 360.0));
-//
-//	// pixels per mm the length of the overline in pixels of it's length in mm,
-//	// or, undoverlineLength / mmDieUndoverlineLength;
-//	double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
-//
-//	float pixelsFromCenterOfUnderlineToCenterOfDie = float(
-//		DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
-//		// mmFromCenterOfUndoverlineToCenterOfDie *
-//		mmToPixels);
-//	// int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
-//	// int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
-//	// // Use an even text region width so we can even split it in two at the center;
-//	// if ((textWidthPixels % 2) == 1) {
-//	// 	textWidthPixels += 1;
-//	// }
-//	// cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
-//
-//	const auto x = candidateUndoverlineRect.center.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
-//	const auto y = candidateUndoverlineRect.center.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
-//	const cv::Point2f dieCenter = cv::Point2f(x, y);
-//
-//	cv::imwrite("image-being-processed.png", grayscaleImage);
-//	const auto ocrResult = readDieCharacters(colorImage, grayscaleImage, dieCenter, angle, mmToPixels, face.letter, face.digit);
-//
-//	//	const auto textImage = copyRotatedRectangle(image, dieCenter, angle, textRegionSize);
-//	// Setup a rectangle to define your region of interest
-//	// const cv::Rect letterRect(0,0, textRegionSize.width / 2, textRegionSize.height);
-//	// const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
-//	// auto letterImage = textImage(letterRect);
-//	// auto digitImage = textImage(digitRect);
-//
-//	// cv::imwrite("text-region.png", textImage);
-//	// cv::imwrite("letter.png", letterImage);
-//	// cv::imwrite("digit.png", digitImage);
-//
-//	// const auto l = readCharacter(letterImage, false);
-//	// const auto d = readCharacter(digitImage, true);
-//
-//	// static int error = 1;
-//	// if (ocrResult.letter.confidence > 50.0f && face.letter != ocrResult.letter.charRead) {
-//	// 	std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, face.letter) + "-as-" + std::string(1, l.charRead);
-//	// 	cv::imwrite(errBase + "-line.png", copyRotatedRectangle(image, rectEncompassingLine.center, rectEncompassingLine.angle, cv::Size2f( rectEncompassingLine.size.width + 2, rectEncompassingLine.size.height + 2)));
-//	// 	cv::imwrite(errBase + ".png", letterImage);
-//	// }
-//	// if (ocrResult.digit.confidence > 50.0f && face.digit != ocrResult.digit.charRead) {
-//	// 	cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, face.digit) + "-as-" + std::string(1, d.charRead) + ".png", digitImage);
-//	// }
-//
-//}

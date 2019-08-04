@@ -17,6 +17,7 @@
 #include <math.h>
 #include "ocr.h"
 #include "get-dice-from-image.h"
+#include "test-box.h"
 
 static void help(const char* programName)
 {
@@ -86,7 +87,9 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		getDiceFromImage(image, filename, intermediateImagePath + filename, 1);
+		const auto dice = getDiceFromImage(image, filename, intermediateImagePath + filename, 1);
+
+		validateDiceRead(dice, filename.substr(0, 75));
 	}
 	return 0;
 }
