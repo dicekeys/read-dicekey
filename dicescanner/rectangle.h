@@ -12,7 +12,7 @@ class RectangleDetected {
 public:
 	float contourArea;
 	float area;
-	float angle;
+	float angleInDegrees;
 	float longerSideLength;
 	float shorterSideLength;
 	int foundAtThreshold;
@@ -39,7 +39,7 @@ public:
 		foundAtThreshold = _foundAtThreshold;
 		center = rrect.center;
 		size = rrect.size;
-		angle = rrect.angle;
+		angleInDegrees = rrect.angle;
 		float minX = points[0].x, maxX = points[0].x;
 		float minY = points[0].y, maxY = points[0].y;
 		for (size_t i = 1; i < 4; i++) {
@@ -101,7 +101,7 @@ public:
 			// so cut the penalty in half for those.
 			(((area / targetArea) - 1) / 2);
 		// The penalty from deviating from the target angle
-		float deviationFromTargetAngle = 2.0f * float( abs( int(angle - targetAngle) % 90)) / 90.0f;
+		float deviationFromTargetAngle = 2.0f * float( abs( int(angleInDegrees - targetAngle) % 90)) / 90.0f;
 
 		return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
 	};

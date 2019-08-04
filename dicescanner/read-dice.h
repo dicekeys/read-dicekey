@@ -12,13 +12,14 @@
 #include <iostream>
 #include <math.h>
 #include "vfunctional.h"
-#include "point-operations.h"
+#include "geometry.h"
 #include "die.h"
 //#include "rotate.h"
 //#include "sample-point.h"
 #include "ocr.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
+#include "value-clusters.h"
 
 
 
@@ -27,27 +28,47 @@ static std::vector<DieRead> readDice(cv::Mat colorImage, cv::Mat grayscaleImage,
 {
 	FindDiceResult findDiceResult = findDice(colorImage, grayscaleImage, candidateUndoverlineRects);
 	std::vector<DieRead>& diceFound = findDiceResult.diceFound;
+	const float pixelsPerMm = findDiceResult.pixelsPerMm;
+	const float halfDieSize = DieDimensionsMm::size * pixelsPerMm / 2.0f;
 
-	for (auto die : diceFound) {
+	for (auto &die : diceFound) {
 		// Average the angle of the underline and overline
 		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleRadians, findDiceResult.pixelsPerMm);
 		die.ocrLetter = charsRead.letter;
 		die.ocrDigit = charsRead.digit;
 	}
 
-	float angleOfDiceRadians = normalizeAngle(findPointOnCircularNumberLineClosestToCenterOfMass(
+	float angleOfDiceRadians = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
 		vmap<DieRead, float>(findDiceResult.diceFound,
-			[](DieRead d) -> float { return d.inferredAngleRadians; }),
-		float(90)));
+			[](DieRead d) -> float { return normalizeAngleSignedRadians(d.inferredAngleRadians); }),
+		FortyFiveDegreesAsRadians);
 
 	// calculate the average angle mod 90 so we can generate a rotation function
 	for (size_t i = 0; i < diceFound.size(); i++) {
 		diceFound[i].angleAdjustedCenter = rotatePointAroundOrigin(diceFound[i].center, angleOfDiceRadians);
 	}
 
-	// Find the central die (minimizes the distance square function)
+	// Sort the dice based on their positions after adjusting the angle
+	std::sort(diceFound.begin(), diceFound.end(), [halfDieSize](DieRead a, DieRead b) {
+		if (a.angleAdjustedCenter.y < (b.angleAdjustedCenter.y - halfDieSize)) {
+			// Die a is at least a half die above die b, and therefore comes before it
+			return true;
+		}
+		else if (b.angleAdjustedCenter.y < (a.angleAdjustedCenter.y - halfDieSize)) {
+			// Die b is at least a half die above die a, and therefore comes before it
+			return false;
+		}
+		// Die a and die b are roughly the same from top to bottom, so order left to right
+		return a.angleAdjustedCenter.x < b.angleAdjustedCenter.x;
+	});
 
-	return findDiceResult.diceFound;
+	// Search for missing dice
+	if (diceFound.size() < 25) {
+		// FIXME
+		// Add function for this dirty work.
+	}
+
+	return diceFound;
 }
 
 //bool readDie(cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, std::string debugImagePath = "/dev/null", int debugLevel = 0) {

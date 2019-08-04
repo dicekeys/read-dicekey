@@ -10,7 +10,7 @@
 #include <iostream>
 #include <math.h>
 #include "vfunctional.h"
-#include "point-operations.h"
+#include "geometry.h"
 #include "find-rectangles.h"
 #include "rectangle.h"
 #include "die.h"
@@ -61,12 +61,12 @@ static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& g
 		// favor underlines with similar slopes
 		// (mod 90 because undoverlines may be at one of four 90-degree rotations,
 		//  and on a cicular line so that angles of 1 and 89 are distance 2, not distance 88)
-		float targetAngle = findPointOnCircularNumberLineClosestToCenterOfMass(
+		float targetAngleInDegrees = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
 			vmap<RectangleDetected, float>(candidateUnderOverLines,
-				[](RectangleDetected r) -> float { return r.angle; }),
-			float(90));
+				[](RectangleDetected r) -> float { return r.angleInDegrees; }),
+			float(45));
 
-		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, targetAngle](RectangleDetected r) -> float {
+		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, targetAngleInDegrees](RectangleDetected r) -> float {
 			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / undoverlineWidthAsFractionOfLength;
 			if (deviationFromSideRatio < 1 && deviationFromSideRatio > 0) {
 				deviationFromSideRatio = 1 / deviationFromSideRatio;
@@ -80,7 +80,7 @@ static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& g
 				// so cut the penalty in half for those.
 				(((r.area / areaHighPercentile) - 1) / 2);
 			// The penalty from deviating from the target angle
-			const float angleDiff = distanceModN(r.angle, targetAngle, float(90));
+			const float angleDiff = distanceInModCircularRangeFromNegativeNToN(r.angleInDegrees, targetAngleInDegrees, float(90));
 			float deviationFromTargetAngle = 2.0f * angleDiff;
 
 			return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
@@ -236,7 +236,7 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 			undoverline = reverseLineDirection(undoverline);
 		}
 
-		float upAngleInRadians = angleOfLineInRadians2f(undoverline) +
+		float upAngleInRadians = angleOfLineInSignedRadians2f(undoverline) +
 			(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
 
 		// pixels per mm the length of the overline in pixels of it's length in mm,
@@ -321,11 +321,11 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 				// The center of the die is the midpoint of that line.
 				const cv::Point2f center = pointAtCenterOfLine(lineFromUnderlineCenterToOverlineCenter);
 				// The angle of the die is the angle of that line, plus 90 degrees clockwise.
-				float angleInRadians = angleOfLineInRadians2f(lineFromUnderlineCenterToOverlineCenter) - NinetyDegreesAsRadians;
+				float angleInRadians = angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter) - NinetyDegreesAsRadians;
 				if (angleInRadians > (2 * M_PI)) {
-					angleInRadians -= 2 * M_PI;
+					angleInRadians -= float(2 * M_PI);
 				}
-				const cv::Point2f angleAdjustedCenter = rotatePointAroundOrigin(center, normalizeAngleRadians(angleInRadians));
+				const cv::Point2f angleAdjustedCenter = rotatePointAroundOrigin(center, normalizeAngleSignedRadians(angleInRadians));
 				diceFound.push_back({
 					underline, overlines[i], center, angleInRadians, angleAdjustedCenter,
 					// letter read (not yet set)

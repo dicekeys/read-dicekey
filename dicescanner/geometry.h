@@ -54,46 +54,32 @@ static bool isPointBetween2f(cv::Point2f p, cv::Point2f bound1, cv::Point bound2
 	return isPointBetween2f(p.x, p.y, bound1, bound2);
 }
 
-static float angleOfLineInRadians2f(cv::Point2f start, cv::Point2f end) {
+static float angleOfLineInSignedRadians2f(cv::Point2f start, cv::Point2f end) {
 	return float(atan2(double(end.y - start.y), double(end.x - start.x)));
 }
 
-static float angleOfLineInRadians2f(Line line) {
-	return angleOfLineInRadians2f(line.start, line.end);
+static float angleOfLineInSignedRadians2f(Line line) {
+	return angleOfLineInSignedRadians2f(line.start, line.end);
 }
 
-static float angleOfLineInDegrees2f(cv::Point2f start, cv::Point2f end) {
-	return radiansToDegrees(angleOfLineInRadians2f(start, end));
+static float angleOfLineInSignedDegrees2f(cv::Point2f start, cv::Point2f end) {
+	return radiansToDegrees(angleOfLineInSignedRadians2f(start, end));
 }
-static float angleOfLineInDegrees2f(Line line) {
-	return angleOfLineInDegrees2f(line.start, line.end);
+static float angleOfLineInSignedDegrees2f(Line line) {
+	return angleOfLineInSignedDegrees2f(line.start, line.end);
 }
 
-static float normalizeAngle(float angleInDegrees)
+static float normalizeAngleSignedDegrees(float angleInDegrees)
 {
-	float normalizedAngleDegrees = angleInDegrees - round(angleInDegrees / 90) * 90;
-	if (normalizedAngleDegrees > 45.0f) {
-		normalizedAngleDegrees -= 90.0f;
-	}
-	else if (normalizedAngleDegrees <= -45.0f) {
-		normalizedAngleDegrees += 90.0f;
-	}
-	return normalizedAngleDegrees;
+	return reduceToSignedRange( angleInDegrees, 45.0f);
 }
 
 const float NinetyDegreesAsRadians = float(90.0f * multToGetRadiansFromDegrees);
 const float FortyFiveDegreesAsRadians = float(45.0f * multToGetRadiansFromDegrees);
 
-static float normalizeAngleRadians(float angleInRadians)
+static float normalizeAngleSignedRadians(float angleInRadians)
 {
-	float normalizedAngleRadians = angleInRadians - round(angleInRadians / 90) * 90;
-	if (normalizedAngleRadians > FortyFiveDegreesAsRadians) {
-		normalizedAngleRadians -= NinetyDegreesAsRadians;
-	}
-	else if (normalizedAngleRadians <= -FortyFiveDegreesAsRadians) {
-		normalizedAngleRadians += NinetyDegreesAsRadians;
-	}
-	return normalizedAngleRadians;
+	return reduceToSignedRange(angleInRadians, FortyFiveDegreesAsRadians);
 }
 
 // FIXME -- is this correct?

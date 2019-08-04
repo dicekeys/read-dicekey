@@ -117,35 +117,43 @@ static NUMBER bimodalThresholdWithFractionalDensities(
 }
 
 template <typename NUMBER>
-static NUMBER modFloatingPoint(const NUMBER x, const NUMBER mod) {
+static NUMBER signedModReal(const NUMBER x, const NUMBER mod) {
 	return x - (round(x / mod) * mod);
 }
 
 template <typename NUMBER>
-static NUMBER distanceModNForModNInputs(const NUMBER aModN, const NUMBER bModN, const NUMBER N) {
+static NUMBER reduceToSignedRange(const NUMBER x, const NUMBER mod) {
+	if (x == mod || x == -mod) {
+		return mod;
+	}
+	return x - (round(x / mod) * mod);
+}
+
+template <typename NUMBER>
+static NUMBER distanceInCircularRangeFromNegativeNToNWithInputsInRange(const NUMBER aModN, const NUMBER bModN, const NUMBER N) {
 	const NUMBER absDist = abs(aModN - bModN);
 	return absDist * 2 > N ? N - absDist : absDist; 
 }
 
 template <typename NUMBER>
-static NUMBER distanceModN(const NUMBER a, const NUMBER b, const NUMBER N) {
-	return distanceModNForModNInputs(modFloatingPoint(a, N), modFloatingPoint(b, N), N);
+static NUMBER distanceInModCircularRangeFromNegativeNToN(const NUMBER a, const NUMBER b, const NUMBER N) {
+	return distanceInCircularRangeFromNegativeNToNWithInputsInRange(reduceToSignedRange(a, N), reduceToSignedRange(b, N), N);
 }
 
 
-static float findPointOnCircularNumberLineClosestToCenterOfMass(const std::vector<float> points, const float N) {
+static float findPointOnCircularSignedNumberLineClosestToCenterOfMass(const std::vector<float> points, const float N) {
 	if (points.size() == 0)
 		return NAN;
-	std::vector<float> pointsModN = vmap<float, float>(points, [N](const float point) {
-		return modFloatingPoint(point, N);
+	std::vector<float> pointsInRange = vmap<float, float>(points, [N](const float point) {
+		return reduceToSignedRange(point, N);
 		});
 	float minDistance = std::numeric_limits<float>::max();
 	size_t indexAtWhichMinDistanceFound = 0;
-	for (size_t candidateIndex = 0; candidateIndex < pointsModN.size(); candidateIndex++) {
+	for (size_t candidateIndex = 0; candidateIndex < pointsInRange.size(); candidateIndex++) {
 		float distance = 0;
-		float candidatePointModN = pointsModN[candidateIndex];
-		for (const float otherPointModN : pointsModN) {
-			distance += distanceModNForModNInputs(candidatePointModN, otherPointModN, N);
+		float candidatePointModN = pointsInRange[candidateIndex];
+		for (const float otherPointModN : pointsInRange) {
+			distance += distanceInCircularRangeFromNegativeNToNWithInputsInRange(candidatePointModN, otherPointModN, N);
 		}
 		if (distance < minDistance) {
 			minDistance = distance;

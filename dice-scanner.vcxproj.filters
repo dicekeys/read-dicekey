@@ -19,8 +19,8 @@
     <ClInclude Include="dicescanner\ocr.h" />
     <ClInclude Include="dicescanner\sample-point.h" />
     <ClInclude Include="dicescanner\decode-die.h" />
-    <ClInclude Include="dicescanner\point-operations.h" />
     <ClInclude Include="dicescanner\find-rectangles.h" />
+    <ClInclude Include="dicescanner\geometry.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

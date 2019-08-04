@@ -11,7 +11,7 @@
 #include <tesseract/baseapi.h>
 #include <tesseract/genericvector.h>
 #include "die.h"
-#include "point-operations.h"
+#include "geometry.h"
 
 static tesseract::TessBaseAPI* initCharOcr(std::string alphabet, std::string tesseractPath = "/dev/null")
 {
@@ -132,6 +132,7 @@ static DieCharactersRead readDieCharacters(cv::Mat imageColor, cv::Mat grayscale
 	auto letterImage = textImage(letterRect);
 	auto digitImage = textImage(digitRect);
 
+	// FIXME -- remove after development debugging
 	cv::imwrite("text-region.png", textImage);
 	cv::imwrite("letter.png", letterImage);
 	cv::imwrite("digit.png", digitImage);

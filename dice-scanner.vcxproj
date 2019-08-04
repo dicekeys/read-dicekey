@@ -163,7 +163,7 @@
     <ClInclude Include="dicescanner\decode-die.h" />
     <ClInclude Include="dicescanner\die.h" />
     <ClInclude Include="dicescanner\find-rectangles.h" />
-    <ClInclude Include="dicescanner\point-operations.h" />
+    <ClInclude Include="dicescanner\geometry.h" />
     <ClInclude Include="dicescanner\find-undoverlines.h" />
     <ClInclude Include="dicescanner\get-dice-from-image.h" />
     <ClInclude Include="dicescanner\ocr.h" />
