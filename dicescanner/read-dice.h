@@ -30,19 +30,19 @@ static std::vector<DieRead> readDice(cv::Mat colorImage, cv::Mat grayscaleImage,
 
 	for (auto die : diceFound) {
 		// Average the angle of the underline and overline
-		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngle, findDiceResult.pixelsPerMm);
+		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleRadians, findDiceResult.pixelsPerMm);
 		die.ocrLetter = charsRead.letter;
 		die.ocrDigit = charsRead.digit;
 	}
 
-	float angleOfDice = normalizeAngle(findPointOnCircularNumberLineClosestToCenterOfMass(
+	float angleOfDiceRadians = normalizeAngle(findPointOnCircularNumberLineClosestToCenterOfMass(
 		vmap<DieRead, float>(findDiceResult.diceFound,
-			[](DieRead d) -> float { return d.inferredAngle; }),
+			[](DieRead d) -> float { return d.inferredAngleRadians; }),
 		float(90)));
 
 	// calculate the average angle mod 90 so we can generate a rotation function
 	for (size_t i = 0; i < diceFound.size(); i++) {
-		diceFound[i].angleAdjustedCenter = adjustPointForAngle(diceFound[i].center, angleOfDice);
+		diceFound[i].angleAdjustedCenter = rotatePointAroundOrigin(diceFound[i].center, angleOfDiceRadians);
 	}
 
 	// Find the central die (minimizes the distance square function)

@@ -218,8 +218,8 @@ struct UnderlinesAndOverlines {
 
 static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
 {
-	std::vector<Undoverline> underlines(25);
-	std::vector<Undoverline> overlines(25);
+	std::vector<Undoverline> underlines;
+	std::vector<Undoverline> overlines;
 
 	for (auto rectEncompassingLine: candidateUndoverlineRects) {
 		Line undoverline = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
@@ -236,9 +236,8 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 			undoverline = reverseLineDirection(undoverline);
 		}
 
-		float upAngleInDegrees =
-			angle2f(undoverline) + (decoded.isOverline ? 90 : -90);
-		float upAngleInRadians = float(upAngleInDegrees * (2 * M_PI / 360.0));
+		float upAngleInRadians = angleOfLineInRadians2f(undoverline) +
+			(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
 
 		// pixels per mm the length of the overline in pixels of it's length in mm,
 		// or, undoverlineLength / mmDieUndoverlineLength;
@@ -258,8 +257,7 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline,
 			binaryCodingReadForwardOrBackward,
 			decoded,
-			// FIXME -- this 
-			pointAtCenterOfLine(undoverline)
+			dieCenter
 		};
 		if (decoded.isOverline) {
 			underlines.push_back(thisUndoverline);
@@ -280,7 +278,7 @@ struct DieRead {
 	Undoverline underline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
 	Undoverline overline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
 	cv::Point2f center = cv::Point2f{ 0, 0 };
-	float inferredAngle = 0;
+	float inferredAngleRadians = 0;
 	cv::Point2f angleAdjustedCenter{ 0, 0 };
 	ReadCharacterResult ocrLetter = { 0, 0 };
 	ReadCharacterResult ocrDigit = { 0, 0 };
@@ -306,7 +304,7 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
 
 	std::vector<Undoverline> strayUndoverlines(0);
-	std::vector<DieRead> diceFound(25);
+	std::vector<DieRead> diceFound;
 
 	for (auto underline: underlines) {
 		// Search for overline with inferred die center near that of underline.
@@ -315,13 +313,21 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters ) {
 				// We have a match
 				found = true;
-				const float angle = (angle2f(underline.line) + angle2f(overlines[i].line)) / 2;
-				// Re-infer the center of the die by drawing a line betwen the center of the
-				// underline and the center of the overline, then taking the center of that line.					
-				const cv::Point2f center = pointBetween2f(pointAtCenterOfLine(underline.line), pointAtCenterOfLine(overlines[i].line));
-				const cv::Point2f angleAdjustedCenter = adjustPointForAngle(center, normalizeAngle(angle));
+				// Re-infer the center of the die and its angle by drawing a line from
+				// the center of the to the center of the overline.
+				const Line lineFromUnderlineCenterToOverlineCenter = {
+					pointAtCenterOfLine(underline.line), pointAtCenterOfLine(overlines[i].line)
+				};
+				// The center of the die is the midpoint of that line.
+				const cv::Point2f center = pointAtCenterOfLine(lineFromUnderlineCenterToOverlineCenter);
+				// The angle of the die is the angle of that line, plus 90 degrees clockwise.
+				float angleInRadians = angleOfLineInRadians2f(lineFromUnderlineCenterToOverlineCenter) - NinetyDegreesAsRadians;
+				if (angleInRadians > (2 * M_PI)) {
+					angleInRadians -= 2 * M_PI;
+				}
+				const cv::Point2f angleAdjustedCenter = rotatePointAroundOrigin(center, normalizeAngleRadians(angleInRadians));
 				diceFound.push_back({
-					underline, overlines[i], center, angle, angleAdjustedCenter,
+					underline, overlines[i], center, angleInRadians, angleAdjustedCenter,
 					// letter read (not yet set)
 					{0, 0},
 					// digit read (not yet set)

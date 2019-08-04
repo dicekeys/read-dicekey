@@ -11,6 +11,7 @@
 #include <tesseract/baseapi.h>
 #include <tesseract/genericvector.h>
 #include "die.h"
+#include "point-operations.h"
 
 static tesseract::TessBaseAPI* initCharOcr(std::string alphabet, std::string tesseractPath = "/dev/null")
 {
@@ -110,11 +111,12 @@ struct DieCharactersRead {
 	const ReadCharacterResult digit;
 };
 
-static DieCharactersRead readDieCharacters(cv::Mat imageColor, cv::Mat grayscaleImage, cv::Point2f dieCenter, float angle, float mmToPixels,
+static DieCharactersRead readDieCharacters(cv::Mat imageColor, cv::Mat grayscaleImage, cv::Point2f dieCenter, float angleRadians, float mmToPixels,
 	char writeErrorUnlessThisLetterIsRead = 0,
 	char writeErrorUnlessThisSigitIsRead = 0
 )
 {
+	const float angleDegrees = radiansToDegrees(angleRadians);
 	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
 	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
 	// Use an even text region width so we can even split it in two at the center;
@@ -123,16 +125,16 @@ static DieCharactersRead readDieCharacters(cv::Mat imageColor, cv::Mat grayscale
 	}
 	cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
 
-	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, angle, textRegionSize);
+	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, angleDegrees, textRegionSize);
 	// Setup a rectangle to define your region of interest
 	const cv::Rect letterRect(0, 0, textRegionSize.width / 2, textRegionSize.height);
 	const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
 	auto letterImage = textImage(letterRect);
 	auto digitImage = textImage(digitRect);
 
-	// cv::imwrite("text-region.png", textImage);
-	// cv::imwrite("letter.png", letterImage);
-	// cv::imwrite("digit.png", digitImage);
+	cv::imwrite("text-region.png", textImage);
+	cv::imwrite("letter.png", letterImage);
+	cv::imwrite("digit.png", digitImage);
 
 	const ReadCharacterResult letter = readCharacter(letterImage, false);
 	const ReadCharacterResult digit = readCharacter(digitImage, true);
