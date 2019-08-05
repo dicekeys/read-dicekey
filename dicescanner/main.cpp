@@ -89,7 +89,11 @@ int main(int argc, char** argv)
 
 		const auto dice = getDiceFromImage(image, filename, intermediateImagePath + filename, 1);
 
-		validateDiceRead(dice, filename.substr(0, 75));
+		try {
+			validateDiceRead(dice, filename.substr(0, 75));
+		} catch (std::string strErr) {
+			std::cerr << "Exception: " << strErr << "\n";
+		}
 	}
 	return 0;
 }

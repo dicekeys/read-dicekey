@@ -22,61 +22,80 @@ static T majorityOfThree(T a, T b, T c)
 	return 0;
 }
 
-static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead)
+static char dashIfNull(char l) {return l == 0 ? '-' : l;}
+
+static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
 {
-	return vmap<DieRead, DieFace>(diceRead,  [](DieRead dieRead) {
-		if (dieRead.underline.dieFaceInferred.letter == 0 ||
-				dieRead.underline.dieFaceInferred.digit == 0 ||
-				dieRead.underline.dieFaceInferred.letter != dieRead.overline.dieFaceInferred.letter ||
-				dieRead.underline.dieFaceInferred.digit != dieRead.overline.dieFaceInferred.digit) {
-			// report error mismatch between undoverline and overline			
-		} else if (dieRead.underline.dieFaceInferred.letter != dieRead.ocrLetter.charRead) {
+	if (diceRead.size() != 25) {
+		throw std::string("A DiceKey must contain 25 dice but only has " + std::to_string(diceRead.size()));
+	}
+	std::vector<DieFace> diceKey;
+	for (size_t i=0; i < diceRead.size(); i++) {
+		DieRead dieRead = diceRead[i];
+		const DieFaceSpecification &underlineInferred = dieRead.underline.dieFaceInferred;
+		const DieFaceSpecification &overlineInferred = dieRead.overline.dieFaceInferred;
+		const char digitRead = dieRead.ocrDigit.charRead;
+		const char letterRead = dieRead.ocrLetter.charRead;
+		if (underlineInferred.letter == 0 ||
+				underlineInferred.digit == 0 ||
+				underlineInferred.letter != overlineInferred.letter ||
+				underlineInferred.digit != overlineInferred.digit) {
+			// report error mismatch between undoverline and overline
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and overline: " <<
+					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
+					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit);
+			}
+		} else if (underlineInferred.letter != letterRead) {
 			// report OCR error on letter
-		} else if (dieRead.underline.dieFaceInferred.digit != dieRead.ocrDigit.charRead) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and ocr letter: " <<
+					dashIfNull(underlineInferred.letter) << " != " << dashIfNull(letterRead);
+			}
+		} else if (underlineInferred.digit != digitRead) {
 			// report OCR error on digit
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and ocr digit: " <<
+					dashIfNull(underlineInferred.digit) << " != " << dashIfNull(digitRead);
+			}
 		}
 
-		return DieFace({
+		diceKey.push_back(DieFace({
 			majorityOfThree(
-				dieRead.underline.dieFaceInferred.letter,
-				dieRead.overline.dieFaceInferred.letter,
-				dieRead.ocrLetter.charRead
+				underlineInferred.letter, overlineInferred.letter, dieRead.ocrLetter.charRead
 			),
 			majorityOfThree(
-				dieRead.underline.dieFaceInferred.digit,
-				dieRead.overline.dieFaceInferred.digit,
-				dieRead.ocrDigit.charRead
+				underlineInferred.digit, overlineInferred.digit, dieRead.ocrDigit.charRead
 			),
 			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
-		});
-	});
+		}));
+	}
+	return diceKey;
 }
 
 
-bool validateDiceRead(const std::vector<DieRead> diceRead, std::string dieAsString)
+static void validateDiceRead(const std::vector<DieRead> diceRead, std::string diceAsString)
 {
-	if (diceRead.size() != 25) {
-		return false;
-	}
-	const auto diceKey = diceReadToDiceKey(diceRead);
-	bool isValid = true;
+	const auto diceKeyNonCanonical = diceReadToDiceKey(diceRead, true);
+	const auto diceKey = rotateToCanonicalDiceKey(diceKeyNonCanonical);
 	for (size_t dieIndex = 0; dieIndex < diceRead.size(); dieIndex++) {
 		const auto die = diceKey[dieIndex];
-		const std::string dieAsString = dieAsString.substr(dieIndex * 3, 3);
+		const std::string dieAsString = diceAsString.substr(dieIndex * 3, 3);
 		const auto letter = dieAsString[0];
 		const char digit = dieAsString[1];
 		const char orientationChar = dieAsString[2];
 		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationChar - '0';
 		if (die.orientationAs0to3ClockwiseTurnsFromUpright != orientationAs0to3ClockwiseTurnsFromUpright) {
-			// FIXME -- output error.
-			isValid = false;
+			throw std::string("Die ") + std::to_string(dieIndex) + " has orientation " + std::to_string(die.orientationAs0to3ClockwiseTurnsFromUpright) +
+				" but should be" + std::to_string(orientationAs0to3ClockwiseTurnsFromUpright);
 		} else if (die.letter != letter) {
-			isValid = false;
+			throw std::string("Die ") + std::to_string(dieIndex) + " has letter " + dashIfNull(die.letter) +
+				" but should be" + dashIfNull(letter);
 		} else if (die.digit != digit) {
-			isValid = false;
+			throw std::string("Die ") + std::to_string(dieIndex) + " has digit " + dashIfNull(die.digit) +
+				" but should be" + dashIfNull(digit);
 		}
 	}
-	return isValid;
 }
 //
 //void runTests(std::string inputPath)
