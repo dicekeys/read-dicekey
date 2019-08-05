@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "die.h"
+#include "die-specification.h"
 
 
 static unsigned int reverseBits(unsigned int bitsToReverse, unsigned int lengthInBits)

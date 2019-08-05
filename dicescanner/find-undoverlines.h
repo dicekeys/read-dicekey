@@ -13,7 +13,7 @@
 #include "geometry.h"
 #include "find-rectangles.h"
 #include "rectangle.h"
-#include "die.h"
+#include "die-specification.h"
 #include "rotate.h"
 #include "ocr.h"
 #include "sample-point.h"

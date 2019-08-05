@@ -13,7 +13,7 @@
 #include <math.h>
 #include "vfunctional.h"
 #include "geometry.h"
-#include "die.h"
+#include "die-specification.h"
 //#include "rotate.h"
 //#include "sample-point.h"
 #include "ocr.h"

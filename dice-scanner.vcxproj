@@ -161,7 +161,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dicescanner\decode-die.h" />
-    <ClInclude Include="dicescanner\die.h" />
+    <ClInclude Include="dicescanner\dice.h" />
+    <ClInclude Include="dicescanner\die-specification.h" />
     <ClInclude Include="dicescanner\find-rectangles.h" />
     <ClInclude Include="dicescanner\geometry.h" />
     <ClInclude Include="dicescanner\find-undoverlines.h" />

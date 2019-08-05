@@ -46,7 +46,7 @@ static std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string fileIden
 	auto candidateUndoverlines = findCandidateUndoverlines(gray);
 	auto dice = readDice(image, gray, candidateUndoverlines);
 	return dice;
-	
+}
 
 // static std::string
 static void getDiceJsonFromBoxImage(cv::Mat boxImage, std::string fileIdentifier = "", std::string intermediateImagePath = "/dev/null", int boxDebugLevel = 0) {

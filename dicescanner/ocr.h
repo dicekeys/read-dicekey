@@ -10,7 +10,7 @@
 
 #include <tesseract/baseapi.h>
 #include <tesseract/genericvector.h>
-#include "die.h"
+#include "die-specification.h"
 #include "geometry.h"
 
 static tesseract::TessBaseAPI* initCharOcr(std::string alphabet, std::string tesseractPath = "/dev/null")
