@@ -22,7 +22,7 @@ struct UndoverlineTypeOrientationAndEncoding {
 	bool isValid = false;
 	bool wasReadInReverseOrder = false;
 	bool isOverline = false;
-	unsigned char numberOf90DegreeeClockwiseRotationsFromUpright = 0;
+	unsigned char orientationAs0to3ClockwiseTurnsFromUpright = 0;
 	unsigned char letterDigitEncoding = 0;
 };
 
@@ -51,7 +51,7 @@ static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned in
 
 	const bool wasReadInReverseOrder = lastBitRead;
 
-	const unsigned char numberOf90DegreeeClockwiseRotationsFromUpright = isVertical ? (
+	const unsigned char orientationAs0to3ClockwiseTurnsFromUpright = isVertical ? (
 			// vertical
 			wasReadInReverseOrder ? 3 : 1
 		) : (
@@ -70,7 +70,7 @@ static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned in
 		true, // isValid = true, encdoing was valid
 		wasReadInReverseOrder,
 		isOverline,
-		numberOf90DegreeeClockwiseRotationsFromUpright,
+		orientationAs0to3ClockwiseTurnsFromUpright,
 		letterDigitEncoding
 	};
 }

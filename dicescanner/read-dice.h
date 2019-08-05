@@ -23,6 +23,84 @@
 
 
 
+struct DieRead {
+	Undoverline underline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
+	Undoverline overline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
+	cv::Point2f center = cv::Point2f{ 0, 0 };
+	float inferredAngleInRadians = 0;
+	cv::Point2f angleAdjustedCenter{ 0, 0 };
+	ReadCharacterResult ocrLetter = { 0, 0 };
+	ReadCharacterResult ocrDigit = { 0, 0 };
+	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
+};
+
+struct FindDiceResult {
+	std::vector<DieRead> diceFound;
+	std::vector<Undoverline> strayUndoverlines;
+	float pixelsPerMm;
+};
+
+static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
+{
+	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage, candidateUndoverlineRects);
+
+	std::vector<Undoverline> underlines(undoverlines.underlines);
+	std::vector<Undoverline> overlines(undoverlines.overlines);
+
+	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
+		[](Undoverline underline) { return lineLength(underline.line); });
+	const float medianUnderlineLength = medianInPlace(underlineLengths);
+	const float pixelsPerMm = medianUnderlineLength / DieDimensionsMm::undoverlineLength;
+	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
+
+	std::vector<Undoverline> strayUndoverlines(0);
+	std::vector<DieRead> diceFound;
+
+	for (auto underline : underlines) {
+		// Search for overline with inferred die center near that of underline.
+		bool found = false;
+		for (size_t i = 0; i < overlines.size() && !found; i++) {
+			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters) {
+				// We have a match
+				found = true;
+				// Re-infer the center of the die and its angle by drawing a line from
+				// the center of the to the center of the overline.
+				const Line lineFromUnderlineCenterToOverlineCenter = {
+					pointAtCenterOfLine(underline.line), pointAtCenterOfLine(overlines[i].line)
+				};
+				// The center of the die is the midpoint of that line.
+				const cv::Point2f center = pointAtCenterOfLine(lineFromUnderlineCenterToOverlineCenter);
+				// The angle of the die is the angle of that line, plus 90 degrees clockwise
+				const float angleOfLineFromUnderlineToOverlineCenterInRadians =
+					angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter);
+				float angleInRadians = angleOfLineFromUnderlineToOverlineCenterInRadians +
+					NinetyDegreesAsRadians;
+				if (angleInRadians > (M_PI)) {
+					angleInRadians -= float(2 * M_PI);
+				}
+				const cv::Point2f angleAdjustedCenter = rotatePointAroundOrigin(center, normalizeAngleSignedRadians(angleInRadians));
+				diceFound.push_back({
+					underline, overlines[i], center, angleInRadians, angleAdjustedCenter,
+					// letter read (not yet set)
+					{0, 0},
+					// digit read (not yet set)
+					{0,0},
+					0
+					});
+				// Remove the ith element of overlines
+				overlines.erase(overlines.begin() + i);
+			}
+		}
+		if (!found) {
+			strayUndoverlines.push_back(underline);
+		}
+	}
+
+	strayUndoverlines.insert(strayUndoverlines.end(), overlines.begin(), overlines.end());
+
+	return { diceFound, strayUndoverlines, pixelsPerMm };
+}
+
 
 static std::vector<DieRead> readDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
 {
@@ -44,7 +122,7 @@ static std::vector<DieRead> readDice(cv::Mat colorImage, cv::Mat grayscaleImage,
 		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceInRadians;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
-		die.orientationInClockswiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
+		die.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
 		die.ocrLetter = charsRead.letter;
 		die.ocrDigit = charsRead.digit;
 	}

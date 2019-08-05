@@ -4,35 +4,77 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 
+#include "vfunctional.h"
 #include "get-dice-from-image.h"
+#include "dice.h"
 
 namespace fs = std::experimental::filesystem;
 
-bool validateDieRead(const DieRead& dieRead, std::string dieAsString)
+
+template <typename T>
+static T majorityOfThree(T a, T b, T c)
 {
-	const auto letter = dieAsString[0];
-	const char digit = dieAsString[1];
-	const char orientationChar = dieAsString[2];
-	const int orientationInDegrees = 90 * (int)(orientationChar - '0');
-	if (('0' + dieRead.orientationInClockswiseTurnsFromUpright) != orientationChar)
-		return false;
-	if (dieRead.ocrLetter.charRead != letter) {
-		return false;
+	if (a == b || a == c) {
+		return a;
+	} else if (b == c) {
+		return b;
 	}
-	if (dieRead.ocrDigit.charRead != digit) {
-		return false;
-	}
-	return true;
+	return 0;
 }
+
+static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead)
+{
+	return vmap<DieRead, DieFace>(diceRead,  [](DieRead dieRead) {
+		if (dieRead.underline.dieFaceInferred.letter == 0 ||
+				dieRead.underline.dieFaceInferred.digit == 0 ||
+				dieRead.underline.dieFaceInferred.letter != dieRead.overline.dieFaceInferred.letter ||
+				dieRead.underline.dieFaceInferred.digit != dieRead.overline.dieFaceInferred.digit) {
+			// report error mismatch between undoverline and overline			
+		} else if (dieRead.underline.dieFaceInferred.letter != dieRead.ocrLetter.charRead) {
+			// report OCR error on letter
+		} else if (dieRead.underline.dieFaceInferred.digit != dieRead.ocrDigit.charRead) {
+			// report OCR error on digit
+		}
+
+		return DieFace({
+			majorityOfThree(
+				dieRead.underline.dieFaceInferred.letter,
+				dieRead.overline.dieFaceInferred.letter,
+				dieRead.ocrLetter.charRead
+			),
+			majorityOfThree(
+				dieRead.underline.dieFaceInferred.digit,
+				dieRead.overline.dieFaceInferred.digit,
+				dieRead.ocrDigit.charRead
+			),
+			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
+		});
+	});
+}
+
 
 bool validateDiceRead(const std::vector<DieRead> diceRead, std::string dieAsString)
 {
 	if (diceRead.size() != 25) {
 		return false;
 	}
+	const auto diceKey = diceReadToDiceKey(diceRead);
 	bool isValid = true;
 	for (size_t dieIndex = 0; dieIndex < diceRead.size(); dieIndex++) {
-		isValid &= validateDieRead(diceRead[dieIndex], dieAsString.substr(dieIndex * 3, 3));
+		const auto die = diceKey[dieIndex];
+		const std::string dieAsString = dieAsString.substr(dieIndex * 3, 3);
+		const auto letter = dieAsString[0];
+		const char digit = dieAsString[1];
+		const char orientationChar = dieAsString[2];
+		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationChar - '0';
+		if (die.orientationAs0to3ClockwiseTurnsFromUpright != orientationAs0to3ClockwiseTurnsFromUpright) {
+			// FIXME -- output error.
+			isValid = false;
+		} else if (die.letter != letter) {
+			isValid = false;
+		} else if (die.digit != digit) {
+			isValid = false;
+		}
 	}
 	return isValid;
 }

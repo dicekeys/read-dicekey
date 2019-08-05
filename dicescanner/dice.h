@@ -7,7 +7,7 @@
 struct DieFace {
     char letter = 0;
     char digit = 0;
-    unsigned char rotation = 0;
+    unsigned char orientationAs0to3ClockwiseTurnsFromUpright = 0;
 };
 
 std::vector<std::vector<unsigned char>> rotationIndexes = {
@@ -56,7 +56,7 @@ std::vector<DieFace> rotateDiceKey(std::vector<DieFace> diceKey, int clockwiseTu
   std::vector<DieFace> rotatedDiceKey;
   for (size_t i = 0; i < indexToMoveDieFaceFrom.size(); i++) {
     DieFace dieFace = diceKey[indexToMoveDieFaceFrom[i]];
-    dieFace.rotation = (dieFace.rotation + clockwiseTurns) % 4;
+    dieFace.orientationAs0to3ClockwiseTurnsFromUpright = (dieFace.orientationAs0to3ClockwiseTurnsFromUpright + clockwiseTurns) % 4;
     rotatedDiceKey.push_back(dieFace);
   }
   return rotatedDiceKey;
