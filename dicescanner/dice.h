@@ -49,7 +49,7 @@ std::vector<DieFace> rotateDiceKey(std::vector<DieFace> diceKey, int clockwiseTu
 	  throw std::string("A DiceKey must have 25 dice, but only found " + std::to_string(diceKey.size()));
   }
   if (clockwiseTurns < 0) {
-    clockwiseTurns = 4 - (-clockwiseTurns % 4);
+    clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
   }
   const unsigned clockwiseTurns0to3 = clockwiseTurns % 4;
   std::vector<unsigned char> &indexToMoveDieFaceFrom = rotationIndexes[clockwiseTurns0to3];

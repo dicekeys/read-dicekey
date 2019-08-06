@@ -91,6 +91,7 @@ int main(int argc, char** argv)
 
 		try {
 			validateDiceRead(dice, filename.substr(0, 75));
+			std::cerr << "Validated " << filename << "\n";
 		} catch (std::string strErr) {
 			std::cerr << "Exception: " << strErr << "\n";
 		}
