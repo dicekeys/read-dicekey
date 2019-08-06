@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 
+// FIXME -- document clockwise or counterclockwise
 static cv::Mat copyRotatedRectangle(cv::Mat srcImageMatrix, cv::Point2f centerOfRectToBeCopiedFromSource, float angleInDegrees, cv::Size sizeOfRectangleToCopied)
 {
 	// get rotation matrix for rotating the image around its center in pixel coordinates

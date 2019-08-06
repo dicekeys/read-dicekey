@@ -12,12 +12,11 @@
 #include "rotate.h"
 //#include "find-dice.h"
 //#include "read-dice.h"
-#include "slope.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "ocr.h"
-#include "get-dice-from-image.h"
-#include "test-box.h"
+#include "read-dice.h"
+#include "validate-dice.h"
 
 static void help(const char* programName)
 {
@@ -87,7 +86,7 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-		const auto dice = getDiceFromImage(image, filename, intermediateImagePath + filename, 1);
+		const auto dice = readDice(image);
 
 		try {
 			validateDiceRead(dice, filename.substr(0, 75));

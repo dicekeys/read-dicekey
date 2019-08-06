@@ -11,9 +11,6 @@
     <ClInclude Include="dicescanner\read-dice.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="dicescanner\get-dice-from-image.h" />
-    <ClInclude Include="dicescanner\slope.h" />
-    <ClInclude Include="dicescanner\test-box.h" />
     <ClInclude Include="dicescanner\find-undoverlines.h" />
     <ClInclude Include="dicescanner\ocr.h" />
     <ClInclude Include="dicescanner\sample-point.h" />
@@ -22,6 +19,7 @@
     <ClInclude Include="dicescanner\geometry.h" />
     <ClInclude Include="dicescanner\die-specification.h" />
     <ClInclude Include="dicescanner\dice.h" />
+    <ClInclude Include="dicescanner\validate-dice.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

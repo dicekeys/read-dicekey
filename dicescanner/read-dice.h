@@ -103,8 +103,14 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 }
 
 
-static std::vector<DieRead> readDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
+static std::vector<DieRead> readDice(cv::Mat colorImage)
 {
+	cv::Mat grayscaleImage;
+	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
+
+	const std::vector<RectangleDetected> candidateUndoverlineRects =
+		findCandidateUndoverlines(grayscaleImage);
+
 	FindDiceResult findDiceResult = findDice(colorImage, grayscaleImage, candidateUndoverlineRects);
 	std::vector<DieRead>& diceFound = findDiceResult.diceFound;
 	const float pixelsPerMm = findDiceResult.pixelsPerMm;

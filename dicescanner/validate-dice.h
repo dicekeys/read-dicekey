@@ -5,7 +5,6 @@
 #include <opencv2/core.hpp>
 
 #include "vfunctional.h"
-#include "get-dice-from-image.h"
 #include "dice.h"
 
 namespace fs = std::experimental::filesystem;
