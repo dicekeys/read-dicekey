@@ -81,7 +81,7 @@ ReadCharacterResult readCharacter(cv::Mat& imageGrayscale, bool isDigit, std::st
 		if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 2) {
 			cv::imwrite(debugImagePath + "ocr-edges-" + std::to_string(l) + ".png", edges);
 		}
-		cv::imwrite("ocr-input.png", edges);
+		// cv::imwrite("ocr-input.png", edges);
 
 		const tesseract::PageIteratorLevel level = tesseract::RIL_SYMBOL;
 
@@ -99,7 +99,7 @@ ReadCharacterResult readCharacter(cv::Mat& imageGrayscale, bool isDigit, std::st
 				result.confidence = confidence;
 				result.charRead = *symbol;
 				delete symbol;
-				cv::imwrite(std::string(isDigit ? "digit" : "letter") + "-edges.png", edges);
+				// cv::imwrite(std::string(isDigit ? "digit" : "letter") + "-edges.png", edges);
 			}
 		}
 	}
@@ -111,11 +111,15 @@ struct DieCharactersRead {
 	const ReadCharacterResult digit;
 };
 
-static DieCharactersRead readDieCharacters(cv::Mat imageColor, cv::Mat grayscaleImage, cv::Point2f dieCenter, float angleRadians, float mmToPixels,
+static DieCharactersRead readDieCharacters(
+	cv::Mat imageColor,
+	cv::Mat grayscaleImage,
+	cv::Point2f dieCenter,
+	float angleRadians,
+	float mmToPixels,
 	char writeErrorUnlessThisLetterIsRead = 0,
 	char writeErrorUnlessThisSigitIsRead = 0
-)
-{
+) {
 	// Rotate to remove the angle of the die
 	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
 	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));

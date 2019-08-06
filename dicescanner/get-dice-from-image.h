@@ -48,14 +48,9 @@ static std::vector<DieRead> getDiceFromImage(cv::Mat image, std::string fileIden
 	return dice;
 }
 
-// static std::string
-static void getDiceJsonFromBoxImage(cv::Mat boxImage, std::string fileIdentifier = "", std::string intermediateImagePath = "/dev/null", int boxDebugLevel = 0) {
-	static const std::vector<int> imageEncodingParametersForLosslessPNG = { cv::IMWRITE_PNG_COMPRESSION, 0 };
-	//auto dieRead = 
-	getDiceFromImage(boxImage, fileIdentifier, intermediateImagePath, boxDebugLevel);
-	// // FIXME, walk through each die converting to 
-	// std::vector<uchar> encodedImage;
-	// // FIXME - should do this for each die and then base64 encode.
-	// cv::imencode("png", boxImage, encodedImage, imageEncodingParametersForLosslessPNG);
-	// return std::string("");
-}
+//// static std::string
+//static void getDiceJsonFromBoxImage(cv::Mat boxImage, std::string fileIdentifier = "", std::string intermediateImagePath = "/dev/null", int boxDebugLevel = 0) {
+//	static const std::vector<int> imageEncodingParametersForLosslessPNG = { cv::IMWRITE_PNG_COMPRESSION, 0 };
+//	auto diceKey = getDiceFromImage(boxImage, fileIdentifier, intermediateImagePath, boxDebugLevel);
+//	// FUTURE -- figure out JSON format and store it.
+//}

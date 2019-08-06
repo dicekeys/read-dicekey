@@ -36,6 +36,18 @@ static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(con
 	return result;
 }
 
+template <typename T>
+static T majorityOfThree(T a, T b, T c)
+{
+	if (a == b || a == c) {
+		return a;
+	}
+	else if (b == c) {
+		return b;
+	}
+	return 0;
+}
+
 
 template <typename NUMBER>
 static NUMBER percentile(const std::vector<NUMBER>& numbers, float percentileOf100)

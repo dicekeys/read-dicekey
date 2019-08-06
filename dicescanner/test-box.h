@@ -11,68 +11,6 @@
 namespace fs = std::experimental::filesystem;
 
 
-template <typename T>
-static T majorityOfThree(T a, T b, T c)
-{
-	if (a == b || a == c) {
-		return a;
-	} else if (b == c) {
-		return b;
-	}
-	return 0;
-}
-
-static char dashIfNull(char l) {return l == 0 ? '-' : l;}
-
-static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
-{
-	if (diceRead.size() != 25) {
-		throw std::string("A DiceKey must contain 25 dice but only has " + std::to_string(diceRead.size()));
-	}
-	std::vector<DieFace> diceKey;
-	for (size_t i=0; i < diceRead.size(); i++) {
-		DieRead dieRead = diceRead[i];
-		const DieFaceSpecification &underlineInferred = dieRead.underline.dieFaceInferred;
-		const DieFaceSpecification &overlineInferred = dieRead.overline.dieFaceInferred;
-		const char digitRead = dieRead.ocrDigit.charRead;
-		const char letterRead = dieRead.ocrLetter.charRead;
-		if (underlineInferred.letter == 0 ||
-				underlineInferred.digit == 0 ||
-				underlineInferred.letter != overlineInferred.letter ||
-				underlineInferred.digit != overlineInferred.digit) {
-			// report error mismatch between undoverline and overline
-			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch between underline and overline: " <<
-					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
-					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit);
-			}
-		} else if (underlineInferred.letter != letterRead) {
-			// report OCR error on letter
-			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch between underline and ocr letter: " <<
-					dashIfNull(underlineInferred.letter) << " != " << dashIfNull(letterRead);
-			}
-		} else if (underlineInferred.digit != digitRead) {
-			// report OCR error on digit
-			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch between underline and ocr digit: " <<
-					dashIfNull(underlineInferred.digit) << " != " << dashIfNull(digitRead);
-			}
-		}
-
-		diceKey.push_back(DieFace({
-			majorityOfThree(
-				underlineInferred.letter, overlineInferred.letter, dieRead.ocrLetter.charRead
-			),
-			majorityOfThree(
-				underlineInferred.digit, overlineInferred.digit, dieRead.ocrDigit.charRead
-			),
-			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
-		}));
-	}
-	return diceKey;
-}
-
 
 static void validateDiceRead(const std::vector<DieRead> diceRead, std::string diceAsString)
 {

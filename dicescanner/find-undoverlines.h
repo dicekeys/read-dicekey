@@ -130,12 +130,12 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	std::vector<uchar> pixelSamples = samplePointsAlongLine(grayscaleImage, start, end, UndoverlineWhiteDarkSamplePoints);
 	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, 4, 4);
 
+	// FUTURE
 	// Recalculate center and angle by finding point halfway between the sides at
 	// at 10%, 90% of distance.
 	// We can then re-approximate start and end by 
 	// Angle is angle between 10% and 90% point.
 	// looking for top and bottom borders
-	//FIXME
 
 	// Extend start and end .15mm to side in case we cut off the edge
 	float fractionToExtend = 0.15f / 6.0f;

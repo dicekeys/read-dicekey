@@ -55,7 +55,12 @@ static bool isPointBetween2f(cv::Point2f p, cv::Point2f bound1, cv::Point bound2
 }
 
 static float angleOfLineInSignedRadians2f(cv::Point2f start, cv::Point2f end) {
-	return float(atan2(double(end.y - start.y), double(end.x - start.x)));
+	const float delta_x = end.x - start.x;
+	const float delta_y = end.y - start.y;
+	//if (delta_x == 0.0f) {
+	//	return (delta_y > 0) ? float(M_PI/2) : float(-M_PI/2);
+	//}
+	return float(atan2(double(delta_y), double(delta_x)));
 }
 
 static float angleOfLineInSignedRadians2f(Line line) {
@@ -82,13 +87,15 @@ static float normalizeAngleSignedRadians(float angleInRadians)
 	return reduceToSignedRange(angleInRadians, FortyFiveDegreesAsRadians);
 }
 
-// FIXME -- is this correct?
-static cv::Point2f rotatePointAroundOrigin(cv::Point2f point, float angleInRadians) {
+static cv::Point2f rotatePointCounterclockwiseAroundOrigin(const cv::Point2f &point, float angleInRadians) {
 	const float s = sin(angleInRadians);
 	const float c = cos(angleInRadians);
-
 	return cv::Point2f(
 		point.x * c - point.y * s,
 		point.x * s + point.y * c
 	);
+}
+
+static cv::Point2f rotatePointClockwiseAroundOrigin(const cv::Point2f &point, float angleInRadians) {
+	return rotatePointCounterclockwiseAroundOrigin(point, -angleInRadians);
 }

@@ -14,6 +14,7 @@
 #include "vfunctional.h"
 #include "geometry.h"
 #include "die-specification.h"
+#include "dice.h"
 //#include "rotate.h"
 //#include "sample-point.h"
 #include "ocr.h"
@@ -78,7 +79,7 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 				if (angleInRadians > (M_PI)) {
 					angleInRadians -= float(2 * M_PI);
 				}
-				const cv::Point2f angleAdjustedCenter = rotatePointAroundOrigin(center, normalizeAngleSignedRadians(angleInRadians));
+				const cv::Point2f angleAdjustedCenter = rotatePointClockwiseAroundOrigin(center, normalizeAngleSignedRadians(angleInRadians));
 				diceFound.push_back({
 					underline, overlines[i], center, angleInRadians, angleAdjustedCenter,
 					// letter read (not yet set)
@@ -128,7 +129,7 @@ static std::vector<DieRead> readDice(cv::Mat colorImage, cv::Mat grayscaleImage,
 	}
 	// calculate the average angle mod 90 so we can generate a rotation function
 	for (size_t i = 0; i < diceFound.size(); i++) {
-		diceFound[i].angleAdjustedCenter = rotatePointAroundOrigin(diceFound[i].center, angleOfDiceInRadians);
+		diceFound[i].angleAdjustedCenter = rotatePointClockwiseAroundOrigin(diceFound[i].center, angleOfDiceInRadians);
 	}
 
 	// Sort the dice based on their positions after adjusting the angle
@@ -147,9 +148,64 @@ static std::vector<DieRead> readDice(cv::Mat colorImage, cv::Mat grayscaleImage,
 
 	// Search for missing dice
 	if (diceFound.size() < 25) {
-		// FIXME
-		// Add function for this dirty work.
+		// FUTURE -- search for stray underlines/overlines at locations where
+		// missing dice should be
 	}
 
 	return diceFound;
+}
+
+
+
+static char dashIfNull(char l) { return l == 0 ? '-' : l; }
+
+static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
+{
+	if (diceRead.size() != 25) {
+		throw std::string("A DiceKey must contain 25 dice but only has " + std::to_string(diceRead.size()));
+	}
+	std::vector<DieFace> diceKey;
+	for (size_t i = 0; i < diceRead.size(); i++) {
+		DieRead dieRead = diceRead[i];
+		const DieFaceSpecification& underlineInferred = dieRead.underline.dieFaceInferred;
+		const DieFaceSpecification& overlineInferred = dieRead.overline.dieFaceInferred;
+		const char digitRead = dieRead.ocrDigit.charRead;
+		const char letterRead = dieRead.ocrLetter.charRead;
+		if (underlineInferred.letter == 0 ||
+			underlineInferred.digit == 0 ||
+			underlineInferred.letter != overlineInferred.letter ||
+			underlineInferred.digit != overlineInferred.digit) {
+			// report error mismatch between undoverline and overline
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and overline: " <<
+					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
+					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit);
+			}
+		}
+		else if (underlineInferred.letter != letterRead) {
+			// report OCR error on letter
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and ocr letter: " <<
+					dashIfNull(underlineInferred.letter) << " != " << dashIfNull(letterRead);
+			}
+		}
+		else if (underlineInferred.digit != digitRead) {
+			// report OCR error on digit
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and ocr digit: " <<
+					dashIfNull(underlineInferred.digit) << " != " << dashIfNull(digitRead);
+			}
+		}
+
+		diceKey.push_back(DieFace({
+			majorityOfThree(
+				underlineInferred.letter, overlineInferred.letter, dieRead.ocrLetter.charRead
+			),
+			majorityOfThree(
+				underlineInferred.digit, overlineInferred.digit, dieRead.ocrDigit.charRead
+			),
+			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
+			}));
+	}
+	return diceKey;
 }

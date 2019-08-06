@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "die-specification.h"
+#include "decode-die.h"
 
 struct DieFace {
     char letter = 0;
@@ -38,15 +39,14 @@ std::vector<std::vector<unsigned char>> rotationIndexes = {
      2,  7, 12, 17, 22,
      1,  6, 11, 16, 21,
      0,  5, 10, 15, 20,
-  },
+  }
  };
 
 
 std::vector<DieFace> rotateDiceKey(std::vector<DieFace> diceKey, int clockwiseTurns)
 {
   if (diceKey.size() < 25) {
-    return {};
-    // FIXME, throw exception?
+	  throw std::string("A DiceKey must have 25 dice, but only found " + std::to_string(diceKey.size()));
   }
   if (clockwiseTurns < 0) {
     clockwiseTurns = 4 - (-clockwiseTurns % 4);
@@ -65,8 +65,7 @@ std::vector<DieFace> rotateDiceKey(std::vector<DieFace> diceKey, int clockwiseTu
 unsigned char clockwiseRotationsToCanonicalForm(std::vector<DieFace> diceKey)
 {
   if (diceKey.size() < 25) {
-    return 0;
-    // FIXME, throw exception?
+	  throw std::string("A DiceKey must have 25 dice, but only found " + std::to_string(diceKey.size()));
   }
   unsigned char clockwiseRotationsRequired = 0;
   for (unsigned char candidateRotationRequirement = 1; candidateRotationRequirement < 4; candidateRotationRequirement++) {

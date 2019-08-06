@@ -741,7 +741,7 @@ namespace DieDimensionsFractional {
 	const float undoverlineDotHeight = float(0.0625);
 	const float overlineDotTop = float(0.125);
 	const float underlineDotTop = float(0.8125);
-	std::vector<float> dotCentersAsFractionOfUndoverline = {
+	const std::vector<float> dotCentersAsFractionOfUndoverline = {
 	  float(0.12121212121212122),
 	  float(0.19696969696969693),
 	  float(0.2727272727272727),
