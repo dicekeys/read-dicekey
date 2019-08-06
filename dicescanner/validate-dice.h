@@ -3,14 +3,14 @@
 #include <filesystem>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
-
 #include "vfunctional.h"
 #include "dice.h"
 
-namespace fs = std::experimental::filesystem;
-
-
-
+/*
+Compare the dice read during a test to a 75 character specifiation string that contains
+three-character triples of letter, digit ('0'-'6'), and orientation (as number of turns from upright,
+'0'-'3').
+*/
 static void validateDiceRead(const std::vector<DieRead> diceRead, std::string diceAsString)
 {
 	const auto diceKeyNonCanonical = diceReadToDiceKey(diceRead, true);

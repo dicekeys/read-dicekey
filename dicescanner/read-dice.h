@@ -15,8 +15,6 @@
 #include "geometry.h"
 #include "die-specification.h"
 #include "dice.h"
-//#include "rotate.h"
-//#include "sample-point.h"
 #include "ocr.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
@@ -41,9 +39,9 @@ struct FindDiceResult {
 	float pixelsPerMm;
 };
 
-static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
+static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage)
 {
-	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage, candidateUndoverlineRects);
+	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage);
 
 	std::vector<Undoverline> underlines(undoverlines.underlines);
 	std::vector<Undoverline> overlines(undoverlines.overlines);
@@ -67,10 +65,10 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 				// Re-infer the center of the die and its angle by drawing a line from
 				// the center of the to the center of the overline.
 				const Line lineFromUnderlineCenterToOverlineCenter = {
-					pointAtCenterOfLine(underline.line), pointAtCenterOfLine(overlines[i].line)
+					midpointOfLine(underline.line), midpointOfLine(overlines[i].line)
 				};
 				// The center of the die is the midpoint of that line.
-				const cv::Point2f center = pointAtCenterOfLine(lineFromUnderlineCenterToOverlineCenter);
+				const cv::Point2f center = midpointOfLine(lineFromUnderlineCenterToOverlineCenter);
 				// The angle of the die is the angle of that line, plus 90 degrees clockwise
 				const float angleOfLineFromUnderlineToOverlineCenterInRadians =
 					angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter);
@@ -79,7 +77,7 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage, std::
 				if (angleInRadians > (M_PI)) {
 					angleInRadians -= float(2 * M_PI);
 				}
-				const cv::Point2f angleAdjustedCenter = rotatePointClockwiseAroundOrigin(center, normalizeAngleSignedRadians(angleInRadians));
+				const cv::Point2f angleAdjustedCenter = rotatePointClockwiseAroundOrigin(center, radiansFromRightAngle(angleInRadians));
 				diceFound.push_back({
 					underline, overlines[i], center, angleInRadians, angleAdjustedCenter,
 					// letter read (not yet set)
@@ -108,16 +106,13 @@ static std::vector<DieRead> readDice(cv::Mat colorImage)
 	cv::Mat grayscaleImage;
 	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
 
-	const std::vector<RectangleDetected> candidateUndoverlineRects =
-		findCandidateUndoverlines(grayscaleImage);
-
-	FindDiceResult findDiceResult = findDice(colorImage, grayscaleImage, candidateUndoverlineRects);
+	FindDiceResult findDiceResult = findDice(colorImage, grayscaleImage);
 	std::vector<DieRead>& diceFound = findDiceResult.diceFound;
 	const float pixelsPerMm = findDiceResult.pixelsPerMm;
 	const float halfDieSize = DieDimensionsMm::size * pixelsPerMm / 2.0f;
 
 	std::vector<float> dieAnglesInRadians = vmap<DieRead, float>(diceFound,
-		[](DieRead d) -> float { return normalizeAngleSignedRadians(d.inferredAngleInRadians); });
+		[](DieRead d) -> float { return radiansFromRightAngle(d.inferredAngleInRadians); });
 	// Get the angle of all dice
 	float angleOfDiceInRadians = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
 		dieAnglesInRadians, FortyFiveDegreesAsRadians);

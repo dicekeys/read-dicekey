@@ -101,8 +101,8 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	if (isVertical) {
 		// Vertical (the line is closer to vertical than horizontal)
 		// start from half way between top left and top right and proceed to half way from bottom left and bottom right
-		start = pointBetween2f(lineBoundaryRect.topLeft, lineBoundaryRect.topRight);
-		end = pointBetween2f(lineBoundaryRect.bottomLeft, lineBoundaryRect.bottomRight);
+		start = midpoint2f(lineBoundaryRect.topLeft, lineBoundaryRect.topRight);
+		end = midpoint2f(lineBoundaryRect.bottomLeft, lineBoundaryRect.bottomRight);
 		// A step moving one Y pixel moves a fraction of a pixel in the x direction
 		pixelStepY = 1;
 		pixelStepX = ((end.x - start.x) / (end.y - start.y));
@@ -110,8 +110,8 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	else {
 		// Horizontal (the line is closer to horizontal than vertical)
 		// start from half way between top left and bottom left and proceed from half way between top right and bottom right
-		start = pointBetween2f(lineBoundaryRect.topLeft, lineBoundaryRect.bottomLeft);
-		end = pointBetween2f(lineBoundaryRect.topRight, lineBoundaryRect.bottomRight);
+		start = midpoint2f(lineBoundaryRect.topLeft, lineBoundaryRect.bottomLeft);
+		end = midpoint2f(lineBoundaryRect.topRight, lineBoundaryRect.bottomRight);
 		// A step moving one X pixel moves a fraction of a pixel in the Y direction
 		pixelStepX = 1;
 		pixelStepY = ((end.y - start.y) / (end.x - start.x));
@@ -217,8 +217,11 @@ struct UnderlinesAndOverlines {
 	std::vector<Undoverline> overlines;
 };
 
-static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::Mat grayscaleImage, std::vector<RectangleDetected> candidateUndoverlineRects)
+static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::Mat grayscaleImage)
 {
+	const std::vector<RectangleDetected> candidateUndoverlineRects =
+		findCandidateUndoverlines(grayscaleImage);
+
 	std::vector<Undoverline> underlines;
 	std::vector<Undoverline> overlines;
 
@@ -250,7 +253,7 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 			DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
 			mmToPixels);
 
-		const cv::Point2f lineCenter = pointAtCenterOfLine(undoverline);
+		const cv::Point2f lineCenter = midpointOfLine(undoverline);
 		const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
 		const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
 		const cv::Point2f dieCenter = cv::Point2f(x, y);
