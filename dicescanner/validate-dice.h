@@ -3,27 +3,37 @@
 #include <filesystem>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
+#include "vfunctional.h"
+#include "dice.h"
 
-#include "get-dice-from-image.h"
-
-namespace fs = std::experimental::filesystem;
-
-//bool validateDieRead(const DieRead& dieRead, std::string dieAsString)
-//{
-//	const auto letter = dieAsString[0];
-//	const char digit = dieAsString[1];
-//	const char orientationChar = dieAsString[2];
-//	const int orientationInDegrees = 90 * (int)(orientationChar - '0');
-//	if (dieRead.orientationInDegrees != orientationInDegrees)
-//		return false;
-//	if (dieRead.letter != letter) {
-//		return false;
-//	}
-//	if (dieRead.digit != digit) {
-//		return false;
-//	}
-//	return true;
-//}
+/*
+Compare the dice read during a test to a 75 character specifiation string that contains
+three-character triples of letter, digit ('0'-'6'), and orientation (as number of turns from upright,
+'0'-'3').
+*/
+static void validateDiceRead(const std::vector<DieRead> diceRead, std::string diceAsString)
+{
+	const auto diceKeyNonCanonical = diceReadToDiceKey(diceRead, true);
+	const auto diceKey = rotateToCanonicalDiceKey(diceKeyNonCanonical);
+	for (size_t dieIndex = 0; dieIndex < diceRead.size(); dieIndex++) {
+		const auto die = diceKey[dieIndex];
+		const std::string dieAsString = diceAsString.substr(dieIndex * 3, 3);
+		const auto letter = dieAsString[0];
+		const char digit = dieAsString[1];
+		const char orientationChar = dieAsString[2];
+		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationChar - '0';
+		if (die.orientationAs0to3ClockwiseTurnsFromUpright != orientationAs0to3ClockwiseTurnsFromUpright) {
+			throw std::string("Die ") + std::to_string(dieIndex) + " has orientation " + std::to_string(die.orientationAs0to3ClockwiseTurnsFromUpright) +
+				" but should be" + std::to_string(orientationAs0to3ClockwiseTurnsFromUpright);
+		} else if (die.letter != letter) {
+			throw std::string("Die ") + std::to_string(dieIndex) + " has letter " + dashIfNull(die.letter) +
+				" but should be" + dashIfNull(letter);
+		} else if (die.digit != digit) {
+			throw std::string("Die ") + std::to_string(dieIndex) + " has digit " + dashIfNull(die.digit) +
+				" but should be" + dashIfNull(digit);
+		}
+	}
+}
 //
 //void runTests(std::string inputPath)
 //{

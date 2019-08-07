@@ -1,219 +1,212 @@
-//#pragma once
-//
-//#include <opencv2/opencv.hpp>
-//#include <opencv2/core.hpp>
-//#include <opencv2/imgproc.hpp>
-//#include <opencv2/imgcodecs.hpp>
-//#include <opencv2/highgui.hpp>
-//
-//#pragma warning(disable : 4996)
-//
-//#include <tesseract/baseapi.h>
-//#include <tesseract/genericvector.h>
-//
-//#include "find-underline.h"
-//
-//class DieRead {
-//	public:
-//		// Degrees rotated clockwsise from rightside up
-//		// 0 => rightside-up
-//		// 90 => facing right, with underline to left
-//		// 180 => upside-down
-//		// 270 => facing left, with underline to right
-//	uint orientationInDegrees = 0;
-//	char letter = 0;
-//	char digit = 0;
-//	float letterConfidence = 0;
-//	float digitConfidence = 0;
-//	cv::Mat imageFedToOCR;
-//};
-//
-//static cv::Rect cropLTWH(const cv::Size size, float _left, float _top, float _width, float _height) {
-//	int top = std::max( 0, (int) std::round(_top));
-//	int left = std::max( 0, (int) std::round(_left));
-//	int width = std::min( (int) std::round(_width), size.width - left );
-//	int height = std::min( (int) std::round(_height), size.height - top );
-//
-//	return cv::Rect(left, top, width, height);
-//}
-//
-//tesseract::TessBaseAPI* initOcr(std::string tesseractPath = "/dev/null") {
-//	static bool tess_initialized = false;
-//	static tesseract::TessBaseAPI* ocr = new tesseract::TessBaseAPI();
-//	if (!tess_initialized) {
-//		// const char* alphabet = "ABCDEGHJKLMNPQRTVWXYabdfr123456";
-//		const char* alphabet = "ABCDEFGHIJKLMNOPRSTUVWXYZ123456";
-//		const char* alphabetLetters = "ABCDEFGHIJKLMNOPRSTUVWXY";
-//		const char* alphabetDigis = "123456";
-//		if (tesseractPath == "/dev/null") {
-//			throw "initOcr called before tesseract path provided";
-//		}
-//		auto varNames = GenericVector<STRING>();
-//		varNames.push_back("load_system_dawg");
-//		varNames.push_back("load_freq_dawg");
-//		varNames.push_back("tessedit_char_whitelist");
-//		auto varValues = GenericVector<STRING>();
-//		varValues.push_back("0");
-//		varValues.push_back("0");
-//		varValues.push_back(alphabet);
-//	
-//		// Initialize tesseract to use English (eng) and the LSTM OCR engine.
-//		ocr->Init(tesseractPath.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varNames, &varValues, false);
-//		tess_initialized = true;
-//		ocr->SetVariable("tessedit_char_whitelist", alphabet);
-//		ocr->SetPageSegMode(tesseract::PSM_RAW_LINE);
-//	}
-//	return ocr;
-//}
-//
-//
-//
-//bool readDie(cv::Mat &dieImageGrayscale, DieRead &dieRead, int threshold, std::string debugImagePath = "/dev/null", int debugLevel = 0) {
-//	const uint N = 20;
-//	static bool tess_initialized = false;
-//	static tesseract::TessBaseAPI* ocr = initOcr();
-//	
-//	dieRead.letterConfidence = 0;
-//	dieRead.digitConfidence = 0;
-//
-//	cv::Mat dieBlur, edges;
-//	cv::medianBlur(dieImageGrayscale, dieBlur, 3);
-//
-//	for (int l = 0; l < N; l++)
-//	{
-//		// hack: use Canny instead of zero threshold level.
-//		// Canny helps to catch squares with gradient shading
-//		if (l == 0) {
-//			cv::threshold(dieBlur, edges, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-//		} else {
-//			edges = dieBlur >= (l + 1) * 255 / N;;
-//		}
-//
-//		if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 2) {
-//		 	cv::imwrite(debugImagePath + "ocr-edges-" + std::to_string(l) + ".png", edges);
-//		}
-//
-//		const tesseract::PageIteratorLevel level = tesseract::RIL_SYMBOL;
-//
-//		auto bytesPerPixel = edges.elemSize();
-//		auto bytesPerLine = edges.step1();
-//		auto width = edges.size().width;
-//		auto height = edges.size().height;
-//		ocr->SetImage(edges.data, width, height, (int) bytesPerPixel, (int) bytesPerLine);
-//		ocr->Recognize(NULL);
-//		
-//		auto iterator = ocr->GetIterator();
-//
-//		if (iterator == NULL) {
-//			continue;
-//		}
-//		char* symbol = iterator->GetUTF8Text(level);
-//		if (symbol == NULL || *symbol == 0) {
-//			delete iterator;
-//			continue;
-//		}
-//		float letterConfidence = iterator->Confidence(level);
-//		char letter = *symbol;
-//		delete symbol;
-//		//		static const std::string validLetters = "aAbBCdDEGHJKLMNPQrRTVWXY";
-//		static const std::string validLetters = "ABCDEFGHIJKLMNOPRSTUVWXYZ";
-//		if (letterConfidence > dieRead.letterConfidence && validLetters.find(letter) != std::string::npos ) {
-//			dieRead.letter = letter;
-//			dieRead.letterConfidence = iterator->Confidence(level);
-//		}
-//
-//		if (!iterator->Next(level)) {
-//			delete iterator;
-//			continue;
-//		}
-//
-//		symbol = iterator->GetUTF8Text(level);
-//		if (symbol == NULL || *symbol == 0) {
-//			delete iterator;
-//			continue;
-//		}
-//		float digitConfidence = iterator->Confidence(level);
-//		char digit = *symbol;
-//		delete symbol;
-//		if (digitConfidence > dieRead.digitConfidence && digit >= '0' && digit <= '6') {
-//			dieRead.digit = digit;
-//			dieRead.digitConfidence = iterator->Confidence(level);
-//		}
-//
-//		delete iterator;
-//	}
-//	return dieRead.digitConfidence > 0 && dieRead.letterConfidence > 0;
-//}
-//
-//
-//// static bool orientAndReadDie(std::string debugImagePath, cv::Mat &dieImageGrayscale, DieRead &dieRead, float approxPixelsPerMm, int debugLevel = 0) {
-//// 	float centerX = ((float) dieImageGrayscale.size[0]) / 2;
-//// 	float centerY = ((float) dieImageGrayscale.size[1]) / 2;
-//
-//// 	// FUTURE orient based on underline angle, rather than rotating entire die.
-//
-//// 	bool underlineFound;
-//// 	RectangleDetected underline;
-//// 	underlineFound = findUnderline(dieImageGrayscale, underline, approxPixelsPerMm);
-//// 	if (underlineFound) {
-//// 		cv::Mat textRegionImageGrayscale;
-//// 		if (debugImagePath.size() > 0) {
-//// 			auto underlineImage = dieImageGrayscale.clone();
-//// 			std::vector<cv::Point> points = vmap<cv::Point2f, cv::Point>(underline.points, [](cv::Point2f point) -> cv::Point {
-//// 				return cv::Point(point);
-//// 			});
-//// 			const cv::Point* p = points.data();
-//// 			int n = (int)points.size();
-//// 			polylines(underlineImage, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
-//// 			if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 1) {
-//// 				cv::imwrite(debugImagePath + "underline.png", underlineImage);
-//// 			}
-//// 		}
-//
-//// 		const float distx = abs(underline.center.x - centerX);
-//// 		const float disty = abs(underline.center.y - centerY);
-//// 		if (disty > distx) {
-//// 			// The underline is above or below the center,
-//// 			// indicating horizontal lettering (rotated 0 or 180)
-//// 			dieRead.orientationInDegrees = (underline.center.y < centerY) ? 180 : 0;
-//// 			// std::cout << "Die " << dieIndex << " at angle " << dieRead.orientationInDegrees << "\n";
-//// 			float width = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
-//// 			float left = underline.center.x - width / 2.0f;
-//// 			float height = 2.0f * (disty - 0.2f);
-//// 			float top =   dieRead.orientationInDegrees == 180 ?
-//// 					// Select safely below the underline
-//// 					underline.center.y + 0.3f * approxPixelsPerMm :
-//// 					// Select safely above the underline
-//// 					underline.center.y - (0.3f * approxPixelsPerMm) - height;
-//// 			auto cropRect = cropLTWH(dieImageGrayscale.size(), left, top, width, height);
-//// 			cv::Mat dieImage = dieImageGrayscale(cropRect);
-//// 			if (dieRead.orientationInDegrees == 180) {
-//// 				// The underline is above the die center.  It's up-side down.
-//// 				// Rotate 180
-//// 				cv::rotate(dieImage, textRegionImageGrayscale, cv::ROTATE_180);
-//// 			} else {
-//// 				textRegionImageGrayscale = dieImage;
-//// 			}
-//// 		} else {
-//// 			dieRead.orientationInDegrees = underline.center.x < centerX ? 90 : 270;
-//// 			// std::cout << "Die " << dieIndex << " at angle " << dieRead.orientationInDegrees << "\n";
-//// 			float height = std::max(underline.longerSideLength, 5.5f * approxPixelsPerMm);
-//// 			float top = underline.center.y - height / 2.0f;
-//// 			float width = 2.0f * (distx - 0.2f);
-//// 			float left = dieRead.orientationInDegrees == 90 ?
-//// 				// Select safely to right of funderline
-//// 				underline.center.x + 0.3f * approxPixelsPerMm :
-//// 				// Select safely to left of underline and the width of the area to be read
-//// 				underline.center.x - (0.3f * approxPixelsPerMm) - width
-//// 			;
-//// 			float right = left + width;
-//// 			auto cropRect = cropLTWH(dieImageGrayscale.size(), left, top, width, height);
-//// 			dieRead.imageFedToOCR = dieImageGrayscale(cropRect);
-//// 			cv::rotate(dieRead.imageFedToOCR, textRegionImageGrayscale, dieRead.orientationInDegrees == 90 ? cv::ROTATE_90_COUNTERCLOCKWISE : cv::ROTATE_90_CLOCKWISE);
-//// 		}
-//
-//// 		readDie(textRegionImageGrayscale, dieRead, underline.foundAtThreshold, debugImagePath, debugLevel);
-//// 	}
-//
-//// 	return underlineFound && dieRead.letterConfidence > 0 && dieRead.digitConfidence > 0;
-//// }
+#pragma once
+
+#pragma once
+
+#include <float.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
+#include <iostream>
+#include <math.h>
+#include "vfunctional.h"
+#include "geometry.h"
+#include "die-specification.h"
+#include "dice.h"
+#include "ocr.h"
+#include "decode-die.h"
+#include "find-undoverlines.h"
+#include "value-clusters.h"
+
+
+
+struct DieRead {
+	Undoverline underline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
+	Undoverline overline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
+	cv::Point2f center = cv::Point2f{ 0, 0 };
+	float inferredAngleInRadians = 0;
+	cv::Point2f angleAdjustedCenter{ 0, 0 };
+	ReadCharacterResult ocrLetter = { 0, 0 };
+	ReadCharacterResult ocrDigit = { 0, 0 };
+	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
+};
+
+struct FindDiceResult {
+	std::vector<DieRead> diceFound;
+	std::vector<Undoverline> strayUndoverlines;
+	float pixelsPerMm;
+};
+
+static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage)
+{
+	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage);
+
+	std::vector<Undoverline> underlines(undoverlines.underlines);
+	std::vector<Undoverline> overlines(undoverlines.overlines);
+
+	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
+		[](Undoverline underline) { return lineLength(underline.line); });
+	const float medianUnderlineLength = medianInPlace(underlineLengths);
+	const float pixelsPerMm = medianUnderlineLength / DieDimensionsMm::undoverlineLength;
+	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
+
+	std::vector<Undoverline> strayUndoverlines(0);
+	std::vector<DieRead> diceFound;
+
+	for (auto underline : underlines) {
+		// Search for overline with inferred die center near that of underline.
+		bool found = false;
+		for (size_t i = 0; i < overlines.size() && !found; i++) {
+			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters) {
+				// We have a match
+				found = true;
+				// Re-infer the center of the die and its angle by drawing a line from
+				// the center of the to the center of the overline.
+				const Line lineFromUnderlineCenterToOverlineCenter = {
+					midpointOfLine(underline.line), midpointOfLine(overlines[i].line)
+				};
+				// The center of the die is the midpoint of that line.
+				const cv::Point2f center = midpointOfLine(lineFromUnderlineCenterToOverlineCenter);
+				// The angle of the die is the angle of that line, plus 90 degrees clockwise
+				const float angleOfLineFromUnderlineToOverlineCenterInRadians =
+					angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter);
+				float angleInRadians = angleOfLineFromUnderlineToOverlineCenterInRadians +
+					NinetyDegreesAsRadians;
+				if (angleInRadians > (M_PI)) {
+					angleInRadians -= float(2 * M_PI);
+				}
+				const cv::Point2f angleAdjustedCenter = rotatePointClockwiseAroundOrigin(center, radiansFromRightAngle(angleInRadians));
+				diceFound.push_back({
+					underline, overlines[i], center, angleInRadians, angleAdjustedCenter,
+					// letter read (not yet set)
+					{0, 0},
+					// digit read (not yet set)
+					{0,0},
+					0
+					});
+				// Remove the ith element of overlines
+				overlines.erase(overlines.begin() + i);
+			}
+		}
+		if (!found) {
+			strayUndoverlines.push_back(underline);
+		}
+	}
+
+	strayUndoverlines.insert(strayUndoverlines.end(), overlines.begin(), overlines.end());
+
+	return { diceFound, strayUndoverlines, pixelsPerMm };
+}
+
+
+static std::vector<DieRead> readDice(cv::Mat colorImage)
+{
+	cv::Mat grayscaleImage;
+	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
+
+	FindDiceResult findDiceResult = findDice(colorImage, grayscaleImage);
+	std::vector<DieRead>& diceFound = findDiceResult.diceFound;
+	const float pixelsPerMm = findDiceResult.pixelsPerMm;
+	const float halfDieSize = DieDimensionsMm::size * pixelsPerMm / 2.0f;
+
+	std::vector<float> dieAnglesInRadians = vmap<DieRead, float>(diceFound,
+		[](DieRead d) -> float { return radiansFromRightAngle(d.inferredAngleInRadians); });
+	// Get the angle of all dice
+	float angleOfDiceInRadians = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
+		dieAnglesInRadians, FortyFiveDegreesAsRadians);
+
+
+	for (auto &die : diceFound) {
+		// Average the angle of the underline and overline
+		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians, findDiceResult.pixelsPerMm);
+		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceInRadians;
+		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
+		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
+		die.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
+		die.ocrLetter = charsRead.letter;
+		die.ocrDigit = charsRead.digit;
+	}
+	// calculate the average angle mod 90 so we can generate a rotation function
+	for (size_t i = 0; i < diceFound.size(); i++) {
+		diceFound[i].angleAdjustedCenter = rotatePointClockwiseAroundOrigin(diceFound[i].center, angleOfDiceInRadians);
+	}
+
+	// Sort the dice based on their positions after adjusting the angle
+	std::sort(diceFound.begin(), diceFound.end(), [halfDieSize](DieRead a, DieRead b) {
+		if (a.angleAdjustedCenter.y < (b.angleAdjustedCenter.y - halfDieSize)) {
+			// Die a is at least a half die above die b, and therefore comes before it
+			return true;
+		}
+		else if (b.angleAdjustedCenter.y < (a.angleAdjustedCenter.y - halfDieSize)) {
+			// Die b is at least a half die above die a, and therefore comes before it
+			return false;
+		}
+		// Die a and die b are roughly the same from top to bottom, so order left to right
+		return a.angleAdjustedCenter.x < b.angleAdjustedCenter.x;
+	});
+
+	// Search for missing dice
+	if (diceFound.size() < 25) {
+		// FUTURE -- search for stray underlines/overlines at locations where
+		// missing dice should be
+	}
+
+	return diceFound;
+}
+
+
+
+static char dashIfNull(char l) { return l == 0 ? '-' : l; }
+
+static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
+{
+	if (diceRead.size() != 25) {
+		throw std::string("A DiceKey must contain 25 dice but only has " + std::to_string(diceRead.size()));
+	}
+	std::vector<DieFace> diceKey;
+	for (size_t i = 0; i < diceRead.size(); i++) {
+		DieRead dieRead = diceRead[i];
+		const DieFaceSpecification& underlineInferred = dieRead.underline.dieFaceInferred;
+		const DieFaceSpecification& overlineInferred = dieRead.overline.dieFaceInferred;
+		const char digitRead = dieRead.ocrDigit.charRead;
+		const char letterRead = dieRead.ocrLetter.charRead;
+		if (underlineInferred.letter == 0 ||
+			underlineInferred.digit == 0 ||
+			underlineInferred.letter != overlineInferred.letter ||
+			underlineInferred.digit != overlineInferred.digit) {
+			// report error mismatch between undoverline and overline
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and overline: " <<
+					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
+					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) << "\n";
+			}
+		}
+		else if (underlineInferred.letter != letterRead) {
+			// report OCR error on letter
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and ocr letter: " <<
+					dashIfNull(underlineInferred.letter) << " != " << dashIfNull(letterRead) << "\n";
+			}
+		}
+		else if (underlineInferred.digit != digitRead) {
+			// report OCR error on digit
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch between underline and ocr digit: " <<
+					dashIfNull(underlineInferred.digit) << " != " << dashIfNull(digitRead) << "\n";
+			}
+		}
+
+		diceKey.push_back(DieFace({
+			majorityOfThree(
+				underlineInferred.letter, overlineInferred.letter, dieRead.ocrLetter.charRead
+			),
+			majorityOfThree(
+				underlineInferred.digit, overlineInferred.digit, dieRead.ocrDigit.charRead
+			),
+			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
+			}));
+	}
+	return diceKey;
+}

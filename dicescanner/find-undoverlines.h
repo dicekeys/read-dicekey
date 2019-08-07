@@ -10,34 +10,30 @@
 #include <iostream>
 #include <math.h>
 #include "vfunctional.h"
+#include "geometry.h"
+#include "find-rectangles.h"
 #include "rectangle.h"
-#include "find-squares.h"
-#include "die.h"
+#include "die-specification.h"
 #include "rotate.h"
 #include "ocr.h"
+#include "sample-point.h"
+#include "decode-die.h"
 
 
-static uint reverseBits(uint bitsToReverse, uint lengthInBits)
-{
-	uint reversedBits = 0;
-	for (uint i = 0; i < lengthInBits; i++) {
-		reversedBits <<= 1;
-		if (bitsToReverse & 1) {
-			reversedBits += 1;
-		}
-		bitsToReverse >>= 1;
-	}
-	return reversedBits;
-}
+const float undoverlineWidthAsFractionOfLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
+const float minWidthOverLength = undoverlineWidthAsFractionOfLength / 1.5f;
+const float maxWidthOverLength = undoverlineWidthAsFractionOfLength * 1.5f;
 
-static float normalizeAngle(float angle)
-{
-	const float normalizedAngle = angle - round(angle / 90) * 90;
-	return normalizedAngle;
+static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
+	float shortToLongRatio = rect.shorterSideLength / rect.longerSideLength;
+	return (
+		shortToLongRatio >= minWidthOverLength &&
+		shortToLongRatio <= maxWidthOverLength
+		);
 }
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int N = 13)
+static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& gray, int N = 13)
 {
 	float min_underline_length = float(std::min(gray.size[0], gray.size[1])) / 80;
 	float max_underline_length = float(std::min(gray.size[0], gray.size[1])) / 8;
@@ -61,12 +57,17 @@ static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int 
 			vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }),
 			85
 		);
-		// Calculate slope of survivors
-		float medianAngle = median(vmap<RectangleDetected, float>(candidateUnderOverLines,
-			[](RectangleDetected r) -> float { return normalizeAngle(r.angle); }));
+		// Calculate the modal slope of the surviving undoverlines (mod 90) so that we can
+		// favor underlines with similar slopes
+		// (mod 90 because undoverlines may be at one of four 90-degree rotations,
+		//  and on a cicular line so that angles of 1 and 89 are distance 2, not distance 88)
+		float targetAngleInDegrees = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
+			vmap<RectangleDetected, float>(candidateUnderOverLines,
+				[](RectangleDetected r) -> float { return r.angleInDegrees; }),
+			float(45));
 
-		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, medianAngle](RectangleDetected r) -> float {
-			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / undoverlineWidthOverLength;
+		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, targetAngleInDegrees](RectangleDetected r) -> float {
+			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / undoverlineWidthAsFractionOfLength;
 			if (deviationFromSideRatio < 1 && deviationFromSideRatio > 0) {
 				deviationFromSideRatio = 1 / deviationFromSideRatio;
 			}
@@ -79,8 +80,7 @@ static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int 
 				// so cut the penalty in half for those.
 				(((r.area / areaHighPercentile) - 1) / 2);
 			// The penalty from deviating from the target angle
-			float angleDiff = normalizeAngle(r.angle) - medianAngle;
-			angleDiff = MIN(angleDiff, 90.0f - angleDiff);
+			const float angleDiff = distanceInModCircularRangeFromNegativeNToN(r.angleInDegrees, targetAngleInDegrees, float(90));
 			float deviationFromTargetAngle = 2.0f * angleDiff;
 
 			return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
@@ -90,224 +90,193 @@ static std::vector<RectangleDetected> findUndoverlines(const cv::Mat& gray, int 
 	return candidateUnderOverLines;
 }
 
+static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected lineBoundaryRect) {
+	const int lineHeight = MAX(lineBoundaryRect.bottomLeft.y, lineBoundaryRect.bottomRight.y) - MIN(lineBoundaryRect.topLeft.y, lineBoundaryRect.topRight.y);
+	const int lineWidth = MAX(lineBoundaryRect.topRight.x, lineBoundaryRect.bottomRight.x) - MIN(lineBoundaryRect.topLeft.x, lineBoundaryRect.bottomLeft.x);
 
+	const bool isVertical = lineHeight > lineWidth;
+	cv::Point2f start, end;
+	float pixelStepX, pixelStepY;
 
-struct undoverline {
-	public:
-		char letter;
-		char digit;
-		cv::Point2f center;
-		float slope;
-		float length;
-};
-
-const size_t NumberOfDotsInUndoverline = 11;
-
-
-uchar reverseCharBits(uchar b) {
-   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-   return b;
-}
-
-class UndoverlineShape {
-public:
-	RectangleDetected line;
-	bool isVertical;
-	cv::Point2f lineThroughMidWidthStart;
-	cv::Point2f lineThroughMidWidthEnd;
-	float length;
-	float angle;
-
-	UndoverlineShape(RectangleDetected _line) {
-		line = _line;
-		const int lineHeight = MAX(line.bottomLeft.y, line.bottomRight.y) - MIN(line.topLeft.y, line.topRight.y);
-		const int lineWidth = MAX(line.topRight.x, line.bottomRight.x) - MIN(line.topLeft.x, line.topRight.x);
-		bool isVertical = lineHeight > lineWidth;
-
-		if (isVertical) {
-			// the line is closer to vertical than horizontal
-			// start from half way between top left and top right and proceed to half way from bottom left and bottom right
-			lineThroughMidWidthStart = cv::Point2f(
-				float(line.topLeft.x + line.topRight.x) / 2.0f,
-				float(line.topLeft.y + line.topRight.y) / 2.0f
-			);
-			lineThroughMidWidthEnd = cv::Point2f(
-				float(line.bottomLeft.x + line.bottomRight.x) / 2.0f,
-				float(line.bottomLeft.y + line.bottomRight.y) / 2.0f
-			);
-		}
-		else {
-			// the line is closer to horizontal than vertical.
-			// start from half way between top left and bottom left and proceed from half way between top right and bottom right
-			lineThroughMidWidthStart = cv::Point2f(
-				float(line.topLeft.x + line.bottomLeft.x) / 2.0f,
-				float(line.topLeft.y + line.bottomLeft.y) / 2.0f
-			);
-			lineThroughMidWidthEnd = cv::Point2f(
-				float(line.topRight.x + line.bottomRight.x) / 2.0f,
-				float(line.topRight.y + line.bottomRight.y) / 2.0f
-			);
-		}
-		const float deltaH = lineThroughMidWidthEnd.x - lineThroughMidWidthStart.x;
-		const float deltaV = lineThroughMidWidthEnd.y - lineThroughMidWidthStart.y;
-		length = sqrt(deltaH * deltaH + deltaV * deltaV);
-	 	angle = float( atan2(
-			lineThroughMidWidthEnd.y - lineThroughMidWidthStart.y,
-			lineThroughMidWidthEnd.x - lineThroughMidWidthStart.x
-		 ) * 180 / M_PI );
+	if (isVertical) {
+		// Vertical (the line is closer to vertical than horizontal)
+		// start from half way between top left and top right and proceed to half way from bottom left and bottom right
+		start = midpoint2f(lineBoundaryRect.topLeft, lineBoundaryRect.topRight);
+		end = midpoint2f(lineBoundaryRect.bottomLeft, lineBoundaryRect.bottomRight);
+		// A step moving one Y pixel moves a fraction of a pixel in the x direction
+		pixelStepY = 1;
+		pixelStepX = ((end.x - start.x) / (end.y - start.y));
 	}
-};
-
-static std::vector<uchar> readUndoverlinePoints(cv::Mat image, UndoverlineShape undoeverline)
-{
-	const float length_x = undoeverline.lineThroughMidWidthEnd.x - undoeverline.lineThroughMidWidthStart.x;
-	const float length_y = undoeverline.lineThroughMidWidthEnd.y - undoeverline.lineThroughMidWidthStart.y;
-	const float length = sqrt(length_x * length_x + length_y * length_y);
-	const float width = length / 6.0f;
-	// 6mm, line, eges of 0.25, leaving 5.5mm for dots 11 dots, or 0.5mm per dot
-	// the center of the first one starts 0.25 + 0.5/2 = 0.5mm from edge
-	std::vector<uchar> dotValues = std::vector<uchar>(11);
-	for (size_t i=0; i < NumberOfDotsInUndoverline; i++) {
-		const float dotFraction = (0.5f + (i * 0.5f)) / 6.0f;		
-		const int x = int(round(undoeverline.lineThroughMidWidthStart.x + (dotFraction * length_x)));
-		const int y = int(round(undoeverline.lineThroughMidWidthStart.y + (dotFraction * length_y)));
-		const std::vector<uchar> valuesAroundCenter = {
-			image.at<uchar>(cv::Point(x, y)),
-			image.at<uchar>(cv::Point(x + 1, y)),
-			image.at<uchar>(cv::Point(x - 1, y)),
-			image.at<uchar>(cv::Point(x, y + 1)),
-			image.at<uchar>(cv::Point(x, y - 1))
-		};
-		const uchar medianValue	= median(valuesAroundCenter);
-		dotValues[i] = medianValue;
+	else {
+		// Horizontal (the line is closer to horizontal than vertical)
+		// start from half way between top left and bottom left and proceed from half way between top right and bottom right
+		start = midpoint2f(lineBoundaryRect.topLeft, lineBoundaryRect.bottomLeft);
+		end = midpoint2f(lineBoundaryRect.topRight, lineBoundaryRect.bottomRight);
+		// A step moving one X pixel moves a fraction of a pixel in the Y direction
+		pixelStepX = 1;
+		pixelStepY = ((end.y - start.y) / (end.x - start.x));
 	}
-	return dotValues;
+	assert(abs(pixelStepX) <= 1);
+	assert(abs(pixelStepY) <= 1);
+
+
+	// Take 25 samples of points between start and end so that we can find
+	// theshold between light and dark.
+	const std::vector<float> UndoverlineWhiteDarkSamplePoints = { 0,
+		0.05f, 0.1f, 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f, 0.5f,
+		0.55f, 0.6f, 0.65f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1
+	};
+	const size_t numSamples = NumberOfDotsInUndoverline + 2;
+	std::vector<uchar> pixelSamples = samplePointsAlongLine(grayscaleImage, start, end, UndoverlineWhiteDarkSamplePoints);
+	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, 4, 4);
+
+	// FUTURE
+	// Recalculate center and angle by finding point halfway between the sides at
+	// at 10%, 90% of distance.
+	// We can then re-approximate start and end by 
+	// Angle is angle between 10% and 90% point.
+	// looking for top and bottom borders
+
+	// Extend start and end .15mm to side in case we cut off the edge
+	float fractionToExtend = 0.15f / 6.0f;
+	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
+	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
+	start.x = MAX(0, MIN(start.x - fractionToExtendH, grayscaleImage.rows - 1));
+	start.y = MAX(0, MIN(start.y - fractionToExtendV, grayscaleImage.rows - 1));
+	end.x = MAX(0, MIN(end.x + fractionToExtendH, grayscaleImage.rows - 1));
+	end.y = MAX(0, MIN(end.y + fractionToExtendV, grayscaleImage.rows - 1));
+
+	// Trim the start of the line by moving the start closer to the end,
+	// until we reach the first black pixel
+	cv::Point2f oldStart = start;
+	cv::Point2f oldEnd = end;
+	while (
+		grayscaleImage.at<uchar>(start) > whiteBlackThreshold &&
+		isPointBetween2f(start.x + pixelStepX, start.y + pixelStepY, oldStart, oldEnd)
+		) {
+		// The starting point hasn't reached the black underline.
+		start.x += pixelStepX;
+		start.y += pixelStepY;
+	}
+
+	// Trim the end of the line by moving the end closer to the start,
+	// until we reach the first black pixel	
+	while (
+		grayscaleImage.at<uchar>(end) > whiteBlackThreshold &&
+		isPointBetween2f(end.x - pixelStepX, end.y - pixelStepY, start, oldEnd)
+		) {
+		// The starting point hasn't reached the black underline.
+		end.x -= pixelStepX;
+		end.y -= pixelStepY;
+	}
+	return { start, end };
 }
 
 
-static uint undoverlinePixelValuesToBits(std::vector<uchar> dotValues)
-{
-	uchar threshold = bimodalThreshold(dotValues);
+static uint readUndoverlineBits(cv::Mat grayscaleImage, Line undoverline) {
+	// Calculate the width in pixels of the dots that encode data in undoverline's
+	// by taking the length of the line in pixels * the fraction of a line consumed
+	// by each dot.
+	const std::vector<uchar> medianPixelValues = samplePointsAlongLine(
+		grayscaleImage, undoverline.start, undoverline.end,
+		DieDimensionsFractional::dotCentersAsFractionOfUndoverline
+	);
 
 	// The binary coding has 11 bits,
 	// from most significant (10) to least (0)
 	//   Bit 10:   always 1
 	//   Bit  9:   1 if overline, 0 if underline
-	//   Bits 8-4: letter code (1-25, never 0, or 26-31)
-	//   Bits 3-1: digit code  (1-6, never 0, 7)
+	//   Bits 8-1: underline/overline-specific encoding that maps to letter and digit
+	//             underline encoding always has at least two 1s and one 0
+	//             overline encoding always has at leat two 0s and one 1
 	//   Bit  0:   always 0 
-	uint binaryCodingReadForwardOrBackward = 0;
-	for (size_t i = 0; i < NumberOfDotsInUndoverline; i++) {
-		// 1s are white, or lower values)
-		binaryCodingReadForwardOrBackward <<= 1;
-		if (dotValues[i] > threshold) {
-			binaryCodingReadForwardOrBackward += 1;
-		}
-	}
+	//
+	// Thus, all 11-bit encodings have at least four 0s and four 1s.]
+	const size_t minNumberOf0s = 4, minNumberOf1s = 4;
+	// minFractionOfZerosAndOnes = float(4.0f / float(NumberOfDotsInUndoverline));
+
+	// In finding a white/black threshold, the sampling should ensure
+	// there are at least enough zeros an dones above/below the threshold.
+	const uchar whiteBlackThreshold = bimodalThreshold(medianPixelValues, minNumberOf0s, minNumberOf1s);
+	uint binaryCodingReadForwardOrBackward = sampledPointsToBits(medianPixelValues, whiteBlackThreshold);
 	return binaryCodingReadForwardOrBackward;
 }
 
-static void readUndoverline(cv::Mat image, RectangleDetected line)
+
+struct Undoverline {
+	Line line;
+	unsigned int binaryCodingReadForwardOrBackward;
+	UndoverlineTypeOrientationAndEncoding decoded;
+	cv::Point2f inferredDieCenter;
+	DieFaceSpecification dieFaceInferred;
+};
+
+
+struct UnderlinesAndOverlines {
+	std::vector<Undoverline> underlines;
+	std::vector<Undoverline> overlines;
+};
+
+static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::Mat grayscaleImage)
 {
-	UndoverlineShape undoverline = UndoverlineShape(line);
-	auto undoverlinePixelValues = readUndoverlinePoints(image, undoverline);
-	uint binaryCodingReadForwardOrBackward = undoverlinePixelValuesToBits(undoverlinePixelValues);
+	const std::vector<RectangleDetected> candidateUndoverlineRects =
+		findCandidateUndoverlines(grayscaleImage);
 
-	// The binary coding has 11 bits,
-	// from most significant (10) to least (0)
-	//   Bit 10:   always 1
-	//   Bit  9:   1 if overline, 0 if underline
-	//   Bits 8-4: letter code (1-25, never 0, or 26-31)
-	//   Bits 3-1: digit code  (1-6, never 0, 7)
-	//   Bit  0:   always 0 
+	std::vector<Undoverline> underlines;
+	std::vector<Undoverline> overlines;
 
-	// First, we need to determine if we read the code in the
-	// forward order (the first bit is 1) or the reverse order
-	// (such that the last bit is 1).
-	const bool firstBitRead = ( binaryCodingReadForwardOrBackward >> (NumberOfDotsInUndoverline - 1) ) == 1;
-	const bool lastBitRead = binaryCodingReadForwardOrBackward & 1;
-	if ( (firstBitRead ^ lastBitRead) != 1 ) {
-		// The direction bit is a white box at the left (starting) edge
-		// of the underline.
-		// Thus, either the first or last bit should be set to 1,
-		// but never neither or both.
-		// FIXME
-		return;
+	for (auto rectEncompassingLine: candidateUndoverlineRects) {
+		Line undoverline = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
+		const float undoverlineLength = lineLength(undoverline);
+		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverline);
+		const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
+
+		const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
+		if (!decoded.isValid) {
+			continue;
+		}
+
+		DieFaceSpecification dieFace = decodeUndoverlineByte(decoded.isOverline, decoded.letterDigitEncoding);
+
+		if (decoded.wasReadInReverseOrder) {
+			undoverline = reverseLineDirection(undoverline);
+		}
+
+		float upAngleInRadians = angleOfLineInSignedRadians2f(undoverline) +
+			(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
+
+		// pixels per mm the length of the overline in pixels of it's length in mm,
+		// or, undoverlineLength / mmDieUndoverlineLength;
+		double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
+
+		float pixelsFromCenterOfUnderlineToCenterOfDie = float(
+			DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
+			mmToPixels);
+
+		const cv::Point2f lineCenter = midpointOfLine(undoverline);
+		const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
+		const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
+		const cv::Point2f dieCenter = cv::Point2f(x, y);
+
+
+		Undoverline thisUndoverline = {
+			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline,
+			binaryCodingReadForwardOrBackward,
+			decoded,
+			dieCenter,
+			dieFace
+		};
+		if (decoded.isOverline) {
+			overlines.push_back(thisUndoverline);
+		} else {
+			underlines.push_back(thisUndoverline);
+		}
 	}
 
-	const bool readInReverseOrder = lastBitRead;
-	// Correct the angle of the undoverline since we read it in the reverse direction
-	// by offsetting it by 180 degress
-	if (readInReverseOrder) {
-		undoverline.angle = undoverline.angle < 0 ?
-			undoverline.angle + 180 :
-			undoverline.angle - 180;
-	}
-	// Get the bits in the correct order, with the lowest-order
-	// bit 0 (the always-black last bit in the underline)
-	const uint binaryEncoding = readInReverseOrder ?
-		reverseBits(binaryCodingReadForwardOrBackward, 11) : binaryCodingReadForwardOrBackward;
-	const bool isOverline = (binaryEncoding >> 9) & 1;
-	const uchar letterCode = ((binaryEncoding >> 4) & 0x1F);
-	const uchar digitCode = ((binaryEncoding >> 1) & 0x7);
-	if ( (letterCode < 1) || (letterCode > DieLetters.length() ) )  {
-		// FIXME
-		return;
-	} else if ( (digitCode < 1) || (digitCode > DieDigits.length() ) ) {
-		// FIXME
-		return;
-	}
+	// Sort underlines and overlines on y axis
+	std::sort( underlines.begin(), underlines.end(), [](Undoverline a, Undoverline b) {return a.inferredDieCenter.y < b.inferredDieCenter.y; } );
+	std::sort( overlines.begin(), overlines.end(), [](Undoverline a, Undoverline b) {return a.inferredDieCenter.y < b.inferredDieCenter.y; } );
 
-	char letter = DieLetters[letterCode - 1];
-	char digit = DieDigits[digitCode - 1];
-	uchar rotationStep = undoverline.isVertical ? (
-			// vertical
-			readInReverseOrder ? 3 : 1
-		) : (
-			// horizontal
-			readInReverseOrder ? 2 : 0
-	);
-	uint rotation = rotationStep * 90;
-
-	float upAngleInDegrees =
-		undoverline.angle + (isOverline ? 90 : -90);
-	float upAngleInRadians = float(upAngleInDegrees * (2 * M_PI / 360.0));
-
-	// pixels per mm the length of the overline in pixels of it's length in mm,
-	// or, undoverline.length / mmDieUndoverlineLength;
-	double mmToPixels = double(undoverline.length) / mmDieUndoverlineLength;
-	float pixelsFromCenterOfUnderlineToCenterOfDie = float(
-		mmFromCenterOfUndoverlineToCenterOfDie * mmToPixels);
-	int textHeightPixels = int(ceil(mmDieTextRegionHeight * mmToPixels));
-	int textWidthPixels = int(ceil(mmDieTextRegionWidth * mmToPixels));
-	// Use an even text region width so we can even split it in two at the center;
-	if ((textWidthPixels % 2) == 1) {
-		textWidthPixels += 1;
-	}
-	cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
-
-	const auto x = line.center.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
-	const auto y = line.center.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
-	const cv::Point2f dieCenter = cv::Point2f(x, y);
-
-	const auto textImage = copyRotatedRectangle(image, dieCenter, undoverline.angle, textRegionSize);
-	// Setup a rectangle to define your region of interest
-	const cv::Rect letterRect(0,0, textRegionSize.width / 2, textRegionSize.height);
-	const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
-	auto letterImage = textImage(letterRect);
-	auto digitImage = textImage(digitRect);
-
-	cv::imwrite("image-being-processed.png", image);
-	cv::imwrite("text-region.png", textImage);
-	cv::imwrite("letter.png", letterImage);
-	cv::imwrite("digit.png", digitImage);
-
-	const auto l = readCharacter(letterImage, false);
-	const auto d = readCharacter(digitImage, true);
-
-	std::string result = std::string("") + letter + digit + char('0' + rotationStep);
-	
-	// line.angle;
+	return {underlines, overlines};
 }
+

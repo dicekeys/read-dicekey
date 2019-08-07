@@ -10,7 +10,8 @@
 
 #include <tesseract/baseapi.h>
 #include <tesseract/genericvector.h>
-#include "die.h"
+#include "die-specification.h"
+#include "geometry.h"
 
 static tesseract::TessBaseAPI* initCharOcr(std::string alphabet, std::string tesseractPath = "/dev/null")
 {
@@ -80,7 +81,7 @@ ReadCharacterResult readCharacter(cv::Mat& imageGrayscale, bool isDigit, std::st
 		if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 2) {
 			cv::imwrite(debugImagePath + "ocr-edges-" + std::to_string(l) + ".png", edges);
 		}
-		cv::imwrite("ocr-input.png", edges);
+		// cv::imwrite("ocr-input.png", edges);
 
 		const tesseract::PageIteratorLevel level = tesseract::RIL_SYMBOL;
 
@@ -98,30 +99,61 @@ ReadCharacterResult readCharacter(cv::Mat& imageGrayscale, bool isDigit, std::st
 				result.confidence = confidence;
 				result.charRead = *symbol;
 				delete symbol;
-				cv::imwrite(std::string(isDigit ? "digit" : "letter") + "-edges.png", edges);
+				// cv::imwrite(std::string(isDigit ? "digit" : "letter") + "-edges.png", edges);
 			}
 		}
 	}
-		
-
-	//	auto iterator = ocr->GetIterator();
-
-	//	if (iterator == NULL) {
-	//		continue;
-	//	}
-	//	float confidence = iterator->Confidence(tesseract::RIL_SYMBOL);
-	//	if (confidence > result.confidence) {
-	//		char* symbol = iterator->GetUTF8Text(tesseract::RIL_SYMBOL);
-	//		if (symbol == NULL || *symbol == 0) {
-	//			delete iterator;
-	//			continue;
-	//		}
-	//		result.confidence = confidence;
-	//		result.charRead = *symbol;
-	//		delete symbol;
-	//		cv::imwrite(std::string(isDigit ? "digit" : "letter") + "-edges.png", edges);
-	//	}
-	//	delete iterator;
-	//}
 	return result;
+}
+
+struct DieCharactersRead {
+	const ReadCharacterResult letter;
+	const ReadCharacterResult digit;
+};
+
+static DieCharactersRead readDieCharacters(
+	cv::Mat imageColor,
+	cv::Mat grayscaleImage,
+	cv::Point2f dieCenter,
+	float angleRadians,
+	float mmToPixels,
+	char writeErrorUnlessThisLetterIsRead = 0,
+	char writeErrorUnlessThisSigitIsRead = 0
+) {
+	// Rotate to remove the angle of the die
+	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
+	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
+	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
+	// Use an even text region width so we can even split it in two at the center;
+	if ((textWidthPixels % 2) == 1) {
+		textWidthPixels += 1;
+	}
+	cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
+
+	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, degreesToRotateToRemoveAngleOfDie, textRegionSize);
+	// Setup a rectangle to define your region of interest
+	const cv::Rect letterRect(0, 0, textRegionSize.width / 2, textRegionSize.height);
+	const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
+	auto letterImage = textImage(letterRect);
+	auto digitImage = textImage(digitRect);
+
+	// FIXME -- remove after development debugging
+	cv::imwrite("text-region.png", textImage);
+	cv::imwrite("letter.png", letterImage);
+	cv::imwrite("digit.png", digitImage);
+
+	const ReadCharacterResult letter = readCharacter(letterImage, false);
+	const ReadCharacterResult digit = readCharacter(digitImage, true);
+
+	// FIXME -- remove after development debugging
+	static int error = 1;
+	if (writeErrorUnlessThisLetterIsRead != 0 && writeErrorUnlessThisLetterIsRead != letter.charRead) {
+		std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) + "-as-" + std::string(1, letter.charRead);
+		cv::imwrite(errBase + ".png", letterImage);
+	}
+	if (writeErrorUnlessThisSigitIsRead != 0 && writeErrorUnlessThisSigitIsRead != digit.charRead) {
+		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisSigitIsRead) + "-as-" + std::string(1, digit.charRead) + ".png", digitImage);
+	}
+
+	return {letter, digit};
 }
