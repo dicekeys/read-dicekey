@@ -3,10 +3,11 @@
         {
             "name": "Mac",
             "intelliSenseMode": "clang-x64",
-            "compilerPath": "/usr/bin/clang",
+            "compilerPath": "/usr/bin/clang++",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/Cellar/opencv/4.1.0_2/include/opencv4/**"
+                "/usr/local/Cellar/opencv/4.1.0_2/include/opencv4/**",
+                "/usr/local/opt/llvm/include"
             ],
             "defines": [
                 "_DEBUG",
