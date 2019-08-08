@@ -22,16 +22,19 @@ static tesseract::TessBaseAPI* initCharOcr(std::string alphabet, std::string tes
 	varNames.push_back("load_system_dawg");
 	varNames.push_back("load_freq_dawg");
 	varNames.push_back("tessedit_char_whitelist");
+		varNames.push_back("debug_file");
 	auto varValues = GenericVector<STRING>();
 	varValues.push_back("0");
 	varValues.push_back("0");
 	varValues.push_back(alphabet.c_str());
+	varValues.push_back("tesseract.log");
 
 	// Initialize tesseract to use English (eng) and the LSTM OCR engine.
 	tesseract::TessBaseAPI* ocr = new tesseract::TessBaseAPI();
 	ocr->Init(tesseractPath.c_str(), "eng", tesseract::OEM_TESSERACT_ONLY, NULL, 0, &varNames, &varValues, false);
 	ocr->SetVariable("tessedit_char_whitelist", alphabet.c_str());
 	ocr->SetPageSegMode(tesseract::PSM_SINGLE_CHAR);
+	ocr->SetVariable("debug_file", "tesseract.log");
 	return ocr;
 }
 
