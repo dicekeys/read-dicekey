@@ -66,6 +66,14 @@
             argument = "/Users/stuart/github/dice-scanner/img/A62G32E63B32K33U42W20Z21D20I42S30L61R52J20N20Y42H52P13X23O11M12V60T62C12F42-iphone-angle.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/A62G32E63B32K33U42W20Z21D20I42S30L61R52J20N20Y42H52P13X23O11M12V60T62C12F42-iphone-shadows.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/G31F10D53Y52V61B40R20M23C12T41X53O11E43Z20P53I21A41N43K42S51W20L63J32U52H51-iphone-shadows.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
