@@ -49,9 +49,8 @@ int main(int argc, char** argv)
 	// std::string intermediateImagePath = path + "progress/";
 	help(argv[0]);
 
-	if (argc > 1)
-	{
-		const std::string filepath = argv[1];
+	for (int argi = 1; argi < argc; argi++) {
+		const std::string filepath = argv[argi];
 
 		cv::Mat image = cv::imread(filepath, cv::IMREAD_COLOR);
 		if (image.empty()) {
