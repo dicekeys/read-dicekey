@@ -78,12 +78,10 @@ ReadCharacterResult readCharacter(cv::Mat& imageGrayscale, bool isDigit, std::st
 			edges = dieBlur >= (l + 1) * 255 / N;;
 		}
 
-		if (!debugImagePath.find("/dev/null", 0) == 0 && debugLevel >= 2) {
+		if (debugImagePath.find("/dev/null", 0) != 0 && debugLevel >= 2) {
 			cv::imwrite(debugImagePath + "ocr-edges-" + std::to_string(l) + ".png", edges);
 		}
 		// cv::imwrite("ocr-input.png", edges);
-
-		const tesseract::PageIteratorLevel level = tesseract::RIL_SYMBOL;
 
 		auto bytesPerPixel = edges.elemSize();
 		auto bytesPerLine = edges.step1();

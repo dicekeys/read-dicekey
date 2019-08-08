@@ -23,8 +23,8 @@
 
 
 struct DieRead {
-	Undoverline underline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
-	Undoverline overline = { cv::Point2f({0,0}), cv::Point2f({0, 0}) };
+	Undoverline underline = { cv::Point2f(0, 0), cv::Point2f(0, 0) };
+	Undoverline overline = { cv::Point2f(0, 0), cv::Point2f(0, 0) };
 	cv::Point2f center = cv::Point2f{ 0, 0 };
 	float inferredAngleInRadians = 0;
 	cv::Point2f angleAdjustedCenter{ 0, 0 };

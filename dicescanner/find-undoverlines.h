@@ -35,9 +35,6 @@ static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
 // returns sequence of squares detected on the image.
 static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& gray, int N = 13)
 {
-	float min_underline_length = float(std::min(gray.size[0], gray.size[1])) / 80;
-	float max_underline_length = float(std::min(gray.size[0], gray.size[1])) / 8;
-
 	std::vector<RectangleDetected> candidateUnderOverLines = vfilter<RectangleDetected>(
 		findRectangles(gray, N), isRectangleShapedLikeUndoverline);
 
@@ -126,7 +123,6 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 		0.05f, 0.1f, 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f, 0.5f,
 		0.55f, 0.6f, 0.65f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1
 	};
-	const size_t numSamples = NumberOfDotsInUndoverline + 2;
 	std::vector<uchar> pixelSamples = samplePointsAlongLine(grayscaleImage, start, end, UndoverlineWhiteDarkSamplePoints);
 	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, 4, 4);
 

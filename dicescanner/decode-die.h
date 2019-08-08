@@ -27,8 +27,6 @@ struct UndoverlineTypeOrientationAndEncoding {
 };
 
 static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned int binaryCodingReadForwardOrBackward, bool isVertical) {
-	bool decodeErrorPresent = false;
-
 	// The binary coding has 11 bits,
 	// from most significant (10) to least (0)
 	//   Bit 10:   always 1
