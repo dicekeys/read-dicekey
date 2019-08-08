@@ -48,9 +48,9 @@ of radius 4 or square of size 4, pass 4.0f.
 static size_t getNumberOfPixelsToSample(float physicalPixelWidthPerLogicalPixelWidth) {
 	return
 		physicalPixelWidthPerLogicalPixelWidth < 2.0f ? 1 :
-		physicalPixelWidthPerLogicalPixelWidth < 3.0f ? 5 :
-		physicalPixelWidthPerLogicalPixelWidth < 3.5 ? 9 :
-		physicalPixelWidthPerLogicalPixelWidth < 4.5 ? 13 :
+		physicalPixelWidthPerLogicalPixelWidth < 4.0f ? 5 :
+		physicalPixelWidthPerLogicalPixelWidth < 5.0 ? 9 :
+		physicalPixelWidthPerLogicalPixelWidth < 5.5 ? 13 :
 		21;
 }
 
@@ -69,7 +69,7 @@ static uchar samplePoint(
 	size_t samplesPerPoint = SampleOffsets.size()
 ) {
 	samplesPerPoint = MIN(samplesPerPoint, SampleOffsets.size());
-	std::vector<uchar> pixelsAroundSamplePoint = std::vector<uchar>(samplesPerPoint);
+	std::vector<uchar> pixelsAroundSamplePoint = std::vector<uchar>();
 	for (size_t s = 0; s < samplesPerPoint; s++) {
 		cv::Point2i samplePoint = cv::Point2i(point.x + SampleOffsets[s].x, point.y + SampleOffsets[s].y);
 		if (samplePoint.x < 0 || samplePoint.y < 0 || samplePoint.x >= grayscaleImage.cols || samplePoint.y >= grayscaleImage.rows) {
