@@ -32,6 +32,7 @@ static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
 		);
 }
 
+
 // returns sequence of squares detected on the image.
 static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& gray, int N = 13)
 {
@@ -119,11 +120,20 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 
 	// Take 25 samples of points between start and end so that we can find
 	// theshold between light and dark.
-	const std::vector<float> UndoverlineWhiteDarkSamplePoints = { 0,
-		0.05f, 0.1f, 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f, 0.5f,
-		0.55f, 0.6f, 0.65f, 0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1
+	const std::vector<float> UndoverlineWhiteDarkSamplePoints = { 0.0f,
+		0.03333f, 0.0666f, 0.1f,
+		0.13333f, 0.1666f, 0.2f,
+		0.23333f, 0.2666f, 0.3f,
+		0.33333f, 0.3666f, 0.4f,
+		0.43333f, 0.4666f, 0.5f,
+		0.53333f, 0.5666f, 0.6f,
+		0.63333f, 0.6666f, 0.7f,
+		0.73333f, 0.7666f, 0.8f,
+		0.83333f, 0.8666f, 0.9f,
+		0.93333f, 0.9666f, 1.0f
 	};
-	std::vector<uchar> pixelSamples = samplePointsAlongLine(grayscaleImage, start, end, UndoverlineWhiteDarkSamplePoints);
+	const auto sampleSize = getNumberOfPixelsToSample(distance2f(start, end) / UndoverlineWhiteDarkSamplePoints.size());
+	std::vector<uchar> pixelSamples = samplePointsAlongLine(grayscaleImage, start, end, UndoverlineWhiteDarkSamplePoints, sampleSize);
 	uchar whiteBlackThreshold = bimodalThreshold(pixelSamples, 4, 4);
 
 	// FUTURE
@@ -134,7 +144,7 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	// looking for top and bottom borders
 
 	// Extend start and end .15mm to side in case we cut off the edge
-	float fractionToExtend = 0.15f / 6.0f;
+	float fractionToExtend = 0.15f / DieDimensionsMm::undoverlineLength;
 	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
 	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
 	start.x = MAX(0, MIN(start.x - fractionToExtendH, grayscaleImage.rows - 1));
@@ -147,7 +157,7 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	cv::Point2f oldStart = start;
 	cv::Point2f oldEnd = end;
 	while (
-		grayscaleImage.at<uchar>(start) > whiteBlackThreshold &&
+		samplePoint(grayscaleImage, start, sampleSize) > whiteBlackThreshold &&
 		isPointBetween2f(start.x + pixelStepX, start.y + pixelStepY, oldStart, oldEnd)
 		) {
 		// The starting point hasn't reached the black underline.
@@ -158,7 +168,7 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	// Trim the end of the line by moving the end closer to the start,
 	// until we reach the first black pixel	
 	while (
-		grayscaleImage.at<uchar>(end) > whiteBlackThreshold &&
+		samplePoint(grayscaleImage, end, sampleSize) > whiteBlackThreshold &&
 		isPointBetween2f(end.x - pixelStepX, end.y - pixelStepY, start, oldEnd)
 		) {
 		// The starting point hasn't reached the black underline.
@@ -213,6 +223,30 @@ struct UnderlinesAndOverlines {
 	std::vector<Undoverline> overlines;
 };
 
+
+static cv::Mat highlightUndoverline(cv::Mat& imageColor, RectangleDetected line) {
+	cv::Mat imageCopy = imageColor.clone();
+
+	const cv::Point points[4] = {
+		cv::Point(line.bottomLeft),
+		cv::Point(line.topLeft),
+		cv::Point(line.topRight),
+		cv::Point(line.bottomRight),
+	};
+
+	const cv:: Point* ppoints[1] = {
+		points
+	};
+
+	int npt[] = { 4 };
+
+
+	polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
+	return imageCopy;
+	cv::imwrite("underline-within-image.png", imageCopy);
+}
+
+
 static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::Mat grayscaleImage)
 {
 	const std::vector<RectangleDetected> candidateUndoverlineRects =
@@ -226,6 +260,17 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 		const float undoverlineLength = lineLength(undoverline);
 		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverline);
 		const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
+
+		// FIXME -- remove debugging when all works.
+		// cv::imwrite("/Users/stuart/github/dice-scanner/undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+		// const cv::Point2f center = midpointOfLine(undoverline);
+		// const float lineLen = lineLength(undoverline);
+		// const float angle = angleOfLineInSignedDegrees2f(undoverline);
+		// cv::imwrite("/Users/stuart/github/dice-scanner/underline-isolated.png", copyRotatedRectangle(
+		// 	grayscaleImage,
+		// 	center,
+		// 	angle,
+		// 	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
 
 		const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
 		if (!decoded.isValid) {
