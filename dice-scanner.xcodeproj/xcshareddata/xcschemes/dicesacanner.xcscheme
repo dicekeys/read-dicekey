@@ -63,6 +63,10 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/A61M21G52E53Z13J22B20R40O20Y42I11X63N63L21H61U12S63F61W43P52V42K62C41T53D51-iphone-shadows.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/A62G32E63B32K33U42W20Z21D20I42S30L61R52J20N20Y42H52P13X23O11M12V60T62C12F42-iphone-angle.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -71,7 +75,27 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/B33H61X52U23O50D10N43C42W22F50E52L60M32J10Z20S20Y12P41G31T61K53A43R61I43V32-iphone-shadows.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/E33J11D13F30Y52L33S63M10B43I31X20O53H63V42Z61W41K22T63G33R30N62A62C40P40U30-iphone-shadows.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/G31F10D53Y52V61B40R20M23C12T41X53O11E43Z20P53I21A41N43K42S51W20L63J32U52H51-iphone-shadows.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/G31F10D53Y52V61B40R20M23C12T41X53O11E43Z20P53I21A41N43K42S51W20L63J32U52H51-iphone-angle.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/I51C32A12L52W53H13M43D20B50S41P32X62F30Y60J43V11E50U63T52K63Z10G33N52O21R12-iphone-angle.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/I51C32A12L52W53H13M43D20B50S41P32X62F30Y60J43V11E50U63T52K63Z10G33N52O21R12-iphone-shadows.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
