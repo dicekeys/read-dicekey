@@ -58,14 +58,14 @@ int main(int argc, char** argv)
 			return -1;
 		}
 
+		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
+		const std::string filename = filepath.substr(indexOfLastSlash);
 		try {
-			const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
-			const std::string filename = filepath.substr(indexOfLastSlash);
 			const auto dice = readDice(image);
 			validateDiceRead(dice, filename.substr(0, 75));
 			std::cerr << "Validated " << filename << "\n";
-		} catch (std::string strErr) {
-			std::cerr << "Exception: " << strErr << "\n";
+		} catch (std::string errStr) {
+			std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
 		}
 	}
 
