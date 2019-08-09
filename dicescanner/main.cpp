@@ -6,12 +6,12 @@
 #include <opencv2/highgui.hpp>
 
 #include <iostream>
-// #include <filesystem>
+#ifdef _WIN32
+#include <filesystem>
+#endif
 #include "vfunctional.h"
 #include "rectangle.h"
 #include "rotate.h"
-//#include "find-dice.h"
-//#include "read-dice.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "ocr.h"
@@ -42,16 +42,24 @@ static void help(const char* programName)
 
 int main(int argc, char** argv)
 {
-	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
-	// std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+#ifdef _WIN32
+	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+#else
+	// std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
+#endif
 	initOcr(tesseractPath);
-	//std::string path = "img/";
-	// std::string intermediateImagePath = path + "progress/";
 	help(argv[0]);
 
+#ifdef _WIN32
+	for (const auto& entry : std::filesystem::directory_iterator("img/")) {
+		if (!entry.is_regular_file()) {
+	 		continue;
+		}
+		const auto filepath = entry.path().generic_string();
+#else
 	for (int argi = 1; argi < argc; argi++) {
 		const std::string filepath = argv[argi];
-
+#endif
 		cv::Mat image = cv::imread(filepath, cv::IMREAD_COLOR);
 		if (image.empty()) {
 			std::cout << "Couldn't load " << filepath << std::endl;

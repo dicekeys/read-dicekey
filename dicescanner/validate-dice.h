@@ -26,10 +26,10 @@ static void validateDiceRead(const std::vector<DieRead> diceRead, std::string di
 				" but should be" + std::to_string(orientationAs0to3ClockwiseTurnsFromUpright);
 		} else if (die.letter != letter) {
 			throw std::string("Die ") + std::to_string(dieIndex) + " has letter " + dashIfNull(die.letter) +
-				" but should be" + dashIfNull(letter);
+				" but should be " + dashIfNull(letter);
 		} else if (die.digit != digit) {
 			throw std::string("Die ") + std::to_string(dieIndex) + " has digit " + dashIfNull(die.digit) +
-				" but should be" + dashIfNull(digit);
+				" but should be " + dashIfNull(digit);
 		}
 	}
 }
