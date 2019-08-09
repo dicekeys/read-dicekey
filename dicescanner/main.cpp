@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
 		const std::string filename = filepath.substr(indexOfLastSlash);
 		try {
-			const auto dice = readDice(image);
+			const auto dice = readDice(image, true);
 			validateDiceRead(dice, filename.substr(0, 75));
 			std::cerr << "Validated " << filename << "\n";
 		} catch (std::string errStr) {

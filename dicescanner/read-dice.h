@@ -101,7 +101,7 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage)
 }
 
 
-static std::vector<DieRead> readDice(cv::Mat colorImage)
+static std::vector<DieRead> readDice(cv::Mat colorImage, bool outputOcrErrors = false)
 {
 	cv::Mat grayscaleImage;
 	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
@@ -120,7 +120,10 @@ static std::vector<DieRead> readDice(cv::Mat colorImage)
 
 	for (auto &die : diceFound) {
 		// Average the angle of the underline and overline
-		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians, findDiceResult.pixelsPerMm);
+		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians, findDiceResult.pixelsPerMm,
+			outputOcrErrors ? die.underline.dieFaceInferred.letter : '\0',
+			outputOcrErrors ? die.underline.dieFaceInferred.digit : '\0'
+		);
 		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceInRadians;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
@@ -182,15 +185,13 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
 					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) << "\n";
 			}
-		}
-		else if (underlineInferred.letter != letterRead) {
+		} else if (underlineInferred.letter != letterRead) {
 			// report OCR error on letter
 			if (reportErrsToStdErr) {
 				std::cerr << "Mismatch between underline and ocr letter: " <<
 					dashIfNull(underlineInferred.letter) << " != " << dashIfNull(letterRead) << "\n";
 			}
-		}
-		else if (underlineInferred.digit != digitRead) {
+		} else if (underlineInferred.digit != digitRead) {
 			// report OCR error on digit
 			if (reportErrsToStdErr) {
 				std::cerr << "Mismatch between underline and ocr digit: " <<
