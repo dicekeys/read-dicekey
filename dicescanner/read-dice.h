@@ -120,7 +120,11 @@ static std::vector<DieRead> readDice(cv::Mat colorImage, bool outputOcrErrors = 
 
 	for (auto &die : diceFound) {
 		// Average the angle of the underline and overline
-		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians, findDiceResult.pixelsPerMm,
+		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
+			findDiceResult.pixelsPerMm,
+			// The threshold between black pixels and white pixels is calculated as the average (mean)
+			// of the threshold used for the underline and for the overline.
+			uchar( (uint(die.underline.whiteBlackThreshold) + uint(die.overline.whiteBlackThreshold))/2 ),
 			outputOcrErrors ? die.underline.dieFaceInferred.letter : '\0',
 			outputOcrErrors ? die.underline.dieFaceInferred.digit : '\0'
 		);
@@ -158,10 +162,6 @@ static std::vector<DieRead> readDice(cv::Mat colorImage, bool outputOcrErrors = 
 
 	return diceFound;
 }
-
-
-
-static char dashIfNull(char l) { return l == 0 ? '-' : l; }
 
 static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
 {

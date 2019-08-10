@@ -179,7 +179,7 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 }
 
 
-static uint readUndoverlineBits(cv::Mat grayscaleImage, Line undoverline) {
+static uint readUndoverlineBits(cv::Mat grayscaleImage, Line undoverline, unsigned char &whiteBlackThreshold) {
 	// Calculate the width in pixels of the dots that encode data in undoverline's
 	// by taking the length of the line in pixels * the fraction of a line consumed
 	// by each dot.
@@ -203,7 +203,9 @@ static uint readUndoverlineBits(cv::Mat grayscaleImage, Line undoverline) {
 
 	// In finding a white/black threshold, the sampling should ensure
 	// there are at least enough zeros an dones above/below the threshold.
-	const uchar whiteBlackThreshold = bimodalThreshold(medianPixelValues, minNumberOf0s, minNumberOf1s);
+	if (whiteBlackThreshold == 0 || whiteBlackThreshold == 255) {
+		whiteBlackThreshold = bimodalThreshold(medianPixelValues, minNumberOf0s, minNumberOf1s);
+	}
 	uint binaryCodingReadForwardOrBackward = sampledPointsToBits(medianPixelValues, whiteBlackThreshold);
 	return binaryCodingReadForwardOrBackward;
 }
@@ -211,6 +213,7 @@ static uint readUndoverlineBits(cv::Mat grayscaleImage, Line undoverline) {
 
 struct Undoverline {
 	Line line;
+	unsigned char whiteBlackThreshold;
 	unsigned int binaryCodingReadForwardOrBackward;
 	UndoverlineTypeOrientationAndEncoding decoded;
 	cv::Point2f inferredDieCenter;
@@ -258,7 +261,8 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 	for (auto rectEncompassingLine: candidateUndoverlineRects) {
 		Line undoverline = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
 		const float undoverlineLength = lineLength(undoverline);
-		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverline);
+		unsigned char whiteBlackThreshold = 0;
+		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverline, whiteBlackThreshold);
 		const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
 
 		// FIXME -- remove debugging when all works.
@@ -302,6 +306,7 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 
 		Undoverline thisUndoverline = {
 			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline,
+			whiteBlackThreshold,
 			binaryCodingReadForwardOrBackward,
 			decoded,
 			dieCenter,

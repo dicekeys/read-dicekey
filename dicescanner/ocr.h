@@ -13,6 +13,8 @@
 #include "die-specification.h"
 #include "geometry.h"
 
+static char dashIfNull(char c) { return c == '\0' ? '-' : c; }
+
 static tesseract::TessBaseAPI* initCharOcr(std::string alphabet, std::string tesseractPath = "/dev/null")
 {
 	if (tesseractPath == "/dev/null") {
@@ -58,32 +60,35 @@ struct ReadCharacterResult {
 	float confidence;
 };
 
-ReadCharacterResult readCharacter(cv::Mat& imageGrayscale, bool isDigit, std::string debugImagePath = "/dev/null", int debugLevel = 0) {
+ReadCharacterResult readCharacter(cv::Mat& edges, bool isDigit,
+	unsigned char whiteBlackThreshold,
+	std::string debugImagePath = "/dev/null", int debugLevel = 0) {
 	ReadCharacterResult result;
 	result.charRead = 0;
 	result.confidence = 0;
 
-	const uint N = 20;
+	// const uint N = 20;
 	auto ocrApi = initOcr();
 	tesseract::TessBaseAPI* ocr = isDigit ? ocrApi.digits : ocrApi.letters;
 
-	cv::Mat dieBlur, edges;
-	cv::medianBlur(imageGrayscale, dieBlur, 3);
+	// cv::Mat dieBlur, edges;
+	// cv::medianBlur(imageGrayscale, dieBlur, 3);
+	// cv::threshold(dieBlur, edges, whiteBlackThreshold, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
 
-	for (int l = 0; l < N; l++)
-	{
-		// hack: use Canny instead of zero threshold level.
-		// Canny helps to catch squares with gradient shading
-		if (l == 0) {
-			cv::threshold(dieBlur, edges, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-		}
-		else {
-			edges = dieBlur >= (l + 1) * 255 / N;;
-		}
+	// for (int l = 0; l < N; l++)
+	// {
+	// 	// hack: use Canny instead of zero threshold level.
+	// 	// Canny helps to catch squares with gradient shading
+	// 	if (l == 0) {
+//		cv::threshold(dieBlur, edges, whiteBlackThreshold, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+		// }
+		// else {
+		// 	edges = dieBlur >= (l + 1) * 255 / N;;
+		// }
 
-		if (debugImagePath.find("/dev/null", 0) != 0 && debugLevel >= 2) {
-			cv::imwrite(debugImagePath + "ocr-edges-" + std::to_string(l) + ".png", edges);
-		}
+		// if (debugImagePath.find("/dev/null", 0) != 0 && debugLevel >= 2) {
+		// 	cv::imwrite(debugImagePath + "ocr-edges-" + std::to_string(whiteBlackThreshold) + ".png", edges);
+		// }
 		// cv::imwrite("ocr-input.png", edges);
 
 		auto bytesPerPixel = edges.elemSize();
@@ -103,7 +108,7 @@ ReadCharacterResult readCharacter(cv::Mat& imageGrayscale, bool isDigit, std::st
 				// cv::imwrite(std::string(isDigit ? "digit" : "letter") + "-edges.png", edges);
 			}
 		}
-	}
+//	}
 	return result;
 }
 
@@ -118,8 +123,9 @@ static DieCharactersRead readDieCharacters(
 	cv::Point2f dieCenter,
 	float angleRadians,
 	float mmToPixels,
+	unsigned char whiteBlackThreshold,
 	char writeErrorUnlessThisLetterIsRead = 0,
-	char writeErrorUnlessThisSigitIsRead = 0
+	char writeErrorUnlessThisDigitIsRead = 0
 ) {
 	// Rotate to remove the angle of the die
 	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
@@ -132,28 +138,31 @@ static DieCharactersRead readDieCharacters(
 	cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
 
 	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, degreesToRotateToRemoveAngleOfDie, textRegionSize);
+	cv::Mat textBlurred, textEdges;
+	cv::medianBlur(textImage, textBlurred, 5);
+	cv::threshold(textBlurred, textEdges, whiteBlackThreshold, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+
 	// Setup a rectangle to define your region of interest
 	const cv::Rect letterRect(0, 0, textRegionSize.width / 2, textRegionSize.height);
 	const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
-	auto letterImage = textImage(letterRect);
-	auto digitImage = textImage(digitRect);
+	auto letterImage = textEdges(letterRect);
+	auto digitImage = textEdges(digitRect);
 
 	// FIXME -- remove after development debugging
 	cv::imwrite("text-region.png", textImage);
 	cv::imwrite("letter.png", letterImage);
 	cv::imwrite("digit.png", digitImage);
 
-	const ReadCharacterResult letter = readCharacter(letterImage, false);
-	const ReadCharacterResult digit = readCharacter(digitImage, true);
+	const ReadCharacterResult letter = readCharacter(letterImage, false, whiteBlackThreshold);
+	const ReadCharacterResult digit = readCharacter(digitImage, true, whiteBlackThreshold);
 
 	// FIXME -- remove after development debugging
 	static int error = 1;
 	if (writeErrorUnlessThisLetterIsRead != 0 && writeErrorUnlessThisLetterIsRead != letter.charRead) {
-		std::string errBase = "error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) + "-as-" + std::string(1, letter.charRead);
-		cv::imwrite(errBase + ".png", letterImage);
+		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) + "-as-" + std::string(1, dashIfNull(letter.charRead)) + ".png", letterImage);
 	}
-	if (writeErrorUnlessThisSigitIsRead != 0 && writeErrorUnlessThisSigitIsRead != digit.charRead) {
-		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisSigitIsRead) + "-as-" + std::string(1, digit.charRead) + ".png", digitImage);
+	if (writeErrorUnlessThisDigitIsRead != 0 && writeErrorUnlessThisDigitIsRead != digit.charRead) {
+		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisDigitIsRead) + "-as-" + std::string(1, dashIfNull(digit.charRead)) + ".png", digitImage);
 	}
 
 	return {letter, digit};
