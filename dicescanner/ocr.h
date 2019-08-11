@@ -60,7 +60,7 @@ struct ReadCharacterResult {
 	float confidence;
 };
 
-ReadCharacterResult readCharacter(cv::Mat& edges, bool isDigit,
+ReadCharacterResult readCharacter(const cv::Mat& edges, bool isDigit,
 	unsigned char whiteBlackThreshold,
 	std::string debugImagePath = "/dev/null", int debugLevel = 0) {
 	ReadCharacterResult result;
@@ -118,8 +118,8 @@ struct DieCharactersRead {
 };
 
 static DieCharactersRead readDieCharacters(
-	cv::Mat imageColor,
-	cv::Mat grayscaleImage,
+	const cv::Mat &imageColor,
+	const cv::Mat &grayscaleImage,
 	cv::Point2f dieCenter,
 	float angleRadians,
 	float mmToPixels,

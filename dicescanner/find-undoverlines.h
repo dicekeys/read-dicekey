@@ -34,10 +34,10 @@ static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
 
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& gray, int N = 13)
+static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& grayscaleImage, int N = 13)
 {
 	std::vector<RectangleDetected> candidateUnderOverLines = vfilter<RectangleDetected>(
-		findRectangles(gray, N), isRectangleShapedLikeUndoverline);
+		findRectangles(grayscaleImage, N), isRectangleShapedLikeUndoverline);
 
 	if (candidateUnderOverLines.size() > 25) {
 		// Remove rectangles that stray from the median
@@ -88,7 +88,7 @@ static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& g
 	return candidateUnderOverLines;
 }
 
-static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected lineBoundaryRect) {
+static Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const RectangleDetected &lineBoundaryRect) {
 	const int lineHeight = MAX(lineBoundaryRect.bottomLeft.y, lineBoundaryRect.bottomRight.y) - MIN(lineBoundaryRect.topLeft.y, lineBoundaryRect.topRight.y);
 	const int lineWidth = MAX(lineBoundaryRect.topRight.x, lineBoundaryRect.bottomRight.x) - MIN(lineBoundaryRect.topLeft.x, lineBoundaryRect.bottomLeft.x);
 
@@ -183,7 +183,7 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 }
 
 
-static uint readUndoverlineBits(cv::Mat grayscaleImage, Line undoverline, unsigned char &whiteBlackThreshold) {
+static uint readUndoverlineBits(const cv::Mat &grayscaleImage, const Line &undoverline, unsigned char &whiteBlackThreshold) {
 	// Calculate the width in pixels of the dots that encode data in undoverline's
 	// by taking the length of the line in pixels * the fraction of a line consumed
 	// by each dot.
@@ -231,7 +231,7 @@ struct UnderlinesAndOverlines {
 };
 
 
-static cv::Mat highlightUndoverline(cv::Mat& imageColor, RectangleDetected line) {
+static cv::Mat highlightUndoverline(const cv::Mat& imageColor, RectangleDetected line) {
 	cv::Mat imageCopy = imageColor.clone();
 
 	const cv::Point points[4] = {
@@ -254,7 +254,7 @@ static cv::Mat highlightUndoverline(cv::Mat& imageColor, RectangleDetected line)
 }
 
 
-static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::Mat grayscaleImage)
+static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage, const cv::Mat &grayscaleImage)
 {
 	const std::vector<RectangleDetected> candidateUndoverlineRects =
 		findCandidateUndoverlines(grayscaleImage);
@@ -263,6 +263,9 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 	std::vector<Undoverline> overlines;
 
 	for (auto rectEncompassingLine: candidateUndoverlineRects) {
+		// FIXME -- remove after debugging
+		cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+
 		Line undoverline = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
 		const float undoverlineLength = lineLength(undoverline);
 		unsigned char whiteBlackThreshold = 0;

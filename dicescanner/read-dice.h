@@ -39,7 +39,7 @@ struct FindDiceResult {
 	float pixelsPerMm;
 };
 
-static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage)
+static FindDiceResult findDice(const cv::Mat &colorImage, const cv::Mat &grayscaleImage)
 {
 	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage);
 
@@ -101,7 +101,7 @@ static FindDiceResult findDice(cv::Mat colorImage, cv::Mat grayscaleImage)
 }
 
 
-static std::vector<DieRead> readDice(cv::Mat colorImage, bool outputOcrErrors = false)
+static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
 {
 	cv::Mat grayscaleImage;
 	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);

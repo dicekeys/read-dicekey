@@ -72,7 +72,7 @@ The third parameter, the number of points to sample, can be obtained via a call 
 getNumberOfPixelsToSample.
 */
 static uchar samplePoint(
-	const cv::Mat grayscaleImage,
+	const cv::Mat &grayscaleImage,
 	const cv::Point2i point,
 	size_t samplesPerPoint = SampleOffsetsHorizontalFirst.size(),
 	const bool favorAboveAndBelowOverSides = false
@@ -110,7 +110,7 @@ The final, optional, parmeters specifies the number of pixels to sample
 at each point, which can be obtained using getNumberOfPixelsToSample().
 */
 static std::vector<uchar> samplePointsAlongLine(
-	const cv::Mat grayscaleImage,
+	const cv::Mat &grayscaleImage,
 	const cv::Point2f start,
 	const cv::Point2f end,
 	const std::vector<float> pointsAsFractionsOfDistanceFromStartToEnd,
