@@ -68,6 +68,11 @@ int main(int argc, char** argv)
 
 		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
 		const std::string filename = filepath.substr(indexOfLastSlash);
+
+		if (!filename._Starts_with("I51C32A12L52W53H13M43D20B50S41P32X62F30Y60J43V11E50U63T52K63Z10G33N52O21R12")) {
+			continue;
+		}
+
 		try {
 			const auto dice = readDice(image, true);
 			validateDiceRead(dice, filename.substr(0, 75));

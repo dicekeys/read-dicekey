@@ -1,3 +1,0 @@
-ObjectCache(00007FF61B881720)::~ObjectCache(): WARNING! LEAK! object 000002AE17701C90 still has count 2 (id C:\Users\stuar\github\dice-scanner\dicescanner/eng.traineddatapunc-dawg)
-ObjectCache(00007FF61B881720)::~ObjectCache(): WARNING! LEAK! object 000002AE176F0D20 still has count 2 (id C:\Users\stuar\github\dice-scanner\dicescanner/eng.traineddatanumber-dawg)
-ObjectCache(00007FF61B881720)::~ObjectCache(): WARNING! LEAK! object 000002AE17504B80 still has count 2 (id C:\Users\stuar\github\dice-scanner\dicescanner/eng.traineddatabigram-dawg)
