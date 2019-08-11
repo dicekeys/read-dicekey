@@ -147,10 +147,13 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	float fractionToExtend = 0.15f / DieDimensionsMm::undoverlineLength;
 	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
 	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
-	start.x = MAX(0, MIN(start.x - fractionToExtendH, grayscaleImage.rows - 1));
-	start.y = MAX(0, MIN(start.y - fractionToExtendV, grayscaleImage.rows - 1));
-	end.x = MAX(0, MIN(end.x + fractionToExtendH, grayscaleImage.rows - 1));
-	end.y = MAX(0, MIN(end.y + fractionToExtendV, grayscaleImage.rows - 1));
+	// Okay to have points that go off graph as our sampling function
+	// will ignore partial samples off image and, if entire sample is off image,
+	// return white
+	start.x -= fractionToExtendH;
+	start.y -= fractionToExtendV;
+	end.x += fractionToExtendH;
+	end.y += fractionToExtendV;
 
 	// Trim the start of the line by moving the start closer to the end,
 	// until we reach the first black pixel
@@ -266,15 +269,16 @@ static UnderlinesAndOverlines findReadableUndoverlines(cv::Mat colorImage, cv::M
 		const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
 
 		// FIXME -- remove debugging when all works.
-		// cv::imwrite("/Users/stuart/github/dice-scanner/undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
-		// const cv::Point2f center = midpointOfLine(undoverline);
-		// const float lineLen = lineLength(undoverline);
-		// const float angle = angleOfLineInSignedDegrees2f(undoverline);
-		// cv::imwrite("/Users/stuart/github/dice-scanner/underline-isolated.png", copyRotatedRectangle(
-		// 	grayscaleImage,
-		// 	center,
-		// 	angle,
-		// 	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
+		///Users/stuart/github/dice-scanner/
+		 cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+		 const cv::Point2f center = midpointOfLine(undoverline);
+		 const float lineLen = lineLength(undoverline);
+		 const float angle = angleOfLineInSignedDegrees2f(undoverline);
+		 cv::imwrite("underline-isolated.png", copyRotatedRectangle(
+		 	grayscaleImage,
+		 	center,
+		 	angle,
+		 	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
 
 		const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
 		if (!decoded.isValid) {
