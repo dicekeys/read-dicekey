@@ -159,8 +159,9 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	// until we reach the first black pixel
 	cv::Point2f oldStart = start;
 	cv::Point2f oldEnd = end;
+	const bool sampleThreeVerticalPoints = !isVertical;
 	while (
-		samplePoint(grayscaleImage, start, sampleSize) > whiteBlackThreshold &&
+		samplePoint(grayscaleImage, start, 3, sampleThreeVerticalPoints) > whiteBlackThreshold &&
 		isPointBetween2f(start.x + pixelStepX, start.y + pixelStepY, oldStart, oldEnd)
 		) {
 		// The starting point hasn't reached the black underline.
@@ -171,7 +172,7 @@ static Line undoverlineRectToLine(cv::Mat grayscaleImage, RectangleDetected line
 	// Trim the end of the line by moving the end closer to the start,
 	// until we reach the first black pixel	
 	while (
-		samplePoint(grayscaleImage, end, sampleSize) > whiteBlackThreshold &&
+		samplePoint(grayscaleImage, end, 3, sampleThreeVerticalPoints) > whiteBlackThreshold &&
 		isPointBetween2f(end.x - pixelStepX, end.y - pixelStepY, start, oldEnd)
 		) {
 		// The starting point hasn't reached the black underline.

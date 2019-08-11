@@ -8,7 +8,7 @@
 #include <opencv2/imgproc.hpp>
 #include "vfunctional.h"
 
-const std::vector<cv::Point>	SampleOffsets = {
+const std::vector<cv::Point> SampleOffsetsHorizontalFirst = {
 	cv::Point(0, 0),
 	// 1
 	cv::Point(+1, 0),
@@ -37,6 +37,13 @@ const std::vector<cv::Point>	SampleOffsets = {
 	// 21
 };
 
+const std::vector<cv::Point> SampleOffsetsVerticalFirst = {
+	cv::Point(0, 0),
+	// 1
+	cv::Point(0, +1),
+	cv::Point(0, -1),
+	// 3
+};
 
 /*
 Return the suggested number of samples to collect around a point when sampling
@@ -48,6 +55,7 @@ of radius 4 or square of size 4, pass 4.0f.
 static size_t getNumberOfPixelsToSample(float physicalPixelWidthPerLogicalPixelWidth) {
 	return
 		physicalPixelWidthPerLogicalPixelWidth < 2.0f ? 1 :
+		physicalPixelWidthPerLogicalPixelWidth < 3.0f ? 3 :
 		physicalPixelWidthPerLogicalPixelWidth < 4.0f ? 5 :
 		physicalPixelWidthPerLogicalPixelWidth < 5.0 ? 9 :
 		physicalPixelWidthPerLogicalPixelWidth < 5.5 ? 13 :
@@ -66,8 +74,11 @@ getNumberOfPixelsToSample.
 static uchar samplePoint(
 	const cv::Mat grayscaleImage,
 	const cv::Point2i point,
-	size_t samplesPerPoint = SampleOffsets.size()
+	size_t samplesPerPoint = SampleOffsetsHorizontalFirst.size(),
+	const bool favorAboveAndBelowOverSides = false
 ) {
+	const std::vector<cv::Point>& SampleOffsets = (samplesPerPoint == 3 && favorAboveAndBelowOverSides) ?
+		SampleOffsetsVerticalFirst : SampleOffsetsHorizontalFirst;
 	samplesPerPoint = MIN(samplesPerPoint, SampleOffsets.size());
 	std::vector<uchar> pixelsAroundSamplePoint = std::vector<uchar>();
 	for (size_t s = 0; s < samplesPerPoint; s++) {
@@ -103,24 +114,27 @@ static std::vector<uchar> samplePointsAlongLine(
 	const cv::Point2f start,
 	const cv::Point2f end,
 	const std::vector<float> pointsAsFractionsOfDistanceFromStartToEnd,
-	size_t samplesPerPoint = 0
-) {
+	size_t samplesPerPoint = 0) {
 	if (samplesPerPoint <= 0) {
 		samplesPerPoint = getNumberOfPixelsToSample(distance2f(start, end) / pointsAsFractionsOfDistanceFromStartToEnd.size());
 	}
-	std::vector<uchar> samplesRead(pointsAsFractionsOfDistanceFromStartToEnd.size());
-	float deltaX = end.x - start.x;
-	float deltaY = end.y - start.y;
+	const float deltaX = end.x - start.x;
+	const float deltaY = end.y - start.y;
+	const bool isMoreHorizontalThanVertical = abs(deltaY) < abs(deltaX);
+	const bool ifSamplingThreePointsUseThoseAboveAndBelowRatherThanThoseOnSides = isMoreHorizontalThanVertical;
 	return vmap<float, uchar>(
 		pointsAsFractionsOfDistanceFromStartToEnd,
-		[grayscaleImage, start, deltaX, deltaY, samplesPerPoint](float dotFraction) {
+		[grayscaleImage, start, deltaX, deltaY, samplesPerPoint,
+		 ifSamplingThreePointsUseThoseAboveAndBelowRatherThanThoseOnSides
+		](float dotFraction) {
 			return samplePoint(
 				grayscaleImage,
 				cv::Point2i(
 					int(round(start.x + (dotFraction * deltaX))),
 					int(round(start.y + (dotFraction * deltaY)))
 				),
-				samplesPerPoint
+				samplesPerPoint,
+				ifSamplingThreePointsUseThoseAboveAndBelowRatherThanThoseOnSides
 			);
 		}
 	);
