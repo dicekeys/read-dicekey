@@ -250,8 +250,8 @@ static cv::Mat highlightUndoverline(const cv::Mat& imageColor, RectangleDetected
 
 
 	polylines(imageCopy, ppoints, npt, 1, true, cv::Scalar(0, 0, 255), 2);
+	// cv::imwrite("underline-within-image.png", imageCopy);
 	return imageCopy;
-	cv::imwrite("underline-within-image.png", imageCopy);
 }
 
 
@@ -265,7 +265,7 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 
 	for (auto rectEncompassingLine: candidateUndoverlineRects) {
 		// FIXME -- remove after debugging
-		cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+		// cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
 
 		Line undoverline = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
 		const float undoverlineLength = lineLength(undoverline);
@@ -275,15 +275,15 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 
 		// FIXME -- remove debugging when all works.
 		///Users/stuart/github/dice-scanner/
-		 cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+		 //cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
 		 const cv::Point2f center = midpointOfLine(undoverline);
 		 const float lineLen = lineLength(undoverline);
 		 const float angle = angleOfLineInSignedDegrees2f(undoverline);
-		 cv::imwrite("underline-isolated.png", copyRotatedRectangle(
-		 	grayscaleImage,
-		 	center,
-		 	angle,
-		 	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
+		 //cv::imwrite("underline-isolated.png", copyRotatedRectangle(
+		 //	grayscaleImage,
+		 //	center,
+		 //	angle,
+		 //	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
 
 		const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
 		if (!decoded.isValid) {

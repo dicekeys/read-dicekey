@@ -179,11 +179,17 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 			underlineInferred.digit == 0 ||
 			underlineInferred.letter != overlineInferred.letter ||
 			underlineInferred.digit != overlineInferred.digit) {
+			const int bitErrorsIfUnderlineCorrect = hammingDistance(dieRead.underline.dieFaceInferred.overlineCode, dieRead.overline.decoded.letterDigitEncoding);
+			const int bitErrorsIfOverlineCorrect = hammingDistance(dieRead.overline.dieFaceInferred.underlineCode, dieRead.underline.decoded.letterDigitEncoding);
+			const int minBitErrors = MIN(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
+			// See if this error can be explained by a single bit-read error.
 			// report error mismatch between undoverline and overline
 			if (reportErrsToStdErr) {
 				std::cerr << "Mismatch between underline and overline: " <<
 					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
 					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) <<
+					" best explained by " << minBitErrors << " bit error in " << 
+						(bitErrorsIfUnderlineCorrect < bitErrorsIfOverlineCorrect ? "overline" : "underline") <<
 					" (ocr returned " << dashIfNull(dieRead.ocrLetter.charRead) << dashIfNull(dieRead.ocrDigit.charRead) << ")" <<
 					"\n";
 			}
