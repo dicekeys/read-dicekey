@@ -18,6 +18,7 @@
 #include "ocr.h"
 #include "sample-point.h"
 #include "decode-die.h"
+#include "bimodal.h"
 
 
 const float undoverlineWidthAsFractionOfLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;

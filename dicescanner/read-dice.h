@@ -183,7 +183,9 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 			if (reportErrsToStdErr) {
 				std::cerr << "Mismatch between underline and overline: " <<
 					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
-					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) << "\n";
+					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) <<
+					" (ocr returned " << dashIfNull(dieRead.ocrLetter.charRead) << dashIfNull(dieRead.ocrDigit.charRead) << ")" <<
+					"\n";
 			}
 		} else if (underlineInferred.letter != letterRead) {
 			// report OCR error on letter
