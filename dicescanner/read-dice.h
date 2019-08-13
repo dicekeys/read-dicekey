@@ -33,11 +33,44 @@ struct DieRead {
 	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
 };
 
+struct MeanDifferenceResult
+{
+	bool valid;
+	float meanDistance;
+};
+
+static MeanDifferenceResult findAndValidateMeanDifference(const std::vector<float> unsortedValues, float minBoundEdgeRange = 5.0f)
+{
+	if (unsortedValues.size() < 2) {
+		return {false, 0};
+	}
+	std::vector<float> sorted(unsortedValues);
+	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return abs(a) < abs(b); });
+	const float mean_difference = (sorted[sorted.size() -1] - sorted[0]) / float(sorted.size() - 1);
+	const float abs_mean_difference = abs(mean_difference);
+		// Ensure all delta_x and delta_y values are within 5% of the mean, though always
+		// allow up to a minimum error since vertical/horizontal lines will have no delta_x/delta_y,
+		// but could have a few pixel variation due to measurement errors.
+		const float mean_bound_low = MIN(abs_mean_difference - minBoundEdgeRange, abs_mean_difference * 0.95);
+		const float mean_bound_high = MAX(abs_mean_difference + minBoundEdgeRange, abs_mean_difference * 1.05);
+		// Ensure all the delta_x and delta_y values are close to the mean
+		bool allDistancesAreCloseToTheMeanDistance = true;
+		for (int d = 1; d < sorted.size() && allDistancesAreCloseToTheMeanDistance; d++) {
+			float difference = abs(sorted[d] - sorted[d-1]);
+			float abs_difference = abs(difference);
+			allDistancesAreCloseToTheMeanDistance &= 
+				(mean_bound_low < abs_mean_difference) && (abs_mean_difference < mean_bound_high);
+		}
+		return {allDistancesAreCloseToTheMeanDistance, mean_difference};
+}
+
 struct DiceGrid {
 	bool success = false;
-	float deltaX = 0, deltaY = 0;
-	cv::Point2f gridCenter = {0, 0};
+	float rowDeltaX = 0, rowDeltaY = 0;
+	float colDeltaX = 0, colDeltaY = 0;
+	cv::Point2f gridTopLeft = {0, 0};
 };
+
 static DiceGrid findDiceGrid(std::vector<Undoverline> lines, float pixelPromityRequirement) {
 	for (int i = 0; i < lines.size(); i++) {
 		// We can build a model of the grid based on this die if we can
@@ -64,41 +97,57 @@ static DiceGrid findDiceGrid(std::vector<Undoverline> lines, float pixelPromityR
 		sameColumn.push_back(undoverline);
 
 		// Now check that our row has near-constant distances
-		// FIXME -- move to new function
-		std::vector<float> rowXValues, rowYValues;
+		std::vector<float> rowXValues, rowYValues, colXValues, colYValues;
 		for (const Undoverline u: sameRow) {
 			rowXValues.push_back(u.inferredDieCenter.x);
 			rowYValues.push_back(u.inferredDieCenter.y);
 		}
-		std::sort(rowXValues.begin(), rowXValues.end(), [](float a, float b) { return abs(a) < abs(b); });
-		std::sort(rowYValues.begin(), rowYValues.end(), [](float a, float b) { return abs(a) < abs(b); });
-		const float mean_delta_x = (rowXValues[4] - rowXValues[0]) / 4;
-		const float mean_delta_y = (rowYValues[4] - rowYValues[0]) / 4;
-		const float mean_abs_delta_x = abs(mean_delta_x);
-		const float mean_abs_delta_y = abs(mean_delta_y);
-		// Ensure all delta_x and delta_y values are within 5% of the mean, though always
-		// allow up to a minimum error since vertical/horizontal lines will have no delta_x/delta_y,
-		// but could have a few pixel variation due to measurement errors.
-		const float minPixelBound = 5.0f;
-		const float x_bound_low = MIN(mean_abs_delta_x - 5, mean_abs_delta_x * 0.95);
-		const float x_bound_high = MAX(mean_abs_delta_x + 5, mean_abs_delta_x * 1.05);
-		const float y_bound_low = MIN(mean_abs_delta_y - 5, mean_abs_delta_y * 0.95);
-		const float y_bound_high = MAX(mean_abs_delta_y + 5, mean_abs_delta_y * 1.05);
-		// Ensure all the delta_x and delta_y values are close to the mean
-		bool allDistancesAreCloseToTheMeanDistance = true;
-		for (int d = 1; d < 5 && allDistancesAreCloseToTheMeanDistance; d++) {
-			float abs_dx = abs(rowXValues[d] - rowXValues[d-1]);
-			float abs_dy = abs(rowYValues[d] - rowYValues[d-1]);
-			allDistancesAreCloseToTheMeanDistance &= 
-				(x_bound_low < abs_dx) && (abs_dx < x_bound_high) &&
-				(y_bound_low < abs_dy) && (abs_dy < y_bound_high);
+		for (const Undoverline u: sameColumn) {
+			colXValues.push_back(u.inferredDieCenter.x);
+			colYValues.push_back(u.inferredDieCenter.y);
 		}
-		if (!allDistancesAreCloseToTheMeanDistance) {
+		const auto meanRowXDistance = findAndValidateMeanDifference(rowXValues);
+		const auto meanRowYDistance = findAndValidateMeanDifference(rowYValues);
+		const auto meanColXDistance = findAndValidateMeanDifference(colXValues);
+		const auto meanColYDistance = findAndValidateMeanDifference(colYValues);
+		if (!( meanRowXDistance.valid && meanRowYDistance.valid && meanColXDistance.valid && meanColYDistance.valid)) {
+			// Model is violated
 			continue;
 		}
 
+		if ( abs(meanRowXDistance.meanDistance - meanColYDistance.meanDistance) > 5 ||
+		 		 abs(meanRowYDistance.meanDistance - meanColXDistance.meanDistance) > 5 ) {
+			// If we assume square pixels, this violates model.
+			// let's not for now.
+		}
+
+		// Figure out which index this die is at.
+		int row = 0, col = 0;
+		for (float x: rowXValues) {
+			if (x < undoverline.inferredDieCenter.x) {
+				row++;
+			}
+		}
+		for (float y: colYValues) {
+			if (y < undoverline.inferredDieCenter.y) {
+				col++;
+			}
+		}
+
+		cv::Point2f gridTopLeft(
+			undoverline.inferredDieCenter.x - (row * meanRowXDistance.meanDistance) - (col * meanColXDistance.meanDistance),
+			undoverline.inferredDieCenter.y - (row * meanRowYDistance.meanDistance) - (col * meanColYDistance.meanDistance)
+		);
+
+		return {
+			true, // valid
+			meanRowXDistance.meanDistance, meanRowYDistance.meanDistance,
+			meanColXDistance.meanDistance, meanColYDistance.meanDistance,
+			gridTopLeft
+		};
 	}
-	return {};
+	// Made it to end without finding a grid.  Return invalid.
+	return {false};
 }
 
 struct FindDiceResult {
