@@ -33,6 +33,74 @@ struct DieRead {
 	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
 };
 
+struct DiceGrid {
+	bool success = false;
+	float deltaX = 0, deltaY = 0;
+	cv::Point2f gridCenter = {0, 0};
+};
+static DiceGrid findDiceGrid(std::vector<Undoverline> lines, float pixelPromityRequirement) {
+	for (int i = 0; i < lines.size(); i++) {
+		// We can build a model of the grid based on this die if we can
+		// find four others in the same row and four others in the same column.
+		Undoverline &undoverline = lines[i];
+		GridProximity gridModel(undoverline.inferredDieCenter, undoverline.line);
+		std::vector<Undoverline&> sameRow = {}, sameColumn;
+		for (int j = 0; j < lines.size() && (sameRow.size() < 4 || sameColumn.size() < 4); j++) {
+			if (i==j) {
+				continue;
+			}
+			Undoverline &candidateUndoverline = lines[j];
+			if (gridModel.pixelDistanceFromColumn(candidateUndoverline.inferredDieCenter) < pixelPromityRequirement) {
+				sameColumn.push_back(candidateUndoverline);
+			} else if (gridModel.pixelDistanceFromRow(candidateUndoverline.inferredDieCenter) < pixelPromityRequirement) {
+				sameRow.push_back(candidateUndoverline);
+			}
+		}
+		if (sameRow.size() < 4 and sameColumn.size() < 4) {
+			continue;
+		}
+		// Add this undoverline to both the row and the colum so we have all 5 of each
+		sameRow.push_back(undoverline);
+		sameColumn.push_back(undoverline);
+
+		// Now check that our row has near-constant distances
+		// FIXME -- move to new function
+		std::vector<float> rowXValues, rowYValues;
+		for (const Undoverline u: sameRow) {
+			rowXValues.push_back(u.inferredDieCenter.x);
+			rowYValues.push_back(u.inferredDieCenter.y);
+		}
+		std::sort(rowXValues.begin(), rowXValues.end(), [](float a, float b) { return abs(a) < abs(b); });
+		std::sort(rowYValues.begin(), rowYValues.end(), [](float a, float b) { return abs(a) < abs(b); });
+		const float mean_delta_x = (rowXValues[4] - rowXValues[0]) / 4;
+		const float mean_delta_y = (rowYValues[4] - rowYValues[0]) / 4;
+		const float mean_abs_delta_x = abs(mean_delta_x);
+		const float mean_abs_delta_y = abs(mean_delta_y);
+		// Ensure all delta_x and delta_y values are within 5% of the mean, though always
+		// allow up to a minimum error since vertical/horizontal lines will have no delta_x/delta_y,
+		// but could have a few pixel variation due to measurement errors.
+		const float minPixelBound = 5.0f;
+		const float x_bound_low = MIN(mean_abs_delta_x - 5, mean_abs_delta_x * 0.95);
+		const float x_bound_high = MAX(mean_abs_delta_x + 5, mean_abs_delta_x * 1.05);
+		const float y_bound_low = MIN(mean_abs_delta_y - 5, mean_abs_delta_y * 0.95);
+		const float y_bound_high = MAX(mean_abs_delta_y + 5, mean_abs_delta_y * 1.05);
+		// Ensure all the delta_x and delta_y values are close to the mean
+		bool allDistancesAreCloseToTheMeanDistance = true;
+		for (int d = 1; d < 5 && allDistancesAreCloseToTheMeanDistance; d++) {
+			float abs_dx = abs(rowXValues[d] - rowXValues[d-1]);
+			float abs_dy = abs(rowYValues[d] - rowYValues[d-1]);
+			allDistancesAreCloseToTheMeanDistance &= 
+				(x_bound_low < abs_dx) && (abs_dx < x_bound_high) &&
+				(y_bound_low < abs_dy) && (abs_dy < y_bound_high);
+		}
+		if (!allDistancesAreCloseToTheMeanDistance) {
+			continue;
+		}
+
+	}
+	return {};
+}
+
 struct FindDiceResult {
 	std::vector<DieRead> diceFound;
 	std::vector<Undoverline> strayUndoverlines;
