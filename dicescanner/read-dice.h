@@ -23,8 +23,8 @@
 
 
 struct DieRead {
-	Undoverline underline = { cv::Point2f(0, 0), cv::Point2f(0, 0) };
-	Undoverline overline = { cv::Point2f(0, 0), cv::Point2f(0, 0) };
+	Undoverline underline;
+	Undoverline overline;
 	cv::Point2f center = cv::Point2f{ 0, 0 };
 	float inferredAngleInRadians = 0;
 	cv::Point2f angleAdjustedCenter{ 0, 0 };
@@ -104,8 +104,8 @@ static FindDiceResult findDice(const cv::Mat &colorImage, const cv::Mat &graysca
 static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
 {
 	cv::Mat grayscaleImage;
-	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
 
+	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
 	FindDiceResult findDiceResult = findDice(colorImage, grayscaleImage);
 	std::vector<DieRead>& diceFound = findDiceResult.diceFound;
 	const float pixelsPerMm = findDiceResult.pixelsPerMm;

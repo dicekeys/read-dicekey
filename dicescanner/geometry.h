@@ -81,6 +81,22 @@ static bool isPointBetween2f(cv::Point2f p, cv::Point2f bound1, cv::Point bound2
 }
 
 /*
+Calculate the slope of a line from a start point to an end point.
+*/
+static float angleOfLineInSignedRadians2f(cv::Point2f start, cv::Point2f end) {
+	const float delta_x = end.x - start.x;
+	const float delta_y = end.y - start.y;
+	if (delta_x == 0) {
+		if (delta_y < 0) {
+			return -std::numeric_limits<float>::infinity();
+		} else {
+			return std::numeric_limits<float>::infinity();
+		}
+	}
+	return delta_y / delta_x;
+}
+
+/*
 Calculate the angle (in radians) of a line from a start point to an end point.
 */
 static float angleOfLineInSignedRadians2f(cv::Point2f start, cv::Point2f end) {
@@ -149,3 +165,66 @@ Rotate a point around the origin (clockwise for positive angles and counterclock
 static cv::Point2f rotatePointClockwiseAroundOrigin(const cv::Point2f &point, float angleInRadians) {
 	return rotatePointCounterclockwiseAroundOrigin(point, -angleInRadians);
 }
+
+
+
+
+class GridProximity {
+	// See https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+	// Section: Line defined by two points
+	private:
+	// ax + by + c = 0     =>   y = (-a/b)x + c/b
+	float distance, row_dx, row_dy, column_dx, column_dy, row_thirdAndFourthTerm, column_thirdAndFourthTerm;
+
+	public:
+	GridProximity(const cv::Point2f centerOfElement, const Line lineParallelToRowOrColumn) {
+		const float dx = lineParallelToRowOrColumn.end.x - lineParallelToRowOrColumn.start.x;
+		const float dy = lineParallelToRowOrColumn.end.y - lineParallelToRowOrColumn.start.y;
+
+		// The row and column models will be represented by lines of the same distance
+		distance = sqrt(dx * dx + dy * dy);
+
+		// Rows should have |dx| > |dy| and columns should have |dy| > |dx|
+		if (abs(dy) > abs(dx)) {
+			row_dx = column_dy = dy;
+			column_dx = row_dy = dx;
+		} else {
+			row_dx = column_dy = dx;
+			column_dx = row_dy = dy;
+		}
+		
+		// In the line model, x1 and y1 are the coordinates of the starting point.
+		// We'll start both the column and row model from the center point
+		const float x1 = centerOfElement.x;
+		const float y1 = centerOfElement.y;
+		// In the line model, x2 and y2 are the coordinates of the destination point.
+		// We'll caclculate this for the row and column model by adding their respective
+		// delta_x and delta_y values to the starting point.
+		const float row_x2 = (x1 + row_dx);
+		const float row_y2 = (y1 + row_dy);
+		const float column_x2 = (x1 + column_dx);
+		const float column_y2 = (y1 + column_dy);
+		// The third and fourth terms of the numerator of the equation for the distance
+		// of a line defined by (x1, y1) (x2, y2) is:
+		//   x2 * y1 - y2 * x1
+		// We calculate this for both the row line and the column line
+		row_thirdAndFourthTerm = row_x2 * y1 - row_y2 * x1;
+		column_thirdAndFourthTerm = column_x2 * y1 -  column_y2 * x1;
+	}
+
+	float pixelDistanceFromRow(cv::Point2f p) {
+		// See the formula for "line defined by two points" in
+		// https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+		// Noting that the denominator is just the distance between the two points
+		// of the line model.
+		return abs( (row_dy * p.x) - (row_dx * p.y) + row_thirdAndFourthTerm) / distance;
+	}
+
+	float pixelDistanceFromColumn(cv::Point2f p) {
+		// See the formula for "line defined by two points" in
+		// https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+		// Noting that the denominator is just the distance between the two points
+		// of the line model.
+		return abs( (column_dy * p.x) - (column_dx * p.y) + column_thirdAndFourthTerm) / distance;
+	}
+};

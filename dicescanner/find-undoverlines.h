@@ -217,11 +217,12 @@ static uint readUndoverlineBits(const cv::Mat &grayscaleImage, const Line &undov
 
 
 struct Undoverline {
-	Line line;
-	unsigned char whiteBlackThreshold;
-	unsigned int binaryCodingReadForwardOrBackward;
+	Line line  = { {0, 0}, {0, 0}};
+	unsigned char whiteBlackThreshold = 0;
+	unsigned int binaryCodingReadForwardOrBackward = 0;
 	UndoverlineTypeOrientationAndEncoding decoded;
-	cv::Point2f inferredDieCenter;
+	cv::Point2f inferredDieCenter = {0, 0};
+//	cv::Point2f inferredAngleAdjustedDieCenter;
 	DieFaceSpecification dieFaceInferred;
 };
 
@@ -311,10 +312,10 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 		const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
 		const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
 		const cv::Point2f dieCenter = cv::Point2f(x, y);
-
+		const Line directedLine = decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline;
 
 		Undoverline thisUndoverline = {
-			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline,
+			directedLine,
 			whiteBlackThreshold,
 			binaryCodingReadForwardOrBackward,
 			decoded,
