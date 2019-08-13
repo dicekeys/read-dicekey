@@ -63,42 +63,90 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/stuart/github/dice-scanner/img/A61M21G52E53Z13J22B20R40O20Y42I11X63N63L21H61U12S63F61W43P52V42K62C41T53D51-iphone-shadows.jpg"
+            argument = "/Users/stuart/github/dice-scanner/img/J53T20W22N11Y23M40O31C12I20V31H42P52R60S62E11B52L30X23D42F62U40A60Z53G51K50-Fira-Code-With-Shadow.jpg"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/D13U22K12S63H42W21G52I53A22T53O50Z10L22C23P21Y51R32X22F33N12V60J32E12B10M10-Fira-Code.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/G52H50J30P11T20O32Y12D60F10E42I50L53N63X63R43U62V31W40B21K32M11A51C21Z63S30-Fira-Code.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/D41B43J61K62O42V20N41W51G32U23C22F40Z50R62I52X20L61T40S13H42P61Y12E43A10M32-Fira-Code.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/J53T20W22N11Y23M40O31C12I20V31H42P52R60S62E11B52L30X23D42F62U40A60Z53G51K50-Fira-Code.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/K60D23R11I41P20W52J31Y13V43F53S13E11Z22H30L30B20C12O53U20G60M23N40X11A42T31-Fira-Code.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "F51E31C30K20U51O21Z43M22G52W52D40H62S22T13J40B52I33A50N21R62P50X51L32V31Y41-Fira-Code"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/D41B43J61K62O42V20N41W51G32U23C22F40Z50R62I52X20L61T40S13H42P61Y12E43A10M32-Fira-Code-angle.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/F51E31C30K20U51O21Z43M22G52W52D40H62S22T13J40B52I33A50N21R62P50X51L32V31Y41-Fira-Code-Shadow.jpg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/stuart/github/dice-scanner/img/A61M21G52E53Z13J22B20R40O20Y42I11X63N63L21H61U12S63F61W43P52V42K62C41T53D51-iphone-shadows.jpg"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/A62G32E63B32K33U42W20Z21D20I42S30L61R52J20N20Y42H52P13X23O11M12V60T62C12F42-iphone-angle.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/A62G32E63B32K33U42W20Z21D20I42S30L61R52J20N20Y42H52P13X23O11M12V60T62C12F42-iphone-shadows.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/B33H61X52U23O50D10N43C42W22F50E52L60M32J10Z20S20Y12P41G31T61K53A43R61I43V32-iphone-shadows.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/E33J11D13F30Y52L33S63M10B43I31X20O53H63V42Z61W41K22T63G33R30N62A62C40P40U30-iphone-shadows.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/G31F10D53Y52V61B40R20M23C12T41X53O11E43Z20P53I21A41N43K42S51W20L63J32U52H51-iphone-shadows.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/G31F10D53Y52V61B40R20M23C12T41X53O11E43Z20P53I21A41N43K42S51W20L63J32U52H51-iphone-angle.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/I51C32A12L52W53H13M43D20B50S41P32X62F30Y60J43V11E50U63T52K63Z10G33N52O21R12-iphone-angle.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/I51C32A12L52W53H13M43D20B50S41P32X62F30Y60J43V11E50U63T52K63Z10G33N52O21R12-iphone-shadows.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = ""
+            value = ""
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = ""
+            value = ""
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>

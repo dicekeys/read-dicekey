@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 #ifdef _WIN32
 	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
 #else
-	// std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
+	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
 #endif
 	initOcr(tesseractPath);
 	help(argv[0]);
@@ -65,9 +65,10 @@ int main(int argc, char** argv)
 			std::cout << "Couldn't load " << filepath << std::endl;
 			return -1;
 		}
-
+		
 		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
 		const std::string filename = filepath.substr(indexOfLastSlash);
+		std::cerr << "Reading " << filename << "\n";
 
 		try {
 			const auto dice = readDice(image, true);
