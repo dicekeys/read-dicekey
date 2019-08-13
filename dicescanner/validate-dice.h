@@ -22,7 +22,8 @@ static void validateDiceRead(const std::vector<DieRead> diceRead, std::string di
 		const char orientationChar = dieAsString[2];
 		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationChar - '0';
 		if (die.orientationAs0to3ClockwiseTurnsFromUpright != orientationAs0to3ClockwiseTurnsFromUpright) {
-			throw std::string("Die ") + std::to_string(dieIndex) + " has orientation " + std::to_string(die.orientationAs0to3ClockwiseTurnsFromUpright) +
+			throw std::string("Die ") + std::to_string(dieIndex) + " (" + dashIfNull(letter) + dashIfNull(digit) +
+  			") has orientation " + std::to_string(die.orientationAs0to3ClockwiseTurnsFromUpright) +
 				" but should be " + std::to_string(orientationAs0to3ClockwiseTurnsFromUpright);
 		} else if (die.letter != letter) {
 			throw std::string("Die ") + std::to_string(dieIndex) + " has letter " + dashIfNull(die.letter) +

@@ -185,7 +185,7 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 			// See if this error can be explained by a single bit-read error.
 			// report error mismatch between undoverline and overline
 			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch between underline and overline: " <<
+				std::cerr << "Mismatch at die " << i << " between underline and overline: " <<
 					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
 					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) <<
 					" best explained by " << minBitErrors << " bit error in " << 
@@ -196,13 +196,13 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 		} else if (underlineInferred.letter != letterRead) {
 			// report OCR error on letter
 			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch between underline and ocr letter: " <<
+				std::cerr << "Mismatch at die " << i << " between underline and ocr letter: " <<
 					dashIfNull(underlineInferred.letter) << " != " << dashIfNull(letterRead) << "\n";
 			}
 		} else if (underlineInferred.digit != digitRead) {
 			// report OCR error on digit
 			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch between underline and ocr digit: " <<
+				std::cerr << "Mismatch at die " << i << " between underline and ocr digit: " <<
 					dashIfNull(underlineInferred.digit) << " != " << dashIfNull(digitRead) << "\n";
 			}
 		}
