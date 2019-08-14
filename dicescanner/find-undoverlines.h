@@ -277,9 +277,9 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 		// FIXME -- remove debugging when all works.
 		///Users/stuart/github/dice-scanner/
 		 //cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
-		 const cv::Point2f center = midpointOfLine(undoverline);
-		 const float lineLen = lineLength(undoverline);
-		 const float angle = angleOfLineInSignedDegrees2f(undoverline);
+		 // const cv::Point2f center = midpointOfLine(undoverline);
+		 // const float lineLen = lineLength(undoverline);
+		 // const float angle = angleOfLineInSignedDegrees2f(undoverline);
 		 //cv::imwrite("underline-isolated.png", copyRotatedRectangle(
 		 //	grayscaleImage,
 		 //	center,

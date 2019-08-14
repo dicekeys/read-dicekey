@@ -81,22 +81,6 @@ static bool isPointBetween2f(cv::Point2f p, cv::Point2f bound1, cv::Point bound2
 }
 
 /*
-Calculate the slope of a line from a start point to an end point.
-*/
-static float angleOfLineInSignedRadians2f(cv::Point2f start, cv::Point2f end) {
-	const float delta_x = end.x - start.x;
-	const float delta_y = end.y - start.y;
-	if (delta_x == 0) {
-		if (delta_y < 0) {
-			return -std::numeric_limits<float>::infinity();
-		} else {
-			return std::numeric_limits<float>::infinity();
-		}
-	}
-	return delta_y / delta_x;
-}
-
-/*
 Calculate the angle (in radians) of a line from a start point to an end point.
 */
 static float angleOfLineInSignedRadians2f(cv::Point2f start, cv::Point2f end) {

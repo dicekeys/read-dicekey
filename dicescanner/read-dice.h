@@ -59,7 +59,7 @@ static MeanDifferenceResult findAndValidateMeanDifference(const std::vector<floa
 			float difference = abs(sorted[d] - sorted[d-1]);
 			float abs_difference = abs(difference);
 			allDistancesAreCloseToTheMeanDistance &= 
-				(mean_bound_low < abs_mean_difference) && (abs_mean_difference < mean_bound_high);
+				(mean_bound_low < abs_difference) && (abs_difference < mean_bound_high);
 		}
 		return {allDistancesAreCloseToTheMeanDistance, mean_difference};
 }
@@ -77,34 +77,34 @@ static DiceGrid findDiceGrid(std::vector<Undoverline> lines, float pixelPromityR
 		// find four others in the same row and four others in the same column.
 		Undoverline &undoverline = lines[i];
 		GridProximity gridModel(undoverline.inferredDieCenter, undoverline.line);
-		std::vector<Undoverline&> sameRow = {}, sameColumn;
+		std::vector<Undoverline*> sameRow = {}, sameColumn = {};
 		for (int j = 0; j < lines.size() && (sameRow.size() < 4 || sameColumn.size() < 4); j++) {
 			if (i==j) {
 				continue;
 			}
 			Undoverline &candidateUndoverline = lines[j];
 			if (gridModel.pixelDistanceFromColumn(candidateUndoverline.inferredDieCenter) < pixelPromityRequirement) {
-				sameColumn.push_back(candidateUndoverline);
+				sameColumn.push_back(&candidateUndoverline);
 			} else if (gridModel.pixelDistanceFromRow(candidateUndoverline.inferredDieCenter) < pixelPromityRequirement) {
-				sameRow.push_back(candidateUndoverline);
+				sameRow.push_back(&candidateUndoverline);
 			}
 		}
 		if (sameRow.size() < 4 and sameColumn.size() < 4) {
 			continue;
 		}
 		// Add this undoverline to both the row and the colum so we have all 5 of each
-		sameRow.push_back(undoverline);
-		sameColumn.push_back(undoverline);
+		sameRow.push_back(&undoverline);
+		sameColumn.push_back(&undoverline);
 
 		// Now check that our row has near-constant distances
 		std::vector<float> rowXValues, rowYValues, colXValues, colYValues;
-		for (const Undoverline u: sameRow) {
-			rowXValues.push_back(u.inferredDieCenter.x);
-			rowYValues.push_back(u.inferredDieCenter.y);
+		for (const Undoverline *u: sameRow) {
+			rowXValues.push_back(u->inferredDieCenter.x);
+			rowYValues.push_back(u->inferredDieCenter.y);
 		}
-		for (const Undoverline u: sameColumn) {
-			colXValues.push_back(u.inferredDieCenter.x);
-			colYValues.push_back(u.inferredDieCenter.y);
+		for (const Undoverline *u: sameColumn) {
+			colXValues.push_back(u->inferredDieCenter.x);
+			colYValues.push_back(u->inferredDieCenter.y);
 		}
 		const auto meanRowXDistance = findAndValidateMeanDifference(rowXValues);
 		const auto meanRowYDistance = findAndValidateMeanDifference(rowYValues);
@@ -168,6 +168,9 @@ static FindDiceResult findDice(const cv::Mat &colorImage, const cv::Mat &graysca
 	const float medianUnderlineLength = medianInPlace(underlineLengths);
 	const float pixelsPerMm = medianUnderlineLength / DieDimensionsMm::undoverlineLength;
 	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
+
+	const auto diceGrid = findDiceGrid(underlines, 1.0f * pixelsPerMm);
+	std::cout << "DiceGrid success = " << (diceGrid.success ? "true" : "false");
 
 	std::vector<Undoverline> strayUndoverlines(0);
 	std::vector<DieRead> diceFound;

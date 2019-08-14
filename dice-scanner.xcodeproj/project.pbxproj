@@ -39,7 +39,6 @@
 		17CE24E02295155C00FF9B70 /* locate-dice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "locate-dice.h"; sourceTree = "<group>"; };
 		17CE24E12295155C00FF9B70 /* read-dice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "read-dice.h"; sourceTree = "<group>"; };
 		17CE24E22295155C00FF9B70 /* vfunctional.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vfunctional.h; sourceTree = "<group>"; };
-		17CE24E32295155C00FF9B70 /* find-squares.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "find-squares.h"; sourceTree = "<group>"; };
 		17F51EC2228BCBD400E6BD74 /* dice-scanner.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "dice-scanner.cpp"; sourceTree = "<group>"; };
 		17F51EC8228BE0B900E6BD74 /* dicesacanner */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = dicesacanner; sourceTree = BUILT_PRODUCTS_DIR; };
 		17F51ECB228BE0B900E6BD74 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -78,7 +77,6 @@
 		17F51ECA228BE0B900E6BD74 /* dicescanner */ = {
 			isa = PBXGroup;
 			children = (
-				17CE24E32295155C00FF9B70 /* find-squares.h */,
 				17CE24E02295155C00FF9B70 /* locate-dice.h */,
 				17CE24E12295155C00FF9B70 /* read-dice.h */,
 				17CE24DE2295155C00FF9B70 /* rectangle.h */,
