@@ -23,7 +23,6 @@ struct UndoverlineTypeOrientationAndEncoding {
 	bool wasReadInReverseOrder = false;
 	bool isOverline = false;
 	unsigned char letterDigitEncoding = 0;
-//	unsigned char orientationAs0to3ClockwiseTurnsFromUpright = 0;
 };
 
 static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned int binaryCodingReadForwardOrBackward, bool isVertical) {
