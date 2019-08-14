@@ -157,25 +157,17 @@ class GridProximity {
 	// See https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
 	// Section: Line defined by two points
 	private:
-	// ax + by + c = 0     =>   y = (-a/b)x + c/b
-	float distance, row_dx, row_dy, column_dx, column_dy, row_thirdAndFourthTerm, column_thirdAndFourthTerm;
+	float row_dx, row_dy, column_dx, column_dy, row_thirdAndFourthTerm, column_thirdAndFourthTerm;
 
 	public:
-	GridProximity(const cv::Point2f centerOfElement, const Line lineParallelToRowOrColumn) {
-		const float dx = lineParallelToRowOrColumn.end.x - lineParallelToRowOrColumn.start.x;
-		const float dy = lineParallelToRowOrColumn.end.y - lineParallelToRowOrColumn.start.y;
-
-		// The row and column models will be represented by lines of the same distance
-		distance = sqrt(dx * dx + dy * dy);
-
-		// Rows should have |dx| > |dy| and columns should have |dy| > |dx|
-		if (abs(dy) > abs(dx)) {
-			row_dx = column_dy = dy;
-			column_dx = row_dy = dx;
-		} else {
-			row_dx = column_dy = dx;
-			column_dx = row_dy = dy;
-		}
+	GridProximity(const cv::Point2f centerOfElement, const float angleInRadians) {
+	
+		const float rowAngleRadians = radiansFromRightAngle(angleInRadians);
+		const float columnAngleRadians = rowAngleRadians + M_PI/2;
+		row_dx = cos(rowAngleRadians);
+		row_dy = sin(rowAngleRadians);
+		column_dx = cos(columnAngleRadians);
+		column_dy = sin(columnAngleRadians);
 		
 		// In the line model, x1 and y1 are the coordinates of the starting point.
 		// We'll start both the column and row model from the center point
@@ -201,7 +193,7 @@ class GridProximity {
 		// https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
 		// Noting that the denominator is just the distance between the two points
 		// of the line model.
-		return abs( (row_dy * p.x) - (row_dx * p.y) + row_thirdAndFourthTerm) / distance;
+		return abs( (row_dy * p.x) - (row_dx * p.y) + row_thirdAndFourthTerm);// / distance; // (distance=1)
 	}
 
 	float pixelDistanceFromColumn(cv::Point2f p) {
@@ -209,6 +201,6 @@ class GridProximity {
 		// https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
 		// Noting that the denominator is just the distance between the two points
 		// of the line model.
-		return abs( (column_dy * p.x) - (column_dx * p.y) + column_thirdAndFourthTerm) / distance;
+		return abs( (column_dy * p.x) - (column_dx * p.y) + column_thirdAndFourthTerm);// / distance; // (distance=1)
 	}
 };

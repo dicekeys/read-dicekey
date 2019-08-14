@@ -22,8 +22,8 @@ struct UndoverlineTypeOrientationAndEncoding {
 	bool isValid = false;
 	bool wasReadInReverseOrder = false;
 	bool isOverline = false;
-	unsigned char orientationAs0to3ClockwiseTurnsFromUpright = 0;
 	unsigned char letterDigitEncoding = 0;
+//	unsigned char orientationAs0to3ClockwiseTurnsFromUpright = 0;
 };
 
 static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned int binaryCodingReadForwardOrBackward, bool isVertical) {
@@ -49,13 +49,6 @@ static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned in
 
 	const bool wasReadInReverseOrder = lastBitRead;
 
-	const unsigned char orientationAs0to3ClockwiseTurnsFromUpright = isVertical ? (
-			// vertical
-			wasReadInReverseOrder ? 3 : 1
-		) : (
-			// horizontal
-			wasReadInReverseOrder ? 2 : 0
-	);
 
 	// Get the bits in the correct order, with the lowest-order
 	// bit 0 (the always-black last bit in the underline)
@@ -68,7 +61,7 @@ static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned in
 		true, // isValid = true, encdoing was valid
 		wasReadInReverseOrder,
 		isOverline,
-		orientationAs0to3ClockwiseTurnsFromUpright,
+//		orientationAs0to3ClockwiseTurnsFromUpright,
 		letterDigitEncoding
 	};
 }
