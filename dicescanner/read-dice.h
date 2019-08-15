@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <float.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
@@ -12,6 +10,7 @@
 #include <iostream>
 #include <math.h>
 #include "vfunctional.h"
+#include "statistics.h"
 #include "geometry.h"
 #include "die-specification.h"
 #include "dice.h"
@@ -19,280 +18,73 @@
 #include "decode-die.h"
 #include "find-undoverlines.h"
 #include "value-clusters.h"
+#include "bit-operations.h"
+#include "find-dice.h"
+#include "assemble-dice-key.h"
 
-
-
-struct DieRead {
-	Undoverline underline;
-	Undoverline overline;
-	cv::Point2f center = cv::Point2f{ 0, 0 };
-	float inferredAngleInRadians = 0;
-	cv::Point2f angleAdjustedCenter{ 0, 0 };
-	ReadCharacterResult ocrLetter = { 0, 0 };
-	ReadCharacterResult ocrDigit = { 0, 0 };
-	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
-};
-
-struct MeanDifferenceResult
-{
-	bool valid;
-	float meanDistance;
-};
-
-static MeanDifferenceResult findAndValidateMeanDifference(const std::vector<float> unsortedValues, float minBoundEdgeRange = 5.0f)
-{
-	if (unsortedValues.size() < 2) {
-		return {false, 0};
-	}
-	std::vector<float> sorted(unsortedValues);
-	std::sort(sorted.begin(), sorted.end(), [](float a, float b) { return abs(a) < abs(b); });
-	const float mean_difference = (sorted[sorted.size() -1] - sorted[0]) / float(sorted.size() - 1);
-	const float abs_mean_difference = abs(mean_difference);
-		// Ensure all delta_x and delta_y values are within 5% of the mean, though always
-		// allow up to a minimum error since vertical/horizontal lines will have no delta_x/delta_y,
-		// but could have a few pixel variation due to measurement errors.
-		const float mean_bound_low = MIN(abs_mean_difference - minBoundEdgeRange, abs_mean_difference * 0.95);
-		const float mean_bound_high = MAX(abs_mean_difference + minBoundEdgeRange, abs_mean_difference * 1.05);
-		// Ensure all the delta_x and delta_y values are close to the mean
-		bool allDistancesAreCloseToTheMeanDistance = true;
-		for (int d = 1; d < sorted.size() && allDistancesAreCloseToTheMeanDistance; d++) {
-			float difference = abs(sorted[d] - sorted[d-1]);
-			float abs_difference = abs(difference);
-			allDistancesAreCloseToTheMeanDistance &= 
-				(mean_bound_low < abs_difference) && (abs_difference < mean_bound_high);
-		}
-		return {allDistancesAreCloseToTheMeanDistance, mean_difference};
-}
-
-struct FindDiceResult {
-	std::vector<DieRead> diceFound;
-	std::vector<Undoverline> strayUndoverlines;
-	float pixelsPerMm;
-};
-
-static FindDiceResult findDice(const cv::Mat &colorImage, const cv::Mat &grayscaleImage)
-{
-	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage);
-
-	std::vector<Undoverline> underlines(undoverlines.underlines);
-	std::vector<Undoverline> overlines(undoverlines.overlines);
-
-	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
-		[](Undoverline underline) { return lineLength(underline.line); });
-	const float medianUnderlineLength = medianInPlace(underlineLengths);
-	const float pixelsPerMm = medianUnderlineLength / DieDimensionsMm::undoverlineLength;
-	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
-
-	std::vector<Undoverline> strayUndoverlines(0);
-	std::vector<DieRead> diceFound;
-
-	for (auto underline : underlines) {
-		// Search for overline with inferred die center near that of underline.
-		bool found = false;
-		for (size_t i = 0; i < overlines.size() && !found; i++) {
-			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters) {
-				// We have a match
-				found = true;
-				// Re-infer the center of the die and its angle by drawing a line from
-				// the center of the to the center of the overline.
-				const Line lineFromUnderlineCenterToOverlineCenter = {
-					midpointOfLine(underline.line), midpointOfLine(overlines[i].line)
-				};
-				// The center of the die is the midpoint of that line.
-				const cv::Point2f center = midpointOfLine(lineFromUnderlineCenterToOverlineCenter);
-				// The angle of the die is the angle of that line, plus 90 degrees clockwise
-				const float angleOfLineFromUnderlineToOverlineCenterInRadians =
-					angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter);
-				float angleInRadians = angleOfLineFromUnderlineToOverlineCenterInRadians +
-					NinetyDegreesAsRadians;
-				if (angleInRadians > (M_PI)) {
-					angleInRadians -= float(2 * M_PI);
-				}
-				const cv::Point2f angleAdjustedCenter = rotatePointClockwiseAroundOrigin(center, radiansFromRightAngle(angleInRadians));
-				diceFound.push_back({
-					underline, overlines[i], center, angleInRadians, angleAdjustedCenter,
-					// letter read (not yet set)
-					{0, 0},
-					// digit read (not yet set)
-					{0,0},
-					0
-					});
-				// Remove the ith element of overlines
-				overlines.erase(overlines.begin() + i);
-			}
-		}
-		if (!found) {
-			strayUndoverlines.push_back(underline);
-		}
-	}
-
-	strayUndoverlines.insert(strayUndoverlines.end(), overlines.begin(), overlines.end());
-
-	return { diceFound, strayUndoverlines, pixelsPerMm };
-}
-
-
-struct DiceGrid {
-	bool success = false;
-	float rowDeltaX = 0, rowDeltaY = 0;
-	float colDeltaX = 0, colDeltaY = 0;
-	cv::Point2f gridTopLeft = {0, 0};
-};
-
-static DiceGrid findDiceGrid(
-	const FindDiceResult &diceFoundResult,
-	float pixelProximityRequirement
-) {
-	const std::vector<DieRead> &diceFound = diceFoundResult.diceFound;
-	const std::vector<Undoverline> &strayUndoverlines = diceFoundResult.strayUndoverlines;
-
-	for (int i = 0; i < diceFound.size(); i++) {
-		// We can build a model of the grid based on this die if we can
-		// find four others in the same row and four others in the same column.
-		const DieRead &dieFound = diceFound[i];
-		GridProximity gridModel(dieFound.center, dieFound.inferredAngleInRadians);
-		
-		std::vector<cv::Point2f> candidatePoints, sameColumn, sameRow;
-		for (int j = 0; j < diceFound.size(); j++) {
-			if (j!=i) candidatePoints.push_back(diceFound[j].center);
-		}
-		for (const Undoverline &undoverline: strayUndoverlines) {
-			candidatePoints.push_back(undoverline.inferredDieCenter);
-		}
-		for (const cv::Point2f &point: candidatePoints) {
-			const float distanceFromColumn = gridModel.pixelDistanceFromColumn(point);
-			const float distanceFromRow = gridModel.pixelDistanceFromRow(point);
-			if (distanceFromColumn < pixelProximityRequirement) {
-				sameColumn.push_back(point);
-			} else if (distanceFromRow < pixelProximityRequirement) {
-				sameRow.push_back(point);
-			}
-		}
-		if (sameRow.size() < 4 || sameColumn.size() < 4) {
-			continue;
-		}
-		// Add this undoverline to both the row and the colum so we have all 5 of each
-		sameRow.push_back(dieFound.center);
-		sameColumn.push_back(dieFound.center);
-		
-		// Now check that our row has near-constant distances
-		std::vector<float> rowXValues, rowYValues, colXValues, colYValues;
-		for (const cv::Point2f &p: sameRow) {
-			rowXValues.push_back(p.x);
-			rowYValues.push_back(p.y);
-		}
-		for (const cv::Point2f &p: sameColumn) {
-			colXValues.push_back(p.x);
-			colYValues.push_back(p.y);
-		}
-		const auto meanRowXDistance = findAndValidateMeanDifference(rowXValues);
-		const auto meanRowYDistance = findAndValidateMeanDifference(rowYValues);
-		const auto meanColXDistance = findAndValidateMeanDifference(colXValues);
-		const auto meanColYDistance = findAndValidateMeanDifference(colYValues);
-		if (!( meanRowXDistance.valid && meanRowYDistance.valid && meanColXDistance.valid && meanColYDistance.valid)) {
-			// Model is violated
-			continue;
-		}
-		
-		if ( abs(meanRowXDistance.meanDistance - meanColYDistance.meanDistance) > 5 ||
-				abs(meanRowYDistance.meanDistance - meanColXDistance.meanDistance) > 5 ) {
-			// If we assume square pixels, this violates model.
-			// let's not for now.
-		}
-		
-		// Figure out which index this die is at.
-		int row = 0, col = 0;
-		for (float x: rowXValues) {
-			if (x < dieFound.center.x) {
-				row++;
-			}
-		}
-		for (float y: colYValues) {
-			if (y < dieFound.center.y) {
-				col++;
-			}
-		}
-		
-		cv::Point2f gridTopLeft(
-														dieFound.center.x - (row * meanRowXDistance.meanDistance) - (col * meanColXDistance.meanDistance),
-														dieFound.center.y - (row * meanRowYDistance.meanDistance) - (col * meanColYDistance.meanDistance)
-														);
-		
-		return {
-			true, // valid
-			meanRowXDistance.meanDistance, meanRowYDistance.meanDistance,
-			meanColXDistance.meanDistance, meanColYDistance.meanDistance,
-			gridTopLeft
-		};
-	}
-	// Made it to end without finding a grid.  Return invalid.
-	return {false};
-}
 
 static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
 {
 	cv::Mat grayscaleImage;
 
 	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
-	FindDiceResult findDiceResult = findDice(colorImage, grayscaleImage);
-	std::vector<DieRead>& diceFound = findDiceResult.diceFound;
-	const float pixelsPerMm = findDiceResult.pixelsPerMm;
-	const float halfDieSize = DieDimensionsMm::size * pixelsPerMm / 2.0f;
-	
-	const auto diceGrid = findDiceGrid(findDiceResult, 1.0f * findDiceResult.pixelsPerMm);
-	std::cout << "DiceGrid success = " << (diceGrid.success ? "true" : "false") << "\n";
+	DiceAndStrayUndoverlinesFound diceAndStrayUndoverlinesFound = findDiceAndStrayUndoverlines(colorImage, grayscaleImage);
+	auto orderedDiceResult = orderDiceAndInferMissingUndoverlines(diceAndStrayUndoverlinesFound);
+	if (!orderedDiceResult.valid) {
+		return {};
+	}
+	std::vector<DieRead> orderedDice = orderedDiceResult.orderedDice;
+	const float angleOfDiceKeyInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
+	//const float pixelsPerMm = diceAndStrayUndoverlinesFound.pixelsPerMm;
+	//const float halfDieSize = DieDimensionsMm::size * pixelsPerMm / 2.0f;
+	//
+	//const auto diceGrid = calculateDiceKeyGrid(diceAndStrayUndoverlinesFound, 1.0f * diceAndStrayUndoverlinesFound.pixelsPerMm);
+	//std::cout << "DiceGrid success = " << (isnan(diceGrid.angleInRadians) ? "false" : "true") << "\n";
+
+	//std::vector<float> dieAnglesInRadians = vmap<DieRead, float>(diceFound,
+	//	[](DieRead d) -> float { return radiansFromRightAngle(d.inferredAngleInRadians); });
+	//// Get the angle of all dice
+	//float angleOfDiceInRadians = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
+	//	dieAnglesInRadians, FortyFiveDegreesAsRadians);
 
 
-	std::vector<float> dieAnglesInRadians = vmap<DieRead, float>(diceFound,
-		[](DieRead d) -> float { return radiansFromRightAngle(d.inferredAngleInRadians); });
-	// Get the angle of all dice
-	float angleOfDiceInRadians = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
-		dieAnglesInRadians, FortyFiveDegreesAsRadians);
-
-
-	for (auto &die : diceFound) {
+	for (auto &die : orderedDice) {
 		// Average the angle of the underline and overline
 		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
-			findDiceResult.pixelsPerMm,
+			diceAndStrayUndoverlinesFound.pixelsPerMm,
 			// The threshold between black pixels and white pixels is calculated as the average (mean)
 			// of the threshold used for the underline and for the overline.
 			uchar( (uint(die.underline.whiteBlackThreshold) + uint(die.overline.whiteBlackThreshold))/2 ),
 			outputOcrErrors ? die.underline.dieFaceInferred.letter : '\0',
 			outputOcrErrors ? die.underline.dieFaceInferred.digit : '\0'
 		);
-		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceInRadians;
+		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceKeyInRadiansNonCononicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
 		die.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
 		die.ocrLetter = charsRead.letter;
 		die.ocrDigit = charsRead.digit;
 	}
-	// calculate the average angle mod 90 so we can generate a rotation function
-	for (size_t i = 0; i < diceFound.size(); i++) {
-		diceFound[i].angleAdjustedCenter = rotatePointClockwiseAroundOrigin(diceFound[i].center, angleOfDiceInRadians);
-	}
+	//// calculate the average angle mod 90 so we can generate a rotation function
+	//for (size_t i = 0; i < diceFound.size(); i++) {
+	//	diceFound[i].angleAdjustedCenter = rotatePointClockwiseAroundOrigin(diceFound[i].center, angleOfDiceKeyInRadiansNonCononicalForm);
+	//}
 
-	// Sort the dice based on their positions after adjusting the angle
-	std::sort(diceFound.begin(), diceFound.end(), [halfDieSize](DieRead a, DieRead b) {
-		if (a.angleAdjustedCenter.y < (b.angleAdjustedCenter.y - halfDieSize)) {
-			// Die a is at least a half die above die b, and therefore comes before it
-			return true;
-		}
-		else if (b.angleAdjustedCenter.y < (a.angleAdjustedCenter.y - halfDieSize)) {
-			// Die b is at least a half die above die a, and therefore comes before it
-			return false;
-		}
-		// Die a and die b are roughly the same from top to bottom, so order left to right
-		return a.angleAdjustedCenter.x < b.angleAdjustedCenter.x;
-	});
+	//// Sort the dice based on their positions after adjusting the angle
+	//std::sort(diceFound.begin(), diceFound.end(), [halfDieSize](DieRead a, DieRead b) {
+	//	if (a.angleAdjustedCenter.y < (b.angleAdjustedCenter.y - halfDieSize)) {
+	//		// Die a is at least a half die above die b, and therefore comes before it
+	//		return true;
+	//	}
+	//	else if (b.angleAdjustedCenter.y < (a.angleAdjustedCenter.y - halfDieSize)) {
+	//		// Die b is at least a half die above die a, and therefore comes before it
+	//		return false;
+	//	}
+	//	// Die a and die b are roughly the same from top to bottom, so order left to right
+	//	return a.angleAdjustedCenter.x < b.angleAdjustedCenter.x;
+	//});
 
-	// Search for missing dice
-	if (diceFound.size() < 25) {
-		// FUTURE -- search for stray underlines/overlines at locations where
-		// missing dice should be
-	}
-
-	return diceFound;
+	return orderedDice;
 }
 
 static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
@@ -313,7 +105,7 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 			underlineInferred.digit != overlineInferred.digit) {
 			const int bitErrorsIfUnderlineCorrect = hammingDistance(dieRead.underline.dieFaceInferred.overlineCode, dieRead.overline.letterDigitEncoding);
 			const int bitErrorsIfOverlineCorrect = hammingDistance(dieRead.overline.dieFaceInferred.underlineCode, dieRead.underline.letterDigitEncoding);
-			const int minBitErrors = MIN(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
+			const int minBitErrors = std::min(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
 			// See if this error can be explained by a single bit-read error.
 			// report error mismatch between undoverline and overline
 			if (reportErrsToStdErr) {

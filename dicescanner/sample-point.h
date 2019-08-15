@@ -79,7 +79,7 @@ static uchar samplePoint(
 ) {
 	const std::vector<cv::Point>& SampleOffsets = (samplesPerPoint == 3 && favorAboveAndBelowOverSides) ?
 		SampleOffsetsVerticalFirst : SampleOffsetsHorizontalFirst;
-	samplesPerPoint = MIN(samplesPerPoint, SampleOffsets.size());
+	samplesPerPoint = std::min(samplesPerPoint, SampleOffsets.size());
 	std::vector<uchar> pixelsAroundSamplePoint = std::vector<uchar>();
 	for (size_t s = 0; s < samplesPerPoint; s++) {
 		cv::Point2i samplePoint = cv::Point2i(point.x + SampleOffsets[s].x, point.y + SampleOffsets[s].y);

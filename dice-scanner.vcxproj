@@ -160,10 +160,12 @@
     <ClCompile Include="dicescanner\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dicescanner\bimodal.h" />
+    <ClInclude Include="dicescanner\bit-operations.h" />
     <ClInclude Include="dicescanner\decode-die.h" />
     <ClInclude Include="dicescanner\dice.h" />
+    <ClInclude Include="dicescanner\assemble-dice-key.h" />
     <ClInclude Include="dicescanner\die-specification.h" />
+    <ClInclude Include="dicescanner\find-dice.h" />
     <ClInclude Include="dicescanner\find-rectangles.h" />
     <ClInclude Include="dicescanner\geometry.h" />
     <ClInclude Include="dicescanner\find-undoverlines.h" />
@@ -171,6 +173,7 @@
     <ClInclude Include="dicescanner\rectangle.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="dicescanner\sample-point.h" />
+    <ClInclude Include="dicescanner\statistics.h" />
     <ClInclude Include="dicescanner\validate-dice.h" />
     <ClInclude Include="dicescanner\vfunctional.h" />
     <ClInclude Include="dicescanner\value-clusters.h" />

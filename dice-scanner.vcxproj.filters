@@ -20,7 +20,10 @@
     <ClInclude Include="dicescanner\die-specification.h" />
     <ClInclude Include="dicescanner\dice.h" />
     <ClInclude Include="dicescanner\validate-dice.h" />
-    <ClInclude Include="dicescanner\bimodal.h" />
+    <ClInclude Include="dicescanner\statistics.h" />
+    <ClInclude Include="dicescanner\bit-operations.h" />
+    <ClInclude Include="dicescanner\find-dice.h" />
+    <ClInclude Include="dicescanner\assemble-dice-key.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

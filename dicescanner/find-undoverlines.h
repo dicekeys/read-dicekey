@@ -18,7 +18,7 @@
 #include "ocr.h"
 #include "sample-point.h"
 #include "decode-die.h"
-#include "bimodal.h"
+#include "statistics.h"
 
 
 const float undoverlineWidthAsFractionOfLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
@@ -90,8 +90,8 @@ static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& g
 }
 
 static Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const RectangleDetected &lineBoundaryRect) {
-	const int lineHeight = MAX(lineBoundaryRect.bottomLeft.y, lineBoundaryRect.bottomRight.y) - MIN(lineBoundaryRect.topLeft.y, lineBoundaryRect.topRight.y);
-	const int lineWidth = MAX(lineBoundaryRect.topRight.x, lineBoundaryRect.bottomRight.x) - MIN(lineBoundaryRect.topLeft.x, lineBoundaryRect.bottomLeft.x);
+	const int lineHeight = std::max(lineBoundaryRect.bottomLeft.y, lineBoundaryRect.bottomRight.y) - std::min(lineBoundaryRect.topLeft.y, lineBoundaryRect.topRight.y);
+	const int lineWidth = std::max(lineBoundaryRect.topRight.x, lineBoundaryRect.bottomRight.x) - std::min(lineBoundaryRect.topLeft.x, lineBoundaryRect.bottomLeft.x);
 
 	const bool isVertical = lineHeight > lineWidth;
 	cv::Point2f start, end;

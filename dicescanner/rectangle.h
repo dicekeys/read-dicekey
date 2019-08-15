@@ -43,10 +43,10 @@ public:
 		float minX = points[0].x, maxX = points[0].x;
 		float minY = points[0].y, maxY = points[0].y;
 		for (size_t i = 1; i < 4; i++) {
-			minX = MIN(minX, points[i].x);
-			maxX = MAX(maxX, points[i].x);
-			minY = MIN(minY, points[i].y);
-			maxY = MAX(maxY, points[i].y);
+			minX = std::min(minX, points[i].x);
+			maxX = std::max(maxX, points[i].x);
+			minY = std::min(minY, points[i].y);
+			maxY = std::max(maxY, points[i].y);
 		}
 		const float width = maxX - minX;
 		const float height = maxY - minY;
