@@ -217,7 +217,7 @@ static uint readUndoverlineBits(const cv::Mat &grayscaleImage, const Line &undov
 
 
 struct Undoverline {
-	bool isValid = false;
+	bool found = false;
 	Line line  = { {0, 0}, {0, 0}};
 	bool isOverline = false;
 	unsigned char letterDigitEncoding = 0;
@@ -316,7 +316,7 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 		const Line directedLine = decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline;
 
 		Undoverline thisUndoverline = {
-			decoded.isValid,
+			true,
 			directedLine,
 			decoded.isOverline,
 			decoded.letterDigitEncoding,

@@ -99,10 +99,21 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 		const DieFaceSpecification& overlineInferred = dieRead.overline.dieFaceInferred;
 		const char digitRead = dieRead.ocrDigit.charRead;
 		const char letterRead = dieRead.ocrLetter.charRead;
-		if (underlineInferred.letter == 0 ||
-			underlineInferred.digit == 0 ||
-			underlineInferred.letter != overlineInferred.letter ||
-			underlineInferred.digit != overlineInferred.digit) {
+		if (!dieRead.underline.found) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Underline for die " << i << " not found\n";
+			}
+		}
+		if (!dieRead.overline.found) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Overline for die " << i << " not found\n";
+			}
+		}
+		if ((dieRead.underline.found && dieRead.overline.found) &&
+			(
+				underlineInferred.letter != overlineInferred.letter ||
+				underlineInferred.digit != overlineInferred.digit) 
+			) {
 			const int bitErrorsIfUnderlineCorrect = hammingDistance(dieRead.underline.dieFaceInferred.overlineCode, dieRead.overline.letterDigitEncoding);
 			const int bitErrorsIfOverlineCorrect = hammingDistance(dieRead.overline.dieFaceInferred.underlineCode, dieRead.underline.letterDigitEncoding);
 			const int minBitErrors = std::min(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
@@ -117,17 +128,37 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 					" (ocr returned " << dashIfNull(dieRead.ocrLetter.charRead) << dashIfNull(dieRead.ocrDigit.charRead) << ")" <<
 					"\n";
 			}
-		} else if (underlineInferred.letter != letterRead) {
+		}
+		if (letterRead == 0) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Letter at die " << i << " could not be read " <<
+				"(underline=>'" << dashIfNull(underlineInferred.letter) <<
+				"', overline=>'" << dashIfNull(overlineInferred.letter) << "')\n";
+			}
+		}
+		if (digitRead == 0) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Digit at die " << i << " could not be read " <<
+				"(underline=>'" << dashIfNull(underlineInferred.digit) <<
+				"', overline=>'" << dashIfNull(overlineInferred.digit) << "')\n";
+			}
+		}
+		if (letterRead && (dieRead.underline.found || dieRead.overline.found) &&
+			letterRead != underlineInferred.letter && letterRead != overlineInferred.letter) {
 			// report OCR error on letter
 			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch at die " << i << " between underline and ocr letter: " <<
-					dashIfNull(underlineInferred.letter) << " != " << dashIfNull(letterRead) << "\n";
+				std::cerr << "Mismatch at die " << i << " between ocr letter, '" << letterRead <<
+				"', the underline ('" << dashIfNull(underlineInferred.letter) <<
+				"'), and overline ('" << dashIfNull(overlineInferred.letter) << "')\n";
 			}
-		} else if (underlineInferred.digit != digitRead) {
+		}
+		if (digitRead && (dieRead.underline.found || dieRead.overline.found) &&
+			digitRead != underlineInferred.digit && digitRead != overlineInferred.digit) {
 			// report OCR error on digit
 			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch at die " << i << " between underline and ocr digit: " <<
-					dashIfNull(underlineInferred.digit) << " != " << dashIfNull(digitRead) << "\n";
+				std::cerr << "Mismatch at die " << i << " between ocr digit, '" << digitRead <<
+				"', the underline ('" << dashIfNull(underlineInferred.digit) <<
+				"'), and overline ('" << dashIfNull(overlineInferred.digit) << ")'\n";
 			}
 		}
 
