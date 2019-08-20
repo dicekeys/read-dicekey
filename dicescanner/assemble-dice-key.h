@@ -192,13 +192,13 @@ static DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingU
 		return {};
 	}
 	std::vector<DieRead> orderedDice(25);
-	for (const auto dieFound : diceAndStrayUndoverlinesFound.diceFound) {
+	for (const auto &dieFound : diceAndStrayUndoverlinesFound.diceFound) {
 		const int dieIndex = grid.getDieIndex(dieFound.center);
 		if (dieIndex >= 0) {
 			orderedDice[dieIndex] = dieFound;
 		}
 	}
-	for (const auto undoverline : diceAndStrayUndoverlinesFound.strayUndoverlines) {
+	for (const auto &undoverline : diceAndStrayUndoverlinesFound.strayUndoverlines) {
 		const int dieIndex = grid.getDieIndex(undoverline.inferredDieCenter);
 		if (dieIndex >= 0) {
 			if (undoverline.isOverline) {
