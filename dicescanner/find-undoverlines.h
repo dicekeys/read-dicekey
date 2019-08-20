@@ -269,18 +269,20 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 		// FIXME -- remove after debugging
 		// cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
 
-		Line undoverline = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
-		const float undoverlineLength = lineLength(undoverline);
+		const Line undoverlineStartingAtImageLeft = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
+		const float undoverlineLength = lineLength(undoverlineStartingAtImageLeft);
 		unsigned char whiteBlackThreshold = 0;
-		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverline, whiteBlackThreshold);
-		const bool isVertical = abs(undoverline.end.x - undoverline.start.x) < abs(undoverline.end.y - undoverline.start.y);
+		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverlineStartingAtImageLeft, whiteBlackThreshold);
+		const bool isVertical =
+			abs(undoverlineStartingAtImageLeft.end.x - undoverlineStartingAtImageLeft.start.x) <
+			abs(undoverlineStartingAtImageLeft.end.y - undoverlineStartingAtImageLeft.start.y);
 
 		// FIXME -- remove debugging when all works.
 		///Users/stuart/github/dice-scanner/
-		 //cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
-		 // const cv::Point2f center = midpointOfLine(undoverline);
-		 // const float lineLen = lineLength(undoverline);
-		 // const float angle = angleOfLineInSignedDegrees2f(undoverline);
+		 //cv::imwrite("undoverlineStartingAtImageLeft-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+		 // const cv::Point2f center = midpointOfLine(undoverlineStartingAtImageLeft);
+		 // const float lineLen = lineLength(undoverlineStartingAtImageLeft);
+		 // const float angle = angleOfLineInSignedDegrees2f(undoverlineStartingAtImageLeft);
 		 //cv::imwrite("underline-isolated.png", copyRotatedRectangle(
 		 //	grayscaleImage,
 		 //	center,
@@ -294,11 +296,7 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 
 		DieFaceSpecification dieFace = decodeUndoverlineByte(decoded.isOverline, decoded.letterDigitEncoding);
 
-		if (decoded.wasReadInReverseOrder) {
-			undoverline = reverseLineDirection(undoverline);
-		}
-
-		float upAngleInRadians = angleOfLineInSignedRadians2f(undoverline) +
+		float upAngleInRadians = angleOfLineInSignedRadians2f(undoverlineStartingAtImageLeft) +
 			(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
 
 		// pixels per mm the length of the overline in pixels of it's length in mm,
@@ -309,15 +307,23 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 			DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
 			mmToPixels);
 
-		const cv::Point2f lineCenter = midpointOfLine(undoverline);
+		const cv::Point2f lineCenter = midpointOfLine(undoverlineStartingAtImageLeft);
 		const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
 		const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
 		const cv::Point2f dieCenter = cv::Point2f(x, y);
-		const Line directedLine = decoded.wasReadInReverseOrder ? reverseLineDirection(undoverline) : undoverline;
+		// If the die was up-side down, the underline would appear at the top of the die,
+		// and when we scanned it from image left to right we read the bits in reverse order.
+		// To determine the actual direction of the die, we will need to reverse it in situations
+		// where the orientation bits reveal that we read it in reverse order.
+		// This yields a line directed from the side of the die that would be on the left if it were
+		// not rotated (the side on which the letter appears) to the right side of the die if it were
+		// not rotated (the side on which the digit appears)
+		const Line undoverlineInReadingDirectionStartingAtTextLeft =
+			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverlineStartingAtImageLeft) : undoverlineStartingAtImageLeft;
 
 		Undoverline thisUndoverline = {
 			true,
-			directedLine,
+			undoverlineInReadingDirectionStartingAtTextLeft,
 			decoded.isOverline,
 			decoded.letterDigitEncoding,
 			whiteBlackThreshold,
