@@ -296,7 +296,17 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 
 		DieFaceSpecification dieFace = decodeUndoverlineByte(decoded.isOverline, decoded.letterDigitEncoding);
 
-		float upAngleInRadians = angleOfLineInSignedRadians2f(undoverlineStartingAtImageLeft) +
+		// If the die was up-side down, the underline would appear at the top of the die,
+		// and when we scanned it from image left to right we read the bits in reverse order.
+		// To determine the actual direction of the die, we will need to reverse it in situations
+		// where the orientation bits reveal that we read it in reverse order.
+		// This yields a line directed from the side of the die that would be on the left if it were
+		// not rotated (the side on which the letter appears) to the right side of the die if it were
+		// not rotated (the side on which the digit appears)
+		const Line undoverlineStartingAtTextLeft =
+			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverlineStartingAtImageLeft) : undoverlineStartingAtImageLeft;
+
+		float upAngleInRadians = angleOfLineInSignedRadians2f(undoverlineStartingAtTextLeft) +
 			(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
 
 		// pixels per mm the length of the overline in pixels of it's length in mm,
@@ -311,19 +321,10 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 		const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
 		const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
 		const cv::Point2f dieCenter = cv::Point2f(x, y);
-		// If the die was up-side down, the underline would appear at the top of the die,
-		// and when we scanned it from image left to right we read the bits in reverse order.
-		// To determine the actual direction of the die, we will need to reverse it in situations
-		// where the orientation bits reveal that we read it in reverse order.
-		// This yields a line directed from the side of the die that would be on the left if it were
-		// not rotated (the side on which the letter appears) to the right side of the die if it were
-		// not rotated (the side on which the digit appears)
-		const Line undoverlineInReadingDirectionStartingAtTextLeft =
-			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverlineStartingAtImageLeft) : undoverlineStartingAtImageLeft;
 
 		Undoverline thisUndoverline = {
 			true,
-			undoverlineInReadingDirectionStartingAtTextLeft,
+			undoverlineStartingAtTextLeft,
 			decoded.isOverline,
 			decoded.letterDigitEncoding,
 			whiteBlackThreshold,
