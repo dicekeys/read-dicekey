@@ -64,7 +64,6 @@ static DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(const cv::Mat 
 				if (angleInRadians > (M_PI)) {
 					angleInRadians -= float(2 * M_PI);
 				}
-				const cv::Point2f angleAdjustedCenter = rotatePointClockwiseAroundOrigin(center, radiansFromRightAngle(angleInRadians));
 				diceFound.push_back({
 					underline, overlines[i], center, angleInRadians,
 					// letter read (not yet set)
