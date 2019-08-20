@@ -33,6 +33,10 @@
 		176940C022FBC4610069FDDA /* find-undoverlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "find-undoverlines.h"; sourceTree = "<group>"; };
 		176940C122FBC4610069FDDA /* validate-dice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "validate-dice.h"; sourceTree = "<group>"; };
 		176940C222FBC4620069FDDA /* die-specification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "die-specification.h"; sourceTree = "<group>"; };
+		17B42CE4230B93D4004B4012 /* statistics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = statistics.h; sourceTree = "<group>"; };
+		17B42CE5230B93D4004B4012 /* find-dice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "find-dice.h"; sourceTree = "<group>"; };
+		17B42CE6230B93D4004B4012 /* bit-operations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "bit-operations.h"; sourceTree = "<group>"; };
+		17B42CE7230B93D5004B4012 /* assemble-dice-key.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "assemble-dice-key.h"; sourceTree = "<group>"; };
 		17CE24DD2295155C00FF9B70 /* rotate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rotate.h; sourceTree = "<group>"; };
 		17CE24DE2295155C00FF9B70 /* rectangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rectangle.h; sourceTree = "<group>"; };
 		17CE24DF2295155C00FF9B70 /* value-clusters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "value-clusters.h"; sourceTree = "<group>"; };
@@ -77,6 +81,10 @@
 		17F51ECA228BE0B900E6BD74 /* dicescanner */ = {
 			isa = PBXGroup;
 			children = (
+				17B42CE7230B93D5004B4012 /* assemble-dice-key.h */,
+				17B42CE6230B93D4004B4012 /* bit-operations.h */,
+				17B42CE5230B93D4004B4012 /* find-dice.h */,
+				17B42CE4230B93D4004B4012 /* statistics.h */,
 				17CE24E02295155C00FF9B70 /* locate-dice.h */,
 				17CE24E12295155C00FF9B70 /* read-dice.h */,
 				17CE24DE2295155C00FF9B70 /* rectangle.h */,

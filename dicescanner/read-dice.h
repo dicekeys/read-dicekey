@@ -35,18 +35,6 @@ static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrEr
 	}
 	std::vector<DieRead> orderedDice = orderedDiceResult.orderedDice;
 	const float angleOfDiceKeyInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
-	//const float pixelsPerMm = diceAndStrayUndoverlinesFound.pixelsPerMm;
-	//const float halfDieSize = DieDimensionsMm::size * pixelsPerMm / 2.0f;
-	//
-	//const auto diceGrid = calculateDiceKeyGrid(diceAndStrayUndoverlinesFound, 1.0f * diceAndStrayUndoverlinesFound.pixelsPerMm);
-	//std::cout << "DiceGrid success = " << (isnan(diceGrid.angleInRadians) ? "false" : "true") << "\n";
-
-	//std::vector<float> dieAnglesInRadians = vmap<DieRead, float>(diceFound,
-	//	[](DieRead d) -> float { return radiansFromRightAngle(d.inferredAngleInRadians); });
-	//// Get the angle of all dice
-	//float angleOfDiceInRadians = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
-	//	dieAnglesInRadians, FortyFiveDegreesAsRadians);
-
 
 	for (auto &die : orderedDice) {
 		// Average the angle of the underline and overline

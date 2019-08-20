@@ -100,7 +100,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/A61M21G52E53Z13J22B20R40O20Y42I11X63N63L21H61U12S63F61W43P52V42K62C41T53D51-iphone-shadows.jpg"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/A62G32E63B32K33U42W20Z21D20I42S30L61R52J20N20Y42H52P13X23O11M12V60T62C12F42-iphone-angle.jpg"
