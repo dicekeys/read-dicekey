@@ -30,21 +30,39 @@ int findClosestMatchingCharacter(
 
   int secondBestError;
   
+  std::vector<int> scoreAtIndex(numberOfCharactersInAlphabet);
   for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
-    int totalError = 0;
-    const OcrChar &penalties = alphabet.pixelPenalties[charIndex];
-    // Calculate error for this character
     for (int imageY = 0; imageY < imageHeight; imageY++) {
       for (int imageX = 0; imageX < imageWidth; imageX++) {
         const bool isImagePixelBlack = bwImageOfCharacter.at<uchar>(cv::Point(imageX, imageY)) < 128;
         const int modelX = (imageX * alphabet.charWidthInPixels) / imageWidth;
         const int modelY = (imageY * alphabet.charHeightInPixels) / imageHeight;
         const int modelIndex = modelY * imageWidth + modelX;
-        const int errorAtPixel = isImagePixelBlack ?
-          ( 1 * penalties.ifPixelIsBlack[modelIndex]) : (1 * penalties.ifPixelIsWhite[modelIndex]);
-        totalError += errorAtPixel;
+        for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
+          scoreAtIndex[charIndex] += isImagePixelBlack ?
+            alphabet.pixelPenalties[charIndex].ifPixelIsBlack[modelIndex] :
+            alphabet.pixelPenalties[charIndex].ifPixelIsWhite[modelIndex];
+        }
       }
     }
+  }
+
+
+  for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
+    int totalError = scoreAtIndex[charIndex];
+    // const OcrChar &penalties = alphabet.pixelPenalties[charIndex];
+    // // Calculate error for this character
+    // for (int imageY = 0; imageY < imageHeight; imageY++) {
+    //   for (int imageX = 0; imageX < imageWidth; imageX++) {
+    //     const bool isImagePixelBlack = bwImageOfCharacter.at<uchar>(cv::Point(imageX, imageY)) < 128;
+    //     const int modelX = (imageX * alphabet.charWidthInPixels) / imageWidth;
+    //     const int modelY = (imageY * alphabet.charHeightInPixels) / imageHeight;
+    //     const int modelIndex = modelY * imageWidth + modelX;
+    //     const int errorAtPixel = isImagePixelBlack ?
+    //       ( 1 * penalties.ifPixelIsBlack[modelIndex]) : (1 * penalties.ifPixelIsWhite[modelIndex]);
+    //     totalError += errorAtPixel;
+    //   }
+    // }
     // If error is smaller than for any prior character, make this
     // the new winner
     if (charIndex == 0 || totalError < bestError) {
