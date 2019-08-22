@@ -14,7 +14,6 @@
 #include "rotate.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "ocr.h"
 #include "read-dice.h"
 #include "validate-dice.h"
 
@@ -43,11 +42,11 @@ static void help(const char* programName)
 int main(int argc, char** argv)
 {
 #ifdef _WIN32
-	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
+//	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
 #else
-	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
+//	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
 #endif
-	initOcr(tesseractPath);
+//	initOcr(tesseractPath);
 	help(argv[0]);
 
 #ifdef _WIN32

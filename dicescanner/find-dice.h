@@ -14,7 +14,6 @@
 #include "geometry.h"
 #include "die-specification.h"
 #include "dice.h"
-#include "ocr.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
 #include "value-clusters.h"
@@ -67,9 +66,9 @@ static DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(const cv::Mat 
 				diceFound.push_back({
 					underline, overlines[i], center, angleInRadians,
 					// letter read (not yet set)
-					{0, 0},
+					'\0',
 					// digit read (not yet set)
-					{0,0},
+					'\0',
 					0
 					});
 				// Remove the ith element of overlines

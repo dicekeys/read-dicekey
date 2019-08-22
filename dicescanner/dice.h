@@ -5,7 +5,6 @@
 #include "die-specification.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
-#include "ocr.h"
 
 struct DieFace {
     char letter = 0;
@@ -23,8 +22,10 @@ struct DieRead {
 //	cv::Point2f angleAdjustedCenter{ 0, 0 };
 
 	// Calculated after position is confirmed
-	ReadCharacterResult ocrLetter = { 0, 0 };
-	ReadCharacterResult ocrDigit = { 0, 0 };
+  char ocrLetter = '\0';
+  char ocrDigit = '\0';
+	// ReadCharacterResult ocrLetter = { 0, 0 };
+	// ReadCharacterResult ocrDigit = { 0, 0 };
 	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
 };
 

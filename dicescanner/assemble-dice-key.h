@@ -7,7 +7,6 @@
 #include "geometry.h"
 #include "die-specification.h"
 #include "dice.h"
-#include "ocr.h"
 #include "find-undoverlines.h"
 #include "find-dice.h"
 

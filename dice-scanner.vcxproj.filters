@@ -24,6 +24,8 @@
     <ClInclude Include="dicescanner\bit-operations.h" />
     <ClInclude Include="dicescanner\find-dice.h" />
     <ClInclude Include="dicescanner\assemble-dice-key.h" />
+    <ClInclude Include="dicescanner\inconsolata-700.h" />
+    <ClInclude Include="dicescanner\simple-ocr.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

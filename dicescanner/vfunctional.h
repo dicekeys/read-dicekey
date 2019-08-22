@@ -50,3 +50,6 @@ static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(con
 		}), result.end());
 	return result;
 }
+
+
+static char dashIfNull(char c) { return c == '\0' ? '-' : c; }

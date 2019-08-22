@@ -169,10 +169,12 @@
     <ClInclude Include="dicescanner\find-rectangles.h" />
     <ClInclude Include="dicescanner\geometry.h" />
     <ClInclude Include="dicescanner\find-undoverlines.h" />
+    <ClInclude Include="dicescanner\inconsolata-700.h" />
     <ClInclude Include="dicescanner\ocr.h" />
     <ClInclude Include="dicescanner\rectangle.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="dicescanner\sample-point.h" />
+    <ClInclude Include="dicescanner\simple-ocr.h" />
     <ClInclude Include="dicescanner\statistics.h" />
     <ClInclude Include="dicescanner\validate-dice.h" />
     <ClInclude Include="dicescanner\vfunctional.h" />

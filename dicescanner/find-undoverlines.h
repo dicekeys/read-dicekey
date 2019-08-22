@@ -15,7 +15,6 @@
 #include "rectangle.h"
 #include "die-specification.h"
 #include "rotate.h"
-#include "ocr.h"
 #include "sample-point.h"
 #include "decode-die.h"
 #include "statistics.h"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "inconsolata-700.h"
+#include <limits>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
@@ -8,58 +8,64 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
+#include "inconsolata-700.h"
+
+
 // struct OcrResult {
 //   int index = -1;
 //   float relativeConfidence;
 // };
 
-int findBestFitIndex(
-  const std::vector<const std::vector<const std::vector<float>>> &model,
-  const cv::Mat bwImageOfCharacter
+int findClosestMatchingCharacter(
+  const OcrAlphabet &alphabet,
+  const cv::Mat &bwImageOfCharacter
 ) {
-  const int modelCharacters = model.size();
-  const int modelRows = model[0].size();
-  const int modelColumns = model[0][0].size();
-
-  const int imageRows = bwImageOfCharacter.rows;
-  const int imageCols = bwImageOfCharacter.cols;
+  const int numberOfCharactersInAlphabet = (int) alphabet.pixelPenalties.size();
+  const int alphabetModelWidth = alphabet.charWidthInPixels;
+  const int imageHeight = bwImageOfCharacter.rows;
+  const int imageWidth = bwImageOfCharacter.cols;
   
   int bestIndex = -1;
-  float bestError = std::_Max_possible_v<float>;
-  float secondBestError;
-  
-  for (int charIndex = 0; charIndex < modelCharacters; charIndex++) {
+	int bestError = std::numeric_limits<int>::max();
 
-    float totalError = 0;
-    for (int row = 0; row < modelRows; row++) {
-      for (int column = 0; column < modelColumns; column++) {
-        const int top = floor( (column * imageCols) / modelColumns);
-        const int bottom = floor( ( (column+1) * imageCols) / modelColumns);
-        const int left = floor( (row * imageRows) / modelRows);
-        const int right = floor( ( (row+1) * imageRows) / modelRows);
-        int blackSamples = 0;
-        int totalSamples = 0;
-        for (int x = left; x < right; x++) {
-          for (int y = top; y < bottom; y++) {
-            if (bwImageOfCharacter.at<uchar>(cv::Point(x, y)) < 128) {
-              blackSamples++;
-            }
-            totalSamples++;
-          }
-        }
-        const float fractionBlack = (float(blackSamples) / float(totalSamples));
-        const float error = abs(fractionBlack - model[charIndex][row][column]);
-        totalError += error * error;
-        if (charIndex == 0 || totalError < bestError) {
-          secondBestError = bestError;
-          bestError = totalError;
-          bestIndex = charIndex;          
-        } else if (totalError < secondBestError) {
-          secondBestError = totalError;
-        }
+  int secondBestError;
+  
+  for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
+    int totalError = 0;
+    const OcrChar &penalties = alphabet.pixelPenalties[charIndex];
+    // Calculate error for this character
+    for (int imageY = 0; imageY < imageHeight; imageY++) {
+      for (int imageX = 0; imageX < imageWidth; imageX++) {
+        const bool isImagePixelBlack = bwImageOfCharacter.at<uchar>(cv::Point(imageX, imageY)) < 128;
+        const int modelX = (imageX * alphabet.charWidthInPixels) / imageWidth;
+        const int modelY = (imageY * alphabet.charHeightInPixels) / imageHeight;
+        const int modelIndex = modelY * imageWidth + modelX;
+        const int errorAtPixel = isImagePixelBlack ?
+          ( 1 * penalties.ifPixelIsBlack[modelIndex]) : (1 * penalties.ifPixelIsWhite[modelIndex]);
+        totalError += errorAtPixel;
       }
+    }
+    // If error is smaller than for any prior character, make this
+    // the new winner
+    if (charIndex == 0 || totalError < bestError) {
+      secondBestError = bestError;
+      bestError = totalError;
+      bestIndex = charIndex;          
+    } else if (totalError < secondBestError) {
+      // If error is the second best, track that so we know how much
+      // better best result is over second best.
+      secondBestError = totalError;
     }
   }
 
   return bestIndex;
 }
+
+int readLetter(const cv::Mat &letterImage) {
+  return findClosestMatchingCharacter(Inconsolata700::letters, letterImage);
+}
+
+int readDigit(const cv::Mat &digitImage) {
+  return findClosestMatchingCharacter(Inconsolata700::digits, digitImage);
+}
+
