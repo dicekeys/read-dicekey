@@ -34,8 +34,8 @@ int findClosestMatchingCharacter(
       for (int imageX = 0; imageX < imageWidth; imageX++) {
 				const uchar pixel = bwImageOfCharacter.at<uchar>(cv::Point2i(imageX, imageY));
         const bool isImagePixelBlack = pixel < 128;
-        const int modelX = (imageX * alphabet.charWidthInPixels) / imageWidth;
-        const int modelY = (imageY * alphabet.charHeightInPixels) / imageHeight;
+        const int modelX = int( ((imageX + 0.5f) * alphabet.charWidthInPixels) / float(imageWidth));
+        const int modelY = int( ((imageY + 0.5f) * alphabet.charHeightInPixels) / float(imageHeight));
 				assert(modelX < alphabet.charWidthInPixels);
 				assert(modelY < alphabet.charHeightInPixels);
         const int modelIndex = (modelY * alphabet.charWidthInPixels) + modelX;
