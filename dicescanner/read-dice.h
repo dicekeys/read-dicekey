@@ -41,7 +41,8 @@ static DieCharactersRead readDieCharacters(
 	// Rotate to remove the angle of the die
 	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
 	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
-	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * 0.8f * mmToPixels));
+	// FIXME -- constant in next line is a hack
+	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * 0.875f * mmToPixels));
 	// Use an even text region width so we can even split it in two at the center;
 	if ((textWidthPixels % 2) == 1) {
 		textWidthPixels += 1;
@@ -54,15 +55,16 @@ static DieCharactersRead readDieCharacters(
 	cv::threshold(textBlurred, textEdges, whiteBlackThreshold, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
 
 	// Setup a rectangle to define your region of interest
-	const cv::Rect letterRect(0, 0, textRegionSize.width / 2, textRegionSize.height);
-	const cv::Rect digitRect( textRegionSize.width / 2, 0, textRegionSize.width / 2, textRegionSize.height);
+	int charWidth = ( textRegionSize.width - round(DieDimensionsMm::spaceBetweenLetterAndDigit * mmToPixels) ) / 2;
+	const cv::Rect letterRect(0, 0, charWidth, textRegionSize.height);
+	const cv::Rect digitRect(textRegionSize.width - charWidth, 0, charWidth, textRegionSize.height);
 	auto letterImage = textEdges(letterRect);
 	auto digitImage = textEdges(digitRect);
 
 	// FIXME -- remove after development debugging
-	cv::imwrite("text-region.png", textImage);
-	cv::imwrite("letter.png", letterImage);
-	cv::imwrite("digit.png", digitImage);
+	cv::imwrite("/Users/stuart/github/dice-scanner/text-region.png", textImage);
+	cv::imwrite("/Users/stuart/github/dice-scanner/letter.png", letterImage);
+	cv::imwrite("/Users/stuart/github/dice-scanner/digit.png", digitImage);
 
 	const int letterIndex = readLetter(letterImage);
 	const int digitIndex = readDigit(digitImage);
@@ -110,7 +112,6 @@ static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrEr
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
 		die.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
-		int letterIndex = 
 		die.ocrLetter = charsRead.letter;
 		die.ocrDigit = charsRead.digit;
 	}
