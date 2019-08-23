@@ -62,7 +62,8 @@ int main(int argc, char** argv)
 		cv::Mat image = cv::imread(filepath, cv::IMREAD_COLOR);
 		if (image.empty()) {
 			std::cout << "Couldn't load " << filepath << std::endl;
-			return -1;
+			// return -1;
+			continue;
 		}
 		
 		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
