@@ -63,44 +63,44 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/stuart/github/dice-scanner/img/J53T20W22N11Y23M40O31C12I20V31H42P52R60S62E11B52L30X23D42F62U40A60Z53G51K50-Fira-Code-With-Shadow.jpg"
+            argument = "/Users/stuart/github/dice-scanner/img/H21Z40F20D13M20P20T50X33V11W51A43C51U31I12O63N42R33B12S51L42Y61G33J30E53K42-angle.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/stuart/github/dice-scanner/img/D13U22K12S63H42W21G52I53A22T53O50Z10L22C23P21Y51R32X22F33N12V60J32E12B10M10-Fira-Code.jpg"
+            argument = "/Users/stuart/github/dice-scanner/img/K13Y63A23S13X61C50P43M10B50R33L41V40D50G61U50I42E41T13H50F32O40N11W60J11Z31.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/stuart/github/dice-scanner/img/G52H50J30P11T20O32Y12D60F10E42I50L53N63X63R43U62V31W40B21K32M11A51C21Z63S30-Fira-Code.jpg"
+            argument = "/Users/stuart/github/dice-scanner/img/C22I12L11G51P31F53K22V40S13W53T31O50Z30B13M51E22J13H43U30A13D62N13R61X60Y41-faded.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/stuart/github/dice-scanner/img/D41B43J61K62O42V20N41W51G32U23C22F40Z50R62I52X20L61T40S13H42P61Y12E43A10M32-Fira-Code.jpg"
+            argument = "/Users/stuart/github/dice-scanner/img/H10A22Y23I43L42M60J20E61W32D43Z21V33T33G33K40X32B43N10R63O60U40S61F13C40P41.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/stuart/github/dice-scanner/img/J53T20W22N11Y23M40O31C12I20V31H42P52R60S62E11B52L30X23D42F62U40A60Z53G51K50-Fira-Code.jpg"
+            argument = "/Users/stuart/github/dice-scanner/img/B23X21K21Y63F53I50O11H12J40M13G10P40C60S33U23A21W62L60V42D33T32Z61N13E33R63.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/stuart/github/dice-scanner/img/K60D23R11I41P20W52J31Y13V43F53S13E11Z22H30L30B20C12O53U20G60M23N40X11A42T31-Fira-Code.jpg"
+            argument = "/Users/stuart/github/dice-scanner/img/C22I12L11G51P31F53K22V40S13W53T31O50Z30B13M51E22J13H43U30A13D62N13R61X60Y41-super-low-res.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/F51E31C30K20U51O21Z43M22G52W52D40H62S22T13J40B52I33A50N21R62P50X51L32V31Y41-Fira-Code.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/D41B43J61K62O42V20N41W51G32U23C22F40Z50R62I52X20L61T40S13H42P61Y12E43A10M32-Fira-Code-angle.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/F51E31C30K20U51O21Z43M22G52W52D40H62S22T13J40B52I33A50N21R62P50X51L32V31Y41-Fira-Code-Shadow.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/A61M21G52E53Z13J22B20R40O20Y42I11X63N63L21H61U12S63F61W43P52V42K62C41T53D51-iphone-shadows.jpg"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/stuart/github/dice-scanner/img/A62G32E63B32K33U42W20Z21D20I42S30L61R52J20N20Y42H52P13X23O11M12V60T62C12F42-iphone-angle.jpg"
