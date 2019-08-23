@@ -61,18 +61,18 @@ static DieCharactersRead readDieCharacters(
 	cv::threshold(textImage, textEdges, whiteBlackThreshold, valueRepresentingBlack, cv::THRESH_BINARY);
 
 	// Setup a rectangle to define your region of interest
-	int charWidth = ( textRegionSize.width - round(DieDimensionsMm::spaceBetweenLetterAndDigit * mmToPixels) ) / 2;
+	int charWidth = int( ( textRegionSize.width - round(DieDimensionsMm::spaceBetweenLetterAndDigit * mmToPixels) ) / 2);
 	const cv::Rect letterRect(0, 0, charWidth, textRegionSize.height);
 	const cv::Rect digitRect(textRegionSize.width - charWidth, 0, charWidth, textRegionSize.height);
 	auto letterImage = textEdges(letterRect);
 	auto digitImage = textEdges(digitRect);
 
 	// FIXME -- remove after development debugging
-	cv::imwrite("/Users/stuart/github/dice-scanner/text-region.png", textImage);
-//	cv::imwrite("/Users/stuart/github/dice-scanner/text-blurred.png", textBlurred);
-	cv::imwrite("/Users/stuart/github/dice-scanner/text-edges.png", textEdges);
-	cv::imwrite("/Users/stuart/github/dice-scanner/letter.png", letterImage);
-	cv::imwrite("/Users/stuart/github/dice-scanner/digit.png", digitImage);
+	//cv::imwrite("text-region.png", textImage);
+	// //	cv::imwrite("text-blurred.png", textBlurred);
+	// cv::imwrite("text-edges.png", textEdges);
+	// cv::imwrite("letter.png", letterImage);
+	// cv::imwrite("digit.png", digitImage);
 
 	const int letterIndex = readLetter(letterImage);
 	const int digitIndex = readDigit(digitImage);
@@ -132,24 +132,6 @@ static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrEr
 		die.ocrLetter = charsRead.letter;
 		die.ocrDigit = charsRead.digit;
 	}
-	//// calculate the average angle mod 90 so we can generate a rotation function
-	//for (size_t i = 0; i < diceFound.size(); i++) {
-	//	diceFound[i].angleAdjustedCenter = rotatePointClockwiseAroundOrigin(diceFound[i].center, angleOfDiceKeyInRadiansNonCononicalForm);
-	//}
-
-	//// Sort the dice based on their positions after adjusting the angle
-	//std::sort(diceFound.begin(), diceFound.end(), [halfDieSize](DieRead a, DieRead b) {
-	//	if (a.angleAdjustedCenter.y < (b.angleAdjustedCenter.y - halfDieSize)) {
-	//		// Die a is at least a half die above die b, and therefore comes before it
-	//		return true;
-	//	}
-	//	else if (b.angleAdjustedCenter.y < (a.angleAdjustedCenter.y - halfDieSize)) {
-	//		// Die b is at least a half die above die a, and therefore comes before it
-	//		return false;
-	//	}
-	//	// Die a and die b are roughly the same from top to bottom, so order left to right
-	//	return a.angleAdjustedCenter.x < b.angleAdjustedCenter.x;
-	//});
 
 	return orderedDice;
 }
