@@ -42,17 +42,23 @@ static DieCharactersRead readDieCharacters(
 	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
 	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
 	// FIXME -- constant in next line is a hack
-	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * 0.875f * mmToPixels));
+	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * 0.825f * mmToPixels));
 	// Use an even text region width so we can even split it in two at the center;
 	if ((textWidthPixels % 2) == 1) {
 		textWidthPixels += 1;
 	}
 	cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
+	cv::Mat textEdges;
+	const uchar valueRepresentingBlack = 255;
 
 	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, degreesToRotateToRemoveAngleOfDie, textRegionSize);
-	cv::Mat textBlurred, textEdges;
-	cv::medianBlur(textImage, textBlurred, 5);
-	cv::threshold(textBlurred, textEdges, whiteBlackThreshold, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+	// Previously, we blurred image before thresholding.  It may make sense to do that
+	// again when we get back images from real dice, so leaving this code here.
+	// cv::Mat textBlurred
+	// cv::medianBlur(textImage, textBlurred, 3);
+	// cv::threshold(textBlurred, textEdges, whiteBlackThreshold, valueRepresentingBlack, cv::THRESH_BINARY);
+	// at which point we'd remove the line below
+	cv::threshold(textImage, textEdges, whiteBlackThreshold, valueRepresentingBlack, cv::THRESH_BINARY);
 
 	// Setup a rectangle to define your region of interest
 	int charWidth = ( textRegionSize.width - round(DieDimensionsMm::spaceBetweenLetterAndDigit * mmToPixels) ) / 2;
@@ -63,6 +69,8 @@ static DieCharactersRead readDieCharacters(
 
 	// FIXME -- remove after development debugging
 	cv::imwrite("/Users/stuart/github/dice-scanner/text-region.png", textImage);
+	cv::imwrite("/Users/stuart/github/dice-scanner/text-blurred.png", textBlurred);
+	cv::imwrite("/Users/stuart/github/dice-scanner/text-edges.png", textEdges);
 	cv::imwrite("/Users/stuart/github/dice-scanner/letter.png", letterImage);
 	cv::imwrite("/Users/stuart/github/dice-scanner/digit.png", digitImage);
 
@@ -99,14 +107,23 @@ static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrEr
 	const float angleOfDiceKeyInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
 
 	for (auto &die : orderedDice) {
-		// Average the angle of the underline and overline
+		if (!(die.underline.found || die.overline.found)) {
+			continue;
+			// Without an overline or underline to orient the die, we can't read it.
+		}
+		// The threshold between black pixels and white pixels is calculated as the average (mean)
+		// of the threshold used for the underline and for the overline, but if the underline or overline
+		// is absent, we use the threshold from the line that is present.
+		const uchar whiteBlackThreshold =
+			(die.underline.found && die.overline.found) ?
+				uchar((uint(die.underline.whiteBlackThreshold) + uint(die.overline.whiteBlackThreshold)) / 2) :
+			die.underline.found ?
+				die.underline.whiteBlackThreshold :
+				die.overline.whiteBlackThreshold;
 		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
-			diceAndStrayUndoverlinesFound.pixelsPerMm,
-			// The threshold between black pixels and white pixels is calculated as the average (mean)
-			// of the threshold used for the underline and for the overline.
-			uchar( (uint(die.underline.whiteBlackThreshold) + uint(die.overline.whiteBlackThreshold))/2 ),
-			outputOcrErrors ? die.underline.dieFaceInferred.letter : '\0',
-			outputOcrErrors ? die.underline.dieFaceInferred.digit : '\0'
+		  diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
+		  outputOcrErrors ? ( die.underline.dieFaceInferred.letter != '\0' ? die.underline.dieFaceInferred.letter : die.overline.dieFaceInferred.letter ) : '\0',
+		  outputOcrErrors ? ( die.underline.dieFaceInferred.digit != '\0' ? die.underline.dieFaceInferred.digit : die.overline.dieFaceInferred.digit ) : '\0'
 		);
 		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceKeyInRadiansNonCononicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
@@ -179,14 +196,14 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 					"\n";
 			}
 		}
-		if (letterRead == 0) {
+		if (letterRead == 0 && (dieRead.underline.found || dieRead.overline.found)) {
 			if (reportErrsToStdErr) {
 				std::cerr << "Letter at die " << i << " could not be read " <<
 				"(underline=>'" << dashIfNull(underlineInferred.letter) <<
 				"', overline=>'" << dashIfNull(overlineInferred.letter) << "')\n";
 			}
 		}
-		if (digitRead == 0) {
+		if (digitRead == 0 && (dieRead.underline.found || dieRead.overline.found)) {
 			if (reportErrsToStdErr) {
 				std::cerr << "Digit at die " << i << " could not be read " <<
 				"(underline=>'" << dashIfNull(underlineInferred.digit) <<
