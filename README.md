@@ -3,13 +3,11 @@
 ## MacOS install
 ```
 brew install opencv
-brew install tesseract
 ```
 
 ## Windows install
 ```
 vcpck install opencv
-vcpkg install tesseract:x64-windows
 ```
 
 ## Notes on running
