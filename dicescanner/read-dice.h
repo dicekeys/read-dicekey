@@ -69,7 +69,7 @@ static DieCharactersRead readDieCharacters(
 
 	// FIXME -- remove after development debugging
 	cv::imwrite("/Users/stuart/github/dice-scanner/text-region.png", textImage);
-	cv::imwrite("/Users/stuart/github/dice-scanner/text-blurred.png", textBlurred);
+//	cv::imwrite("/Users/stuart/github/dice-scanner/text-blurred.png", textBlurred);
 	cv::imwrite("/Users/stuart/github/dice-scanner/text-edges.png", textEdges);
 	cv::imwrite("/Users/stuart/github/dice-scanner/letter.png", letterImage);
 	cv::imwrite("/Users/stuart/github/dice-scanner/digit.png", digitImage);
