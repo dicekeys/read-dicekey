@@ -21,27 +21,31 @@ int findClosestMatchingCharacter(
   const cv::Mat &bwImageOfCharacter
 ) {
   const int numberOfCharactersInAlphabet = (int) alphabet.pixelPenalties.size();
-  const int alphabetModelWidth = alphabet.charWidthInPixels;
   const int imageHeight = bwImageOfCharacter.rows;
   const int imageWidth = bwImageOfCharacter.cols;
   
   int bestIndex = -1;
 	int bestError = std::numeric_limits<int>::max();
-
-  int secondBestError;
+  int secondBestError = bestError;
   
   std::vector<int> scoreAtIndex(numberOfCharactersInAlphabet);
   for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
     for (int imageY = 0; imageY < imageHeight; imageY++) {
       for (int imageX = 0; imageX < imageWidth; imageX++) {
-        const bool isImagePixelBlack = bwImageOfCharacter.at<uchar>(cv::Point(imageX, imageY)) < 128;
+				const uchar pixel = bwImageOfCharacter.at<uchar>(cv::Point2i(imageX, imageY));
+        const bool isImagePixelBlack = pixel < 128;
         const int modelX = (imageX * alphabet.charWidthInPixels) / imageWidth;
         const int modelY = (imageY * alphabet.charHeightInPixels) / imageHeight;
-        const int modelIndex = modelY * imageWidth + modelX;
+				assert(modelX < alphabet.charWidthInPixels);
+				assert(modelY < alphabet.charHeightInPixels);
+        const int modelIndex = (modelY * alphabet.charWidthInPixels) + modelX;
+				assert(modelIndex < alphabet.pixelPenalties[charIndex].ifPixelIsBlack.size());
         for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
-          scoreAtIndex[charIndex] += isImagePixelBlack ?
-            alphabet.pixelPenalties[charIndex].ifPixelIsBlack[modelIndex] :
-            alphabet.pixelPenalties[charIndex].ifPixelIsWhite[modelIndex];
+					const int penalty = isImagePixelBlack ?
+						alphabet.pixelPenalties[charIndex].ifPixelIsBlack[modelIndex] :
+						alphabet.pixelPenalties[charIndex].ifPixelIsWhite[modelIndex];
+					assert(penalty <= 5);
+					scoreAtIndex[charIndex] += penalty;
         }
       }
     }

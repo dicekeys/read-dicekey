@@ -37,6 +37,8 @@
 		17B42CE5230B93D4004B4012 /* find-dice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "find-dice.h"; sourceTree = "<group>"; };
 		17B42CE6230B93D4004B4012 /* bit-operations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "bit-operations.h"; sourceTree = "<group>"; };
 		17B42CE7230B93D5004B4012 /* assemble-dice-key.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "assemble-dice-key.h"; sourceTree = "<group>"; };
+		17B42CE8230F745F004B4012 /* simple-ocr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simple-ocr.h"; sourceTree = "<group>"; };
+		17B42CE9230F745F004B4012 /* inconsolata-700.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "inconsolata-700.h"; sourceTree = "<group>"; };
 		17CE24DD2295155C00FF9B70 /* rotate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rotate.h; sourceTree = "<group>"; };
 		17CE24DE2295155C00FF9B70 /* rectangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rectangle.h; sourceTree = "<group>"; };
 		17CE24DF2295155C00FF9B70 /* value-clusters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "value-clusters.h"; sourceTree = "<group>"; };
@@ -81,6 +83,8 @@
 		17F51ECA228BE0B900E6BD74 /* dicescanner */ = {
 			isa = PBXGroup;
 			children = (
+				17B42CE9230F745F004B4012 /* inconsolata-700.h */,
+				17B42CE8230F745F004B4012 /* simple-ocr.h */,
 				17B42CE7230B93D5004B4012 /* assemble-dice-key.h */,
 				17B42CE6230B93D4004B4012 /* bit-operations.h */,
 				17B42CE5230B93D4004B4012 /* find-dice.h */,
