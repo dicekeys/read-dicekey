@@ -17,8 +17,8 @@
 #include "rotate.h"
 
 struct DieCharactersRead {
-	char letter= '\0';
-	char digit = '\0';
+	const OcrResult lettersMostLikelyFirst;
+	const OcrResult digitsMostLikelyFirst;
 };
 
 static DieCharactersRead readDieCharacters(
@@ -67,20 +67,23 @@ static DieCharactersRead readDieCharacters(
 	// cv::imwrite("letter.png", letterImage);
 	// cv::imwrite("digit.png", digitImage);
 
-	const int letterIndex = readLetter(letterImage);
-	const int digitIndex = readDigit(digitImage);
-
-	char letter = letterIndex < 0 ? '\0' : DieLetters[letterIndex];
-	char digit = digitIndex < 0 ? '\0' : DieDigits[digitIndex];
+	const OcrResult lettersMostLikelyFirst = readLetter(letterImage);
+	const OcrResult digitsMostLikelyFirst = readDigit(digitImage);
 
 	// FIXME -- remove after development debugging
 	static int error = 1;
-	if (writeErrorUnlessThisLetterIsRead != 0 && writeErrorUnlessThisLetterIsRead != letter) {
-		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) + "-as-" + std::string(1, dashIfNull(letter)) + ".png", letterImage);
+	if (writeErrorUnlessThisLetterIsRead != 0 && writeErrorUnlessThisLetterIsRead != lettersMostLikelyFirst[0].character) {
+		cv::imwrite(
+      "error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) +
+          "-as-" + std::string(1, dashIfNull(lettersMostLikelyFirst[0].character)) + ".png",
+      letterImage);
 	}
-	if (writeErrorUnlessThisDigitIsRead != 0 && writeErrorUnlessThisDigitIsRead != digit) {
-		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisDigitIsRead) + "-as-" + std::string(1, dashIfNull(digit)) + ".png", digitImage);
+	if (writeErrorUnlessThisDigitIsRead != 0 && writeErrorUnlessThisDigitIsRead != digitsMostLikelyFirst[0].character) {
+		cv::imwrite(
+      "error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisDigitIsRead) +
+        "-as-" + std::string(1, dashIfNull(digitsMostLikelyFirst[0].character)) + ".png",
+      digitImage);
 	}
 
-	return {letter, digit};
+	return {lettersMostLikelyFirst, digitsMostLikelyFirst};
 }

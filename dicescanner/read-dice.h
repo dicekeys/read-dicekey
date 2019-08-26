@@ -23,7 +23,7 @@
 #include "assemble-dice-key.h"
 #include "read-die-characters.h"
 
-static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
+static DiceRead readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
 {
 	cv::Mat grayscaleImage;
 
@@ -59,8 +59,8 @@ static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrEr
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
 		die.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
-		die.ocrLetter = charsRead.letter;
-		die.ocrDigit = charsRead.digit;
+		die.ocrLetter = charsRead.lettersMostLikelyFirst;
+		die.ocrDigit = charsRead.digitsMostLikelyFirst;
 	}
 
 	return orderedDice;
@@ -76,8 +76,8 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 		DieRead dieRead = diceRead[i];
 		const DieFaceSpecification& underlineInferred = dieRead.underline.dieFaceInferred;
 		const DieFaceSpecification& overlineInferred = dieRead.overline.dieFaceInferred;
-		const char digitRead = dieRead.ocrDigit;
-		const char letterRead = dieRead.ocrLetter;
+		const char digitRead = dieRead.ocrDigit.size() == 0 ? '\0' : dieRead.ocrDigit[0].character;
+		const char letterRead = dieRead.ocrLetter.size() == 0 ? '\0' :  dieRead.ocrLetter[0].character;
 		if (!dieRead.underline.found) {
 			if (reportErrsToStdErr) {
 				std::cerr << "Underline for die " << i << " not found\n";
@@ -104,7 +104,7 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) <<
 					" best explained by " << minBitErrors << " bit error in " << 
 						(bitErrorsIfUnderlineCorrect < bitErrorsIfOverlineCorrect ? "overline" : "underline") <<
-					" (ocr returned " << dashIfNull(dieRead.ocrLetter) << dashIfNull(dieRead.ocrDigit) << ")" <<
+					" (ocr returned " << dashIfNull(letterRead) << dashIfNull(digitRead) << ")" <<
 					"\n";
 			}
 		}
@@ -143,10 +143,10 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 
 		diceKey.push_back(DieFace({
 			majorityOfThree(
-				underlineInferred.letter, overlineInferred.letter, dieRead.ocrLetter
+				underlineInferred.letter, overlineInferred.letter, letterRead
 			),
 			majorityOfThree(
-				underlineInferred.digit, overlineInferred.digit, dieRead.ocrDigit
+				underlineInferred.digit, overlineInferred.digit, digitRead
 			),
 			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
 			}));

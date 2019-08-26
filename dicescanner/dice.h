@@ -12,7 +12,6 @@ struct DieFace {
     unsigned char orientationAs0to3ClockwiseTurnsFromUpright = 0;
 };
 
-
 struct DieRead {
 	// Calculated purely from underline & overline.
 	Undoverline underline;
@@ -22,12 +21,13 @@ struct DieRead {
 //	cv::Point2f angleAdjustedCenter{ 0, 0 };
 
 	// Calculated after position is confirmed
-  char ocrLetter = '\0';
-  char ocrDigit = '\0';
+  OcrResult ocrLetter = {};
+  OcrResult ocrDigit = {};
 	// ReadCharacterResult ocrLetter = { 0, 0 };
 	// ReadCharacterResult ocrDigit = { 0, 0 };
 	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
 };
+typedef std::vector<DieRead> DiceRead;
 
 
 
