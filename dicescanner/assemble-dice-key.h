@@ -40,6 +40,18 @@ public:
 		);
 	}
 
+	const cv::Point2f getDieCenterPoint(int column, int row) {
+		const cv::Point2f dieCenterRotatedClockwise = cv::Point2f(
+			topLeftPointRotatedClockwise.x + column * distanceBetweenColumns,
+			topLeftPointRotatedClockwise.y + row * distanceBetweenRows
+		);
+		const cv::Point2f dieCenter = rotatePointCounterclockwise(dieCenterRotatedClockwise, centerPoint, angleInRadians);
+		return dieCenter;
+	}
+	const cv::Point2f getDieCenterPoint(int dieIndex) {
+		return getDieCenterPoint( dieIndex % 5, dieIndex / 5);
+	}
+
 	/*
 		Returns the index [0, 24] for a die center point, or -1 if the point provided
 	 	Is not sufficiently close to a center of the grid in the DiceKey model
@@ -181,25 +193,32 @@ struct DiceOrderdWithMissingDiceInferredFromUnderlines {
 	// The angle of what was read on the page, without any conversion to have
 	// the top left be the corner with the earliest letter in the alphabet
 	float angleInRadiansNonCononicalForm = NAN;
+	float pixelsPerMm;
 };
 static DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverlines(
 	const DiceAndStrayUndoverlinesFound& diceAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine = 1.0f // 1 mm
 ) {
+	// First, take the dice and undoverlines we've found and try to build
+	// a model a model that describes the locations within a 5x5 grid 
 	auto grid = calculateDiceKeyGrid(diceAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
 	if (!grid.valid) {
 		return {};
 	}
 	std::vector<DieRead> orderedDice(25);
+	// Copy all the dice we found into the grid model
 	for (const auto &dieFound : diceAndStrayUndoverlinesFound.diceFound) {
 		const int dieIndex = grid.getDieIndex(dieFound.center);
 		if (dieIndex >= 0) {
+			// We were able to find this die in the grid model, so copy it in
 			orderedDice[dieIndex] = dieFound;
 		}
 	}
+	// Copy all the stray undoverlines we found into the grid model
 	for (const auto &undoverline : diceAndStrayUndoverlinesFound.strayUndoverlines) {
 		const int dieIndex = grid.getDieIndex(undoverline.inferredDieCenter);
 		if (dieIndex >= 0) {
+			// We were able to find this undoverline's die in the grid model, so copy it in
 			if (undoverline.isOverline) {
 				orderedDice[dieIndex].overline = undoverline;
 			}
@@ -210,5 +229,13 @@ static DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingU
 			orderedDice[dieIndex].center = undoverline.inferredDieCenter;
 		}
 	}
-	return { true, orderedDice, grid.angleInRadians };
+	// Provide a center point for dice we know should be there, but for which we could find an overline
+	// or underline.  We can use that center point for drawing a box around what we couldn't read.
+	for (int i=0; i < 25; i++) {
+		if (!orderedDice[i].underline.found && !orderedDice[i].overline.found) {
+			orderedDice[i].center = grid.getDieCenterPoint(i);
+		}
+	}
+
+	return { true, orderedDice, grid.angleInRadians, diceAndStrayUndoverlinesFound.pixelsPerMm };
 }

@@ -18,6 +18,7 @@
 #include "find-undoverlines.h"
 #include "value-clusters.h"
 #include "bit-operations.h"
+#include "dice-read.h"
 
 struct DiceAndStrayUndoverlinesFound {
 	std::vector<DieRead> diceFound;

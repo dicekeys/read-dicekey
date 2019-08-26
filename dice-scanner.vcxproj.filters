@@ -12,7 +12,6 @@
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="dicescanner\find-undoverlines.h" />
-    <ClInclude Include="dicescanner\ocr.h" />
     <ClInclude Include="dicescanner\sample-point.h" />
     <ClInclude Include="dicescanner\decode-die.h" />
     <ClInclude Include="dicescanner\find-rectangles.h" />
@@ -27,6 +26,7 @@
     <ClInclude Include="dicescanner\inconsolata-700.h" />
     <ClInclude Include="dicescanner\simple-ocr.h" />
     <ClInclude Include="dicescanner\read-die-characters.h" />
+    <ClInclude Include="dicescanner\dice-read.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

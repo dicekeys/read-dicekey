@@ -28,8 +28,8 @@ static DieCharactersRead readDieCharacters(
 	float angleRadians,
 	float mmToPixels,
 	unsigned char whiteBlackThreshold,
-	char writeErrorUnlessThisLetterIsRead = 0,
-	char writeErrorUnlessThisDigitIsRead = 0
+	std::string writeErrorUnlessThisLetterIsRead = "",
+	std::string writeErrorUnlessThisDigitIsRead = ""
 ) {
 	// Rotate to remove the angle of the die
 	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
@@ -61,27 +61,30 @@ static DieCharactersRead readDieCharacters(
 	auto digitImage = textEdges(digitRect);
 
 	// FIXME -- remove after development debugging
-	//cv::imwrite("text-region.png", textImage);
-	// //	cv::imwrite("text-blurred.png", textBlurred);
-	// cv::imwrite("text-edges.png", textEdges);
-	// cv::imwrite("letter.png", letterImage);
-	// cv::imwrite("digit.png", digitImage);
+	//cv::imwrite("temp/text-region.png", textImage);
+	// //	cv::imwrite("temp/text-blurred.png", textBlurred);
+	// cv::imwrite("temp/text-edges.png", textEdges);
+	// cv::imwrite("temp/letter.png", letterImage);
+	// cv::imwrite("temp/digit.png", digitImage);
 
 	const OcrResult lettersMostLikelyFirst = readLetter(letterImage);
 	const OcrResult digitsMostLikelyFirst = readDigit(digitImage);
 
+	const char letter0 = lettersMostLikelyFirst[0].character;
+	const char digit0 = digitsMostLikelyFirst[0].character;
+
 	// FIXME -- remove after development debugging
 	static int error = 1;
-	if (writeErrorUnlessThisLetterIsRead != 0 && writeErrorUnlessThisLetterIsRead != lettersMostLikelyFirst[0].character) {
+	if (writeErrorUnlessThisLetterIsRead.length() != 0 && writeErrorUnlessThisLetterIsRead != "--" && writeErrorUnlessThisLetterIsRead.find_first_of( letter0 ) == -1) {
 		cv::imwrite(
-			"error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) +
-			"-as-" + std::string(1, dashIfNull(lettersMostLikelyFirst[0].character)) + ".png",
+			"ocr-errors/error-" + std::to_string(error++) + "-read-" + writeErrorUnlessThisLetterIsRead +
+			"-as-" + std::string(1, dashIfNull(letter0)) + ".png",
 			letterImage);
 	}
-	if (writeErrorUnlessThisDigitIsRead != 0 && writeErrorUnlessThisDigitIsRead != digitsMostLikelyFirst[0].character) {
+	if (writeErrorUnlessThisDigitIsRead.length() != 0 && writeErrorUnlessThisDigitIsRead != "--" && writeErrorUnlessThisDigitIsRead.find_first_of( digit0 ) == -1) {
 		cv::imwrite(
-			"error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisDigitIsRead) +
-			"-as-" + std::string(1, dashIfNull(digitsMostLikelyFirst[0].character)) + ".png",
+			"ocr-errors/error-" + std::to_string(error++) + "-read-" + writeErrorUnlessThisDigitIsRead +
+			"-as-" + std::string(1, dashIfNull(digit0)) + ".png",
 			digitImage);
 	}
 

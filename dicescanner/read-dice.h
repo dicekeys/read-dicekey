@@ -23,7 +23,13 @@
 #include "assemble-dice-key.h"
 #include "read-die-characters.h"
 
-static DiceRead readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
+struct ReadDiceResult {
+	std::vector<DieRead> dice;
+	float angleInRadiansNonCononicalForm;
+	float pixelsPerMm;
+};
+
+static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
 {
 	cv::Mat grayscaleImage;
 
@@ -52,11 +58,13 @@ static DiceRead readDice(const cv::Mat &colorImage, bool outputOcrErrors = false
 				die.overline.whiteBlackThreshold;
 		const DieFaceSpecification &underlineInferred = *die.underline.dieFaceInferred();
 		const DieFaceSpecification &overlineInferred = *die.overline.dieFaceInferred();
-		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
-		  diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
-		  outputOcrErrors ? ( underlineInferred.letter != '\0' ? underlineInferred.letter : overlineInferred.letter ) : '\0',
-		  outputOcrErrors ? ( underlineInferred.digit != '\0' ? underlineInferred.digit : overlineInferred.digit ) : '\0'
+		const DieCharactersRead charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
+			diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
+			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.letter)) + std::string(1, dashIfNull(overlineInferred.letter))) : "",
+			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.digit)) + std::string(1, dashIfNull(overlineInferred.digit))) : ""
 		);
+			
+		
 		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceKeyInRadiansNonCononicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
@@ -65,7 +73,7 @@ static DiceRead readDice(const cv::Mat &colorImage, bool outputOcrErrors = false
 		die.ocrDigit = charsRead.digitsMostLikelyFirst;
 	}
 
-	return orderedDice;
+	return { orderedDice, orderedDiceResult.angleInRadiansNonCononicalForm, orderedDiceResult.pixelsPerMm };
 }
 
 static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
