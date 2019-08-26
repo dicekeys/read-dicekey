@@ -48,7 +48,8 @@ static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead
       errors <= 3 ?
         cv::Scalar(0, 128, 255) :
         cv::Scalar(0, 00, 255);
-    polylines(resultImage, ppoints, npt, 1, true, color, 2);
+    const int thickness = 2;
+    polylines(resultImage, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
 
   }
 
