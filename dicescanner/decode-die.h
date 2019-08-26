@@ -64,17 +64,3 @@ static UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned in
 		letterDigitEncoding
 	};
 }
-
-static DieFaceSpecification decodeUnderlineByte(unsigned char letterDigitEncodingByte) {
-	return underlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];	
-}
-
-static DieFaceSpecification decodeOverlineByte(unsigned char letterDigitEncodingByte) {
-	return overlineCodeToLetterIndexTimesSixPlusDigitIndex[letterDigitEncodingByte];	
-}
-
-static DieFaceSpecification decodeUndoverlineByte(bool isOverline, unsigned char letterDigitEncodingByte) {
-	return isOverline ?
-		decodeOverlineByte(letterDigitEncodingByte) :
-		decodeUnderlineByte(letterDigitEncodingByte);
-}

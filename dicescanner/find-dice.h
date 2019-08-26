@@ -64,13 +64,8 @@ static DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(const cv::Mat 
 					angleInRadians -= float(2 * M_PI);
 				}
 				diceFound.push_back({
-					underline, overlines[i], center, angleInRadians,
-					// letter read (not yet set)
-					'\0',
-					// digit read (not yet set)
-					'\0',
-					0
-					});
+					underline, overlines[i], center, angleInRadians
+				});
 				// Remove the ith element of overlines
 				overlines.erase(overlines.begin() + i);
 			}

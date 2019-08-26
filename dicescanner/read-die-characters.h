@@ -22,8 +22,8 @@ struct DieCharactersRead {
 };
 
 static DieCharactersRead readDieCharacters(
-	const cv::Mat &imageColor,
-	const cv::Mat &grayscaleImage,
+	const cv::Mat& imageColor,
+	const cv::Mat& grayscaleImage,
 	cv::Point2f dieCenter,
 	float angleRadians,
 	float mmToPixels,
@@ -54,7 +54,7 @@ static DieCharactersRead readDieCharacters(
 	cv::threshold(textImage, textEdges, whiteBlackThreshold, valueRepresentingBlack, cv::THRESH_BINARY);
 
 	// Setup a rectangle to define your region of interest
-	int charWidth = int( ( textRegionSize.width - round(DieDimensionsMm::spaceBetweenLetterAndDigit * mmToPixels) ) / 2);
+	int charWidth = int((textRegionSize.width - round(DieDimensionsMm::spaceBetweenLetterAndDigit * mmToPixels)) / 2);
 	const cv::Rect letterRect(0, 0, charWidth, textRegionSize.height);
 	const cv::Rect digitRect(textRegionSize.width - charWidth, 0, charWidth, textRegionSize.height);
 	auto letterImage = textEdges(letterRect);
@@ -74,16 +74,16 @@ static DieCharactersRead readDieCharacters(
 	static int error = 1;
 	if (writeErrorUnlessThisLetterIsRead != 0 && writeErrorUnlessThisLetterIsRead != lettersMostLikelyFirst[0].character) {
 		cv::imwrite(
-      "error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) +
-          "-as-" + std::string(1, dashIfNull(lettersMostLikelyFirst[0].character)) + ".png",
-      letterImage);
+			"error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) +
+			"-as-" + std::string(1, dashIfNull(lettersMostLikelyFirst[0].character)) + ".png",
+			letterImage);
 	}
 	if (writeErrorUnlessThisDigitIsRead != 0 && writeErrorUnlessThisDigitIsRead != digitsMostLikelyFirst[0].character) {
 		cv::imwrite(
-      "error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisDigitIsRead) +
-        "-as-" + std::string(1, dashIfNull(digitsMostLikelyFirst[0].character)) + ".png",
-      digitImage);
+			"error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisDigitIsRead) +
+			"-as-" + std::string(1, dashIfNull(digitsMostLikelyFirst[0].character)) + ".png",
+			digitImage);
 	}
 
-	return {lettersMostLikelyFirst, digitsMostLikelyFirst};
+	return { lettersMostLikelyFirst, digitsMostLikelyFirst };
 }

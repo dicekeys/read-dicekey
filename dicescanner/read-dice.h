@@ -50,10 +50,12 @@ static DiceRead readDice(const cv::Mat &colorImage, bool outputOcrErrors = false
 			die.underline.found ?
 				die.underline.whiteBlackThreshold :
 				die.overline.whiteBlackThreshold;
+		const DieFaceSpecification &underlineInferred = *die.underline.dieFaceInferred();
+		const DieFaceSpecification &overlineInferred = *die.overline.dieFaceInferred();
 		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
 		  diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
-		  outputOcrErrors ? ( die.underline.dieFaceInferred.letter != '\0' ? die.underline.dieFaceInferred.letter : die.overline.dieFaceInferred.letter ) : '\0',
-		  outputOcrErrors ? ( die.underline.dieFaceInferred.digit != '\0' ? die.underline.dieFaceInferred.digit : die.overline.dieFaceInferred.digit ) : '\0'
+		  outputOcrErrors ? ( underlineInferred.letter != '\0' ? underlineInferred.letter : overlineInferred.letter ) : '\0',
+		  outputOcrErrors ? ( underlineInferred.digit != '\0' ? underlineInferred.digit : overlineInferred.digit ) : '\0'
 		);
 		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceKeyInRadiansNonCononicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
@@ -74,8 +76,8 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 	std::vector<DieFace> diceKey;
 	for (size_t i = 0; i < diceRead.size(); i++) {
 		DieRead dieRead = diceRead[i];
-		const DieFaceSpecification& underlineInferred = dieRead.underline.dieFaceInferred;
-		const DieFaceSpecification& overlineInferred = dieRead.overline.dieFaceInferred;
+		const DieFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred();
+		const DieFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred();
 		const char digitRead = dieRead.ocrDigit.size() == 0 ? '\0' : dieRead.ocrDigit[0].character;
 		const char letterRead = dieRead.ocrLetter.size() == 0 ? '\0' :  dieRead.ocrLetter[0].character;
 		if (!dieRead.underline.found) {
@@ -93,8 +95,8 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 				underlineInferred.letter != overlineInferred.letter ||
 				underlineInferred.digit != overlineInferred.digit) 
 			) {
-			const int bitErrorsIfUnderlineCorrect = hammingDistance(dieRead.underline.dieFaceInferred.overlineCode, dieRead.overline.letterDigitEncoding);
-			const int bitErrorsIfOverlineCorrect = hammingDistance(dieRead.overline.dieFaceInferred.underlineCode, dieRead.underline.letterDigitEncoding);
+			const int bitErrorsIfUnderlineCorrect = hammingDistance(underlineInferred.overlineCode, dieRead.overline.letterDigitEncoding);
+			const int bitErrorsIfOverlineCorrect = hammingDistance(overlineInferred.underlineCode, dieRead.underline.letterDigitEncoding);
 			const int minBitErrors = std::min(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
 			// See if this error can be explained by a single bit-read error.
 			// report error mismatch between undoverline and overline
