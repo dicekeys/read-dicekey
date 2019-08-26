@@ -171,6 +171,7 @@
     <ClInclude Include="dicescanner\find-undoverlines.h" />
     <ClInclude Include="dicescanner\inconsolata-700.h" />
     <ClInclude Include="dicescanner\ocr.h" />
+    <ClInclude Include="dicescanner\read-die-characters.h" />
     <ClInclude Include="dicescanner\rectangle.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="dicescanner\sample-point.h" />

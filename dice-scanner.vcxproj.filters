@@ -26,6 +26,7 @@
     <ClInclude Include="dicescanner\assemble-dice-key.h" />
     <ClInclude Include="dicescanner\inconsolata-700.h" />
     <ClInclude Include="dicescanner\simple-ocr.h" />
+    <ClInclude Include="dicescanner\read-die-characters.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />
