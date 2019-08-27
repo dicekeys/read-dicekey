@@ -15,11 +15,102 @@
 #include "die-specification.h"
 #include "simple-ocr.h"
 #include "rotate.h"
+#include "inconsolata-700.h"
+
+// FIXME -- constant in next line is a hack derived by trial and error
+// and would be better to derive in a more formal way
+const float textWidthAdjustmentMultiplier = 0.825f;
 
 struct DieCharactersRead {
 	const OcrResult lettersMostLikelyFirst;
 	const OcrResult digitsMostLikelyFirst;
 };
+
+static void writeDieCharacters(
+	cv::Mat& imageColor,
+	cv::Point2f dieCenter,
+	float angleInRadians,
+	float pixelsPerMm,
+	char letter,
+	char digit,
+	bool possibleErrors = 0
+) {
+	const float textHeightDestinationPixels = DieDimensionsMm::textRegionHeight * pixelsPerMm;
+	const float textWidthDestinationPixels = DieDimensionsMm::textRegionWidth * textWidthAdjustmentMultiplier * pixelsPerMm;
+	const float destinationPixelsBetweenLetterAndDigit = DieDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm;
+	float charWidthDestinationPixels = (textWidthDestinationPixels - destinationPixelsBetweenLetterAndDigit) / 2;
+
+	float letterLeftRelativeToDieCenterInDestinationPixels = -(textWidthDestinationPixels / 2);
+	float digitLeftRelativeToDieCenterInDestinationPixels = (destinationPixelsBetweenLetterAndDigit / 2);
+	float letterAndDigitTopRelativeToDieCenterInDestinationPixels = -textHeightDestinationPixels / 2;
+
+
+	const float centerSpaceInOriginPixels = DieDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm *
+		Inconsolata700::outlineCharWidthInPixels / charWidthDestinationPixels;
+	const float textTopInOriginPixels = -float(Inconsolata700::outlineCharHeightInPixels) / 2;
+	const float letterLeftInOriginPixels = -(Inconsolata700::outlineCharWidthInPixels + centerSpaceInOriginPixels/2);
+	const float digitLeftInOriginPixels = centerSpaceInOriginPixels / 2;
+	
+	const float deltaXFraction = charWidthDestinationPixels / float(Inconsolata700::outlineCharWidthInPixels);
+	const float deltaYFraction = textHeightDestinationPixels / float(Inconsolata700::outlineCharHeightInPixels);
+
+	const float deltaXFromSourceChangeInX = deltaXFraction * cos(-angleInRadians);
+	const float deltaXFromSourceChangeInY = deltaYFraction * sin(-angleInRadians);
+	const float deltaYFromSourceChangeInX = deltaXFraction * cos(float(-angleInRadians + M_PI / 2));
+	const float deltaYFromSourceChangeInY = deltaYFraction * sin(float(-angleInRadians + M_PI / 2));
+
+	const float letterTopLeftX = dieCenter.x +
+		letterLeftInOriginPixels * deltaXFromSourceChangeInX +
+		textTopInOriginPixels * deltaXFromSourceChangeInY;
+	const float letterTopLeftY = dieCenter.y +
+		letterLeftInOriginPixels * deltaYFromSourceChangeInX +
+		textTopInOriginPixels * deltaYFromSourceChangeInY;
+	const float digitTopLeftX = dieCenter.x +
+		digitLeftInOriginPixels * deltaXFromSourceChangeInX +
+		textTopInOriginPixels * deltaXFromSourceChangeInY;
+	const float digitTopLeftY = dieCenter.y +
+		digitLeftInOriginPixels * deltaYFromSourceChangeInX +
+		textTopInOriginPixels * deltaYFromSourceChangeInY;
+
+	const OcrChar* letterRecord = vreduce<OcrChar, const OcrChar*>( Inconsolata700::letters.characters,
+		[letter](const OcrChar* r, const OcrChar* c) -> const OcrChar* {return c->character == letter ? c : r; },
+		(const OcrChar*)(NULL)
+	);
+
+	const OcrChar* digitRecord = vreduce<OcrChar, const OcrChar*>(Inconsolata700::digits.characters,
+		[digit](const OcrChar* r, const OcrChar* c) -> const OcrChar * {return c->character == digit ? c : r; },
+		(const OcrChar*)(NULL)
+		);
+
+	if (letterRecord) {
+		for (auto p : letterRecord->outlinePoints) {
+			const int x = int(round(letterTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
+			const int y = int(round(letterTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
+			// BGR => B=0, G=1, R=2, A=3
+			if (possibleErrors) {
+				imageColor.at<cv::Vec3b>(y, x)[2] = 255;
+				imageColor.at<cv::Vec3b>(y, x)[1] = 128;
+			}
+			else {
+				imageColor.at<cv::Vec3b>(y, x)[1] = 255;
+			}
+		}
+	}
+
+	if (digitRecord) {
+		for (auto p : digitRecord->outlinePoints) {
+			const int x = int(round(digitTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
+			const int y = int(round(digitTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
+			if (possibleErrors) {
+				imageColor.at<cv::Vec3b>(y, x)[2] = 255;
+				imageColor.at<cv::Vec3b>(y, x)[1] = 128;
+			}
+			else {
+				imageColor.at<cv::Vec3b>(y, x)[1] = 255;
+			}
+		}
+	}
+}
 
 static DieCharactersRead readDieCharacters(
 	const cv::Mat& imageColor,
@@ -33,9 +124,9 @@ static DieCharactersRead readDieCharacters(
 ) {
 	// Rotate to remove the angle of the die
 	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
-	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
+	const int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
 	// FIXME -- constant in next line is a hack
-	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * 0.825f * mmToPixels));
+	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * textWidthAdjustmentMultiplier * mmToPixels));
 	// Use an even text region width so we can even split it in two at the center;
 	if ((textWidthPixels % 2) == 1) {
 		textWidthPixels += 1;

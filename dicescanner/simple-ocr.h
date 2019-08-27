@@ -37,11 +37,11 @@ const OcrResult findClosestMatchingCharacter(
       for (int imageX = 0; imageX < imageWidth; imageX++) {
 				const uchar pixel = bwImageOfCharacter.at<uchar>(cv::Point2i(imageX, imageY));
         const bool isImagePixelBlack = pixel < 128;
-        const int modelX = int( ((imageX + 0.5f) * alphabet.charWidthInPixels) / float(imageWidth));
-        const int modelY = int( ((imageY + 0.5f) * alphabet.charHeightInPixels) / float(imageHeight));
-				assert(modelX < alphabet.charWidthInPixels);
-				assert(modelY < alphabet.charHeightInPixels);
-        const int modelIndex = (modelY * alphabet.charWidthInPixels) + modelX;
+        const int modelX = int( ((imageX + 0.5f) * alphabet.ocrCharWidthInPixels) / float(imageWidth));
+        const int modelY = int( ((imageY + 0.5f) * alphabet.ocrCharHeightInPixels) / float(imageHeight));
+				assert(modelX < alphabet.ocrCharWidthInPixels);
+				assert(modelY < alphabet.ocrCharHeightInPixels);
+        const int modelIndex = (modelY * alphabet.ocrCharWidthInPixels) + modelX;
 				assert(modelIndex < alphabet.characters[charIndex].ifPixelIsBlack.size());
         for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
 					const int penalty = isImagePixelBlack ?
