@@ -88,11 +88,14 @@ static void writeDieCharacters(
 			const int y = int(round(letterTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
 			// BGR => B=0, G=1, R=2, A=3
 			if (possibleErrors) {
-				imageColor.at<cv::Vec3b>(y, x)[2] = 255;
-				imageColor.at<cv::Vec3b>(y, x)[1] = 128;
+				imageColor.at<cv::Vec3b>(y, x)[2] = 192;
+				imageColor.at<cv::Vec3b>(y, x)[1] = 96;
+				imageColor.at<cv::Vec3b>(y, x)[0] = 0;
 			}
 			else {
-				imageColor.at<cv::Vec3b>(y, x)[1] = 255;
+				imageColor.at<cv::Vec3b>(y, x)[1] = 192;
+				imageColor.at<cv::Vec3b>(y, x)[0] = 0;
+				imageColor.at<cv::Vec3b>(y, x)[2] = 0;
 			}
 		}
 	}
@@ -102,11 +105,14 @@ static void writeDieCharacters(
 			const int x = int(round(digitTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
 			const int y = int(round(digitTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
 			if (possibleErrors) {
-				imageColor.at<cv::Vec3b>(y, x)[2] = 255;
-				imageColor.at<cv::Vec3b>(y, x)[1] = 128;
+				imageColor.at<cv::Vec3b>(y, x)[2] = 192;
+				imageColor.at<cv::Vec3b>(y, x)[1] = 96;
+				imageColor.at<cv::Vec3b>(y, x)[0] = 0;
 			}
 			else {
-				imageColor.at<cv::Vec3b>(y, x)[1] = 255;
+				imageColor.at<cv::Vec3b>(y, x)[1] = 192;
+				imageColor.at<cv::Vec3b>(y, x)[0] = 0;
+				imageColor.at<cv::Vec3b>(y, x)[2] = 0;
 			}
 		}
 	}

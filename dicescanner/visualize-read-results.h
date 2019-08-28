@@ -44,10 +44,10 @@ static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead
     int npt[] = { 4 };
     // Color in BGR format
     cv::Scalar color = errors == 0 ?
-        cv::Scalar(0, 255, 0) :
+        cv::Scalar(0, 192, 0) :
       errors <= 3 ?
-        cv::Scalar(0, 128, 255) :
-        cv::Scalar(0, 00, 255);
+        cv::Scalar(0, 96, 192) :
+        cv::Scalar(0, 00, 128);
     const int thickness = errors == 0 ? 1 : 2;
     polylines(resultImage, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
 		writeDieCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerMm, die.letter(), die.digit(), errors > 0);
