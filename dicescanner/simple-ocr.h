@@ -31,7 +31,7 @@ cv::Mat ocrErrorHeatMap(
 
   const int topRowOfErrorMode = 0;
   const int topRowOfCharacterRead = charRows + 1;
-  const int topRowOfErrorsCalculatedForCharacterRead = charRows * 2 + 1;
+  const int topRowOfErrorsCalculatedForCharacterRead = (charRows + 1) * 2;
 
   cv::Mat errorImage(rows, cols, CV_8UC3);
   // Black out the rectangle so that lines between images are black.
