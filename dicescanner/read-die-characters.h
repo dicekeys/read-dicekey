@@ -40,11 +40,6 @@ static void writeDieCharacters(
 	const float destinationPixelsBetweenLetterAndDigit = DieDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm;
 	float charWidthDestinationPixels = (textWidthDestinationPixels - destinationPixelsBetweenLetterAndDigit) / 2;
 
-	float letterLeftRelativeToDieCenterInDestinationPixels = -(textWidthDestinationPixels / 2);
-	float digitLeftRelativeToDieCenterInDestinationPixels = (destinationPixelsBetweenLetterAndDigit / 2);
-	float letterAndDigitTopRelativeToDieCenterInDestinationPixels = -textHeightDestinationPixels / 2;
-
-
 	const float centerSpaceInOriginPixels = DieDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm *
 		Inconsolata700::outlineCharWidthInPixels / charWidthDestinationPixels;
 	const float textTopInOriginPixels = -float(Inconsolata700::outlineCharHeightInPixels) / 2;
@@ -157,15 +152,18 @@ static DieCharactersRead readDieCharacters(
 	auto letterImage = textEdges(letterRect);
 	auto digitImage = textEdges(digitRect);
 
+	const OcrResult lettersMostLikelyFirst = readLetter(letterImage);
+	const OcrResult digitsMostLikelyFirst = readDigit(digitImage);
+
+
 	// FIXME -- remove after development debugging
 	//cv::imwrite("temp/text-region.png", textImage);
 	// //	cv::imwrite("temp/text-blurred.png", textBlurred);
 	// cv::imwrite("temp/text-edges.png", textEdges);
 	// cv::imwrite("temp/letter.png", letterImage);
 	// cv::imwrite("temp/digit.png", digitImage);
-
-	const OcrResult lettersMostLikelyFirst = readLetter(letterImage);
-	const OcrResult digitsMostLikelyFirst = readDigit(digitImage);
+	// cv::imwrite("/Users/stuart/github/dice-scanner/temp/letter-error-map.png", ocrErrorHeatMap(Inconsolata700::letters, lettersMostLikelyFirst[0].character, letterImage));
+	// cv::imwrite("/Users/stuart/github/dice-scanner/temp/digit-error-map.png", ocrErrorHeatMap(Inconsolata700::letters, digitsMostLikelyFirst[0].character, digitImage));
 
 	const char letter0 = lettersMostLikelyFirst[0].character;
 	const char digit0 = digitsMostLikelyFirst[0].character;

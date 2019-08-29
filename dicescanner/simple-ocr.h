@@ -18,7 +18,7 @@ struct OcrResultEntry {
 
 typedef std::vector<OcrResultEntry> OcrResult;
 
-const cv::Mat generateOcrErrorHeatMap(
+cv::Mat ocrErrorHeatMap(
   const OcrAlphabet &alphabet,
   const char characterRead,
   const cv::Mat &bwImageOfCharacter
@@ -26,13 +26,16 @@ const cv::Mat generateOcrErrorHeatMap(
   const int charRows = bwImageOfCharacter.rows;
   const int charCols = bwImageOfCharacter.cols;
 
-  const int rows = charRows * 3;
+  const int rows = charRows * 3 + 2;
   const int cols = charCols;
-  cv::Mat errorImage(rows, cols, CV_8UC3);
 
   const int topRowOfErrorMode = 0;
-  const int topRowOfCharacterRead = charRows;
-  const int topRowOfErrorsCalculatedForCharacterRead = charRows * 2;
+  const int topRowOfCharacterRead = charRows + 1;
+  const int topRowOfErrorsCalculatedForCharacterRead = charRows * 2 + 1;
+
+  cv::Mat errorImage(rows, cols, CV_8UC3);
+  // Black out the rectangle so that lines between images are black.
+  rectangle(errorImage, cv::Rect(0, 0, cols, rows), cv::Scalar(0, 0, 0), cv::FILLED);
 
   const OcrChar* charRecord = vreduce<OcrChar, const OcrChar*>( alphabet.characters,
     [characterRead](const OcrChar* r, const OcrChar* c) -> const OcrChar* {return c->character == characterRead ? c : r; },
@@ -48,25 +51,29 @@ const cv::Mat generateOcrErrorHeatMap(
 				assert(modelY < alphabet.ocrCharHeightInPixels);
         const int modelIndex = (modelY * alphabet.ocrCharWidthInPixels) + modelX;
         const unsigned penaltyIfWhite = charRecord->ifPixelIsWhite[modelIndex];
-        const unsigned penaltyIfBlack = charRecord->ifPixelIsWhite[modelIndex];
+        const unsigned penaltyIfBlack = charRecord->ifPixelIsBlack[modelIndex];
         // BGR => B=0, G=1, R=2
 
         // Write in the the image that shows the potential errors at each pixel
         if (penaltyIfWhite > 0) {
-          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[0] = 0;
-          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[1] = 0;
-          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[2] = ((192 * penaltyIfWhite) / 5);
+					errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[0] = ((255 * (5 - penaltyIfWhite)) / 5);
+					errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[1] = ((255 * (5 - penaltyIfWhite)) / 5);
+          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[2] = 127 + ((128 * (5 - penaltyIfWhite)) / 5);
         } else if (penaltyIfBlack > 0) {
-          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[0] = ((128 * penaltyIfBlack) / 5);
-          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[1] = 0;
-          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[2] = ((128 * penaltyIfBlack) / 5);
-        }
+					errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[0] = 127 + ((128 * (5 - penaltyIfBlack)) / 5);
+					errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[1] = ((255 * (5 - penaltyIfBlack)) / 5);
+					errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[2] = ((255 * (5 - penaltyIfBlack)) / 5);
+				} else {
+					errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[0] =
+					errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[1] =
+					errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[2] = 255;
+				}
         // Copy the b/w image of the character read into this color version
         errorImage.at<cv::Vec3b>(topRowOfCharacterRead + y, x)[0] =
           errorImage.at<cv::Vec3b>(topRowOfCharacterRead + y, x)[1] =
           errorImage.at<cv::Vec3b>(topRowOfCharacterRead + y, x)[2] = isImagePixelBlack ? 0 : 255;
         // Copy in the actual penalty or white if none
-        if ( (isImagePixelBlack && penaltyIfBlack > 0) || (!isImagePixelBlack && penaltyIfWhite > 0) ) {
+        if ( (isImagePixelBlack && penaltyIfBlack > 0) || ((!isImagePixelBlack) && penaltyIfWhite > 0) ) {
           errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x) = errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x);
         } else {
           errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x)[0] = 
