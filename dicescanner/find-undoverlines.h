@@ -215,15 +215,20 @@ static uint readUndoverlineBits(const cv::Mat &grayscaleImage, const Line &undov
 }
 
 
-struct Undoverline {
+class Undoverline {
+public:
 	bool found = false;
 	Line line  = { {0, 0}, {0, 0}};
 	bool isOverline = false;
 	unsigned char letterDigitEncoding = 0;
 	unsigned char whiteBlackThreshold = 0;
-	unsigned int binaryCodingReadForwardOrBackward = 0;
+//	unsigned int binaryCodingReadForwardOrBackward = 0;
 	cv::Point2f inferredDieCenter = {0, 0};
-	DieFaceSpecification dieFaceInferred = {0, 0, 0, 0};
+
+//	DieFaceSpecification dieFaceInferred = {0, 0, 0, 0};
+	const DieFaceSpecification *dieFaceInferred() {
+		return decodeUndoverlineByte(isOverline, letterDigitEncoding);
+	}
 };
 
 
@@ -293,8 +298,6 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 			continue;
 		}
 
-		DieFaceSpecification dieFace = decodeUndoverlineByte(decoded.isOverline, decoded.letterDigitEncoding);
-
 		// If the die was up-side down, the underline would appear at the top of the die,
 		// and when we scanned it from image left to right we read the bits in reverse order.
 		// To determine the actual direction of the die, we will need to reverse it in situations
@@ -327,9 +330,8 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 			decoded.isOverline,
 			decoded.letterDigitEncoding,
 			whiteBlackThreshold,
-			binaryCodingReadForwardOrBackward,
-			dieCenter,
-			dieFace
+//			binaryCodingReadForwardOrBackward,
+			dieCenter
 		};
 		if (decoded.isOverline) {
 			overlines.push_back(thisUndoverline);

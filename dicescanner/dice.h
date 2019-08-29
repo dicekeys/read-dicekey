@@ -2,33 +2,19 @@
 
 #include <string>
 #include <vector>
+#include <limits>
 #include "die-specification.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
+#include "simple-ocr.h"
+#include "bit-operations.h"
 
 struct DieFace {
     char letter = 0;
     char digit = 0;
     unsigned char orientationAs0to3ClockwiseTurnsFromUpright = 0;
 };
-
-
-struct DieRead {
-	// Calculated purely from underline & overline.
-	Undoverline underline;
-	Undoverline overline;
-	cv::Point2f center = cv::Point2f{ 0, 0 };
-	float inferredAngleInRadians = 0;
-//	cv::Point2f angleAdjustedCenter{ 0, 0 };
-
-	// Calculated after position is confirmed
-  char ocrLetter = '\0';
-  char ocrDigit = '\0';
-	// ReadCharacterResult ocrLetter = { 0, 0 };
-	// ReadCharacterResult ocrDigit = { 0, 0 };
-	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
-};
-
+typedef std::vector<DieFace> DiceKey;
 
 
 std::vector<std::vector<unsigned char>> rotationIndexes = {

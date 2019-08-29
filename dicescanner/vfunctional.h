@@ -13,13 +13,17 @@ using a function that is called for each item of the vector (in order)
 with the current element of type T and the current result of type U.
 */
 template <typename T, typename U>
-static T vreduce(const std::vector<T>& vectorToReduce,
-	const std::function<U(U, T)>& reduceFn,
-	const U initialValue) {
+static U vreduce(const std::vector<T>& vectorToReduce,
+	const std::function<U(U, const T*)>& reduceFn,
+	const U initialValue
+) {
 	U result = initialValue;
-	for (auto e : vectorToReduce) {
-		result = reduceFn(result, e);
+	for (size_t i = 0; i < vectorToReduce.size(); i++) {
+		result = reduceFn(result, &(vectorToReduce[i]));
 	}
+	//for (auto e : vectorToReduce) {
+	//	result = reduceFn(result, e);
+	//}
 	return result;
 }
 

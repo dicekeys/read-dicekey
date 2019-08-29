@@ -16,6 +16,7 @@
 #include <math.h>
 #include "read-dice.h"
 #include "validate-dice.h"
+#include "visualize-read-results.h"
 
 static void help(const char* programName)
 {
@@ -71,8 +72,13 @@ int main(int argc, char** argv)
 		std::cerr << "Reading " << filename << "\n";
 
 		try {
-			const auto dice = readDice(image, true);
-			validateDiceRead(dice, filename.substr(0, 75));
+			const auto diceRead = readDice(image, true);
+			const cv::Mat dieReadOutput = visualizeReadResults(image, diceRead, true);
+			
+			cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", dieReadOutput);
+
+
+			validateDiceRead(diceRead.dice, filename.substr(0, 75));
 			std::cerr << "Validated " << filename << "\n";
 		} catch (std::string errStr) {
 			std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";

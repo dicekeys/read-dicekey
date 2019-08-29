@@ -18,6 +18,7 @@
 #include "find-undoverlines.h"
 #include "value-clusters.h"
 #include "bit-operations.h"
+#include "dice-read.h"
 
 struct DiceAndStrayUndoverlinesFound {
 	std::vector<DieRead> diceFound;
@@ -64,13 +65,8 @@ static DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(const cv::Mat 
 					angleInRadians -= float(2 * M_PI);
 				}
 				diceFound.push_back({
-					underline, overlines[i], center, angleInRadians,
-					// letter read (not yet set)
-					'\0',
-					// digit read (not yet set)
-					'\0',
-					0
-					});
+					underline, overlines[i], center, angleInRadians
+				});
 				// Remove the ith element of overlines
 				overlines.erase(overlines.begin() + i);
 			}

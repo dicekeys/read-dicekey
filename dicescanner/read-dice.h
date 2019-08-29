@@ -14,7 +14,6 @@
 #include "geometry.h"
 #include "die-specification.h"
 #include "dice.h"
-//#include "ocr.h"
 #include "simple-ocr.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
@@ -22,78 +21,15 @@
 #include "bit-operations.h"
 #include "find-dice.h"
 #include "assemble-dice-key.h"
+#include "read-die-characters.h"
 
-struct DieCharactersRead {
-	char letter= '\0';
-	char digit = '\0';
+struct ReadDiceResult {
+	std::vector<DieRead> dice;
+	float angleInRadiansNonCononicalForm;
+	float pixelsPerMm;
 };
 
-static DieCharactersRead readDieCharacters(
-	const cv::Mat &imageColor,
-	const cv::Mat &grayscaleImage,
-	cv::Point2f dieCenter,
-	float angleRadians,
-	float mmToPixels,
-	unsigned char whiteBlackThreshold,
-	char writeErrorUnlessThisLetterIsRead = 0,
-	char writeErrorUnlessThisDigitIsRead = 0
-) {
-	// Rotate to remove the angle of the die
-	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
-	int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
-	// FIXME -- constant in next line is a hack
-	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * 0.825f * mmToPixels));
-	// Use an even text region width so we can even split it in two at the center;
-	if ((textWidthPixels % 2) == 1) {
-		textWidthPixels += 1;
-	}
-	cv::Size textRegionSize = cv::Size(textWidthPixels, textHeightPixels);
-	cv::Mat textEdges;
-	const uchar valueRepresentingBlack = 255;
-
-	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, degreesToRotateToRemoveAngleOfDie, textRegionSize);
-	// Previously, we blurred image before thresholding.  It may make sense to do that
-	// again when we get back images from real dice, so leaving this code here.
-	// cv::Mat textBlurred
-	// cv::medianBlur(textImage, textBlurred, 3);
-	// cv::threshold(textBlurred, textEdges, whiteBlackThreshold, valueRepresentingBlack, cv::THRESH_BINARY);
-	// at which point we'd remove the line below
-	cv::threshold(textImage, textEdges, whiteBlackThreshold, valueRepresentingBlack, cv::THRESH_BINARY);
-
-	// Setup a rectangle to define your region of interest
-	int charWidth = ( textRegionSize.width - round(DieDimensionsMm::spaceBetweenLetterAndDigit * mmToPixels) ) / 2;
-	const cv::Rect letterRect(0, 0, charWidth, textRegionSize.height);
-	const cv::Rect digitRect(textRegionSize.width - charWidth, 0, charWidth, textRegionSize.height);
-	auto letterImage = textEdges(letterRect);
-	auto digitImage = textEdges(digitRect);
-
-	// FIXME -- remove after development debugging
-	cv::imwrite("/Users/stuart/github/dice-scanner/text-region.png", textImage);
-//	cv::imwrite("/Users/stuart/github/dice-scanner/text-blurred.png", textBlurred);
-	cv::imwrite("/Users/stuart/github/dice-scanner/text-edges.png", textEdges);
-	cv::imwrite("/Users/stuart/github/dice-scanner/letter.png", letterImage);
-	cv::imwrite("/Users/stuart/github/dice-scanner/digit.png", digitImage);
-
-	const int letterIndex = readLetter(letterImage);
-	const int digitIndex = readDigit(digitImage);
-
-	char letter = letterIndex < 0 ? '\0' : DieLetters[letterIndex];
-	char digit = digitIndex < 0 ? '\0' : DieDigits[digitIndex];
-
-	// FIXME -- remove after development debugging
-	static int error = 1;
-	if (writeErrorUnlessThisLetterIsRead != 0 && writeErrorUnlessThisLetterIsRead != letter) {
-		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisLetterIsRead) + "-as-" + std::string(1, dashIfNull(letter)) + ".png", letterImage);
-	}
-	if (writeErrorUnlessThisDigitIsRead != 0 && writeErrorUnlessThisDigitIsRead != digit) {
-		cv::imwrite("error-" + std::to_string(error++) + "-read-" + std::string(1, writeErrorUnlessThisDigitIsRead) + "-as-" + std::string(1, dashIfNull(digit)) + ".png", digitImage);
-	}
-
-	return {letter, digit};
-}
-
-
-static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
+static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
 {
 	cv::Mat grayscaleImage;
 
@@ -120,38 +56,24 @@ static std::vector<DieRead> readDice(const cv::Mat &colorImage, bool outputOcrEr
 			die.underline.found ?
 				die.underline.whiteBlackThreshold :
 				die.overline.whiteBlackThreshold;
-		const auto charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
-		  diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
-		  outputOcrErrors ? ( die.underline.dieFaceInferred.letter != '\0' ? die.underline.dieFaceInferred.letter : die.overline.dieFaceInferred.letter ) : '\0',
-		  outputOcrErrors ? ( die.underline.dieFaceInferred.digit != '\0' ? die.underline.dieFaceInferred.digit : die.overline.dieFaceInferred.digit ) : '\0'
+		const DieFaceSpecification &underlineInferred = *die.underline.dieFaceInferred();
+		const DieFaceSpecification &overlineInferred = *die.overline.dieFaceInferred();
+		const DieCharactersRead charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
+			diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
+			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.letter)) + std::string(1, dashIfNull(overlineInferred.letter))) : "",
+			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.digit)) + std::string(1, dashIfNull(overlineInferred.digit))) : ""
 		);
+			
+		
 		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceKeyInRadiansNonCononicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
 		die.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
-		die.ocrLetter = charsRead.letter;
-		die.ocrDigit = charsRead.digit;
+		die.ocrLetter = charsRead.lettersMostLikelyFirst;
+		die.ocrDigit = charsRead.digitsMostLikelyFirst;
 	}
-	//// calculate the average angle mod 90 so we can generate a rotation function
-	//for (size_t i = 0; i < diceFound.size(); i++) {
-	//	diceFound[i].angleAdjustedCenter = rotatePointClockwiseAroundOrigin(diceFound[i].center, angleOfDiceKeyInRadiansNonCononicalForm);
-	//}
 
-	//// Sort the dice based on their positions after adjusting the angle
-	//std::sort(diceFound.begin(), diceFound.end(), [halfDieSize](DieRead a, DieRead b) {
-	//	if (a.angleAdjustedCenter.y < (b.angleAdjustedCenter.y - halfDieSize)) {
-	//		// Die a is at least a half die above die b, and therefore comes before it
-	//		return true;
-	//	}
-	//	else if (b.angleAdjustedCenter.y < (a.angleAdjustedCenter.y - halfDieSize)) {
-	//		// Die b is at least a half die above die a, and therefore comes before it
-	//		return false;
-	//	}
-	//	// Die a and die b are roughly the same from top to bottom, so order left to right
-	//	return a.angleAdjustedCenter.x < b.angleAdjustedCenter.x;
-	//});
-
-	return orderedDice;
+	return { orderedDice, orderedDiceResult.angleInRadiansNonCononicalForm, orderedDiceResult.pixelsPerMm };
 }
 
 static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
@@ -162,10 +84,10 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 	std::vector<DieFace> diceKey;
 	for (size_t i = 0; i < diceRead.size(); i++) {
 		DieRead dieRead = diceRead[i];
-		const DieFaceSpecification& underlineInferred = dieRead.underline.dieFaceInferred;
-		const DieFaceSpecification& overlineInferred = dieRead.overline.dieFaceInferred;
-		const char digitRead = dieRead.ocrDigit;
-		const char letterRead = dieRead.ocrLetter;
+		const DieFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred();
+		const DieFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred();
+		const char digitRead = dieRead.ocrDigit.size() == 0 ? '\0' : dieRead.ocrDigit[0].character;
+		const char letterRead = dieRead.ocrLetter.size() == 0 ? '\0' :  dieRead.ocrLetter[0].character;
 		if (!dieRead.underline.found) {
 			if (reportErrsToStdErr) {
 				std::cerr << "Underline for die " << i << " not found\n";
@@ -181,8 +103,8 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 				underlineInferred.letter != overlineInferred.letter ||
 				underlineInferred.digit != overlineInferred.digit) 
 			) {
-			const int bitErrorsIfUnderlineCorrect = hammingDistance(dieRead.underline.dieFaceInferred.overlineCode, dieRead.overline.letterDigitEncoding);
-			const int bitErrorsIfOverlineCorrect = hammingDistance(dieRead.overline.dieFaceInferred.underlineCode, dieRead.underline.letterDigitEncoding);
+			const int bitErrorsIfUnderlineCorrect = hammingDistance(underlineInferred.overlineCode, dieRead.overline.letterDigitEncoding);
+			const int bitErrorsIfOverlineCorrect = hammingDistance(overlineInferred.underlineCode, dieRead.underline.letterDigitEncoding);
 			const int minBitErrors = std::min(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
 			// See if this error can be explained by a single bit-read error.
 			// report error mismatch between undoverline and overline
@@ -192,7 +114,7 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) <<
 					" best explained by " << minBitErrors << " bit error in " << 
 						(bitErrorsIfUnderlineCorrect < bitErrorsIfOverlineCorrect ? "overline" : "underline") <<
-					" (ocr returned " << dashIfNull(dieRead.ocrLetter) << dashIfNull(dieRead.ocrDigit) << ")" <<
+					" (ocr returned " << dashIfNull(letterRead) << dashIfNull(digitRead) << ")" <<
 					"\n";
 			}
 		}
@@ -231,10 +153,10 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 
 		diceKey.push_back(DieFace({
 			majorityOfThree(
-				underlineInferred.letter, overlineInferred.letter, dieRead.ocrLetter
+				underlineInferred.letter, overlineInferred.letter, letterRead
 			),
 			majorityOfThree(
-				underlineInferred.digit, overlineInferred.digit, dieRead.ocrDigit
+				underlineInferred.digit, overlineInferred.digit, digitRead
 			),
 			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
 			}));
