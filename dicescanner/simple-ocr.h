@@ -18,6 +18,67 @@ struct OcrResultEntry {
 
 typedef std::vector<OcrResultEntry> OcrResult;
 
+const cv::Mat generateOcrErrorHeatMap(
+  const OcrAlphabet &alphabet,
+  const char characterRead,
+  const cv::Mat &bwImageOfCharacter
+) {  
+  const int charRows = bwImageOfCharacter.rows;
+  const int charCols = bwImageOfCharacter.cols;
+
+  const int rows = charRows * 3;
+  const int cols = charCols;
+  cv::Mat errorImage(rows, cols, CV_8UC3);
+
+  const int topRowOfErrorMode = 0;
+  const int topRowOfCharacterRead = charRows;
+  const int topRowOfErrorsCalculatedForCharacterRead = charRows * 2;
+
+  const OcrChar* charRecord = vreduce<OcrChar, const OcrChar*>( alphabet.characters,
+    [characterRead](const OcrChar* r, const OcrChar* c) -> const OcrChar* {return c->character == characterRead ? c : r; },
+    (const OcrChar*)(NULL));
+
+  for (int y=0; y < charRows; y++) {
+    for (int x=0; x < charCols; x++) {
+        const uchar pixel = bwImageOfCharacter.at<uchar>(cv::Point2i(x, y));
+        const bool isImagePixelBlack = pixel < 128;
+        const int modelX = int( ((x + 0.5f) * alphabet.ocrCharWidthInPixels) / float(charCols));
+        const int modelY = int( ((y + 0.5f) * alphabet.ocrCharHeightInPixels) / float(charRows));
+				assert(modelX < alphabet.ocrCharWidthInPixels);
+				assert(modelY < alphabet.ocrCharHeightInPixels);
+        const int modelIndex = (modelY * alphabet.ocrCharWidthInPixels) + modelX;
+        const unsigned penaltyIfWhite = charRecord->ifPixelIsWhite[modelIndex];
+        const unsigned penaltyIfBlack = charRecord->ifPixelIsWhite[modelIndex];
+        // BGR => B=0, G=1, R=2
+
+        // Write in the the image that shows the potential errors at each pixel
+        if (penaltyIfWhite > 0) {
+          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[0] = 0;
+          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[1] = 0;
+          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[2] = ((192 * penaltyIfWhite) / 5);
+        } else if (penaltyIfBlack > 0) {
+          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[0] = ((128 * penaltyIfBlack) / 5);
+          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[1] = 0;
+          errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x)[2] = ((128 * penaltyIfBlack) / 5);
+        }
+        // Copy the b/w image of the character read into this color version
+        errorImage.at<cv::Vec3b>(topRowOfCharacterRead + y, x)[0] =
+          errorImage.at<cv::Vec3b>(topRowOfCharacterRead + y, x)[1] =
+          errorImage.at<cv::Vec3b>(topRowOfCharacterRead + y, x)[2] = isImagePixelBlack ? 0 : 255;
+        // Copy in the actual penalty or white if none
+        if ( (isImagePixelBlack && penaltyIfBlack > 0) || (!isImagePixelBlack && penaltyIfWhite > 0) ) {
+          errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x) = errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x);
+        } else {
+          errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x)[0] = 
+            errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x)[1] =
+            errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x)[2] = 255;
+        }
+    }
+  }
+
+  return errorImage;
+}
+
 const OcrResult findClosestMatchingCharacter(
   const OcrAlphabet &alphabet,
   const cv::Mat &bwImageOfCharacter
