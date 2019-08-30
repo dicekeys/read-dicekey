@@ -50,7 +50,7 @@ public:
   // that doesn't match the OCR result.
   // If the underline and overline match but matched with the OCR's second choice of
   // letter or digit, we return 2.
-	int error() {
+	unsigned char error() {
 		if (ocrLetter.size() == 0 || ocrDigit.size() == 0) {
 			return std::numeric_limits<int>::max();
 		}
@@ -96,7 +96,7 @@ public:
 				2;
 		}
 		// No good matching.  Return maxint
-		return std::numeric_limits<int>::max();
+		return std::numeric_limits<unsigned char>::max();
 	};
 
 };

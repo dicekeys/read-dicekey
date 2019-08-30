@@ -151,15 +151,26 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 			}
 		}
 
-		diceKey.push_back(DieFace({
+		diceKey.push_back(DieFace(
 			majorityOfThree(
 				underlineInferred.letter, overlineInferred.letter, letterRead
 			),
 			majorityOfThree(
 				underlineInferred.digit, overlineInferred.digit, digitRead
 			),
-			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
-			}));
+			dieRead.orientationAs0to3ClockwiseTurnsFromUpright,
+			dieRead.error()
+			));
 	}
 	return diceKey;
+}
+
+
+DiceKey mergeDiceResult(
+	const DiceKey &previousDiceResult,
+	const DiceKey &currentDiceResult	
+) {
+	// rotate;
+
+	return currentDiceResult;
 }

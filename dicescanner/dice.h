@@ -9,13 +9,8 @@
 #include "simple-ocr.h"
 #include "bit-operations.h"
 
-struct DieFace {
-    char letter = 0;
-    char digit = 0;
-    unsigned char orientationAs0to3ClockwiseTurnsFromUpright = 0;
-};
-typedef std::vector<DieFace> DiceKey;
 
+const int NumberOfFaces = 25;
 
 std::vector<std::vector<unsigned char>> rotationIndexes = {
   {
@@ -49,43 +44,131 @@ std::vector<std::vector<unsigned char>> rotationIndexes = {
  };
 
 
-std::vector<DieFace> rotateDiceKey(std::vector<DieFace> diceKey, int clockwiseTurns)
-{
-  if (diceKey.size() < 25) {
-	  throw std::string("A DiceKey must have 25 dice, but only found " + std::to_string(diceKey.size()));
-  }
-  if (clockwiseTurns < 0) {
-    clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
-  }
-  const unsigned clockwiseTurns0to3 = clockwiseTurns % 4;
-  std::vector<unsigned char> &indexToMoveDieFaceFrom = rotationIndexes[clockwiseTurns0to3];
-  std::vector<DieFace> rotatedDiceKey;
-  for (size_t i = 0; i < indexToMoveDieFaceFrom.size(); i++) {
-    DieFace dieFace = diceKey[indexToMoveDieFaceFrom[i]];
-    dieFace.orientationAs0to3ClockwiseTurnsFromUpright = (dieFace.orientationAs0to3ClockwiseTurnsFromUpright + clockwiseTurns) % 4;
-    rotatedDiceKey.push_back(dieFace);
-  }
-  return rotatedDiceKey;
-}
 
-unsigned char clockwiseRotationsToCanonicalForm(std::vector<DieFace> diceKey)
-{
-  if (diceKey.size() < 25) {
-	  throw std::string("A DiceKey must have 25 dice, but only found " + std::to_string(diceKey.size()));
-  }
-  unsigned char clockwiseRotationsRequired = 0;
-  for (unsigned char candidateRotationRequirement = 1; candidateRotationRequirement < 4; candidateRotationRequirement++) {
-    // If the candidate rotation would result in the square having a top-left letter
-    // that is earlier in sort order (lower unicode character) than the current rotation,
-    // replace the current rotation with the candidate rotation.
-    if (diceKey[rotationIndexes[candidateRotationRequirement][0]].letter < diceKey[rotationIndexes[clockwiseRotationsRequired][0]].letter) {
-      clockwiseRotationsRequired = candidateRotationRequirement;
-    }    
-  }
-  return clockwiseRotationsRequired;
-}
+class DieFace {
+  public:
+    char letter;
+    char digit;
+    unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
+    unsigned char errorsPresent;
 
-std::vector<DieFace> rotateToCanonicalDiceKey(std::vector<DieFace> diceKey)
-{
-  return rotateDiceKey(diceKey, clockwiseRotationsToCanonicalForm(diceKey));
-}
+    DieFace() {
+      letter = 0;
+      digit = 0;
+      orientationAs0to3ClockwiseTurnsFromUpright = 0;
+      errorsPresent = 0xFF;
+    }
+
+    DieFace(char _letter, char _digit, unsigned char _orientationAs0to3ClockwiseTurnsFromUpright, unsigned char _errorsPresent = 0) {
+      letter = _letter;
+      digit = _digit;
+      orientationAs0to3ClockwiseTurnsFromUpright = _orientationAs0to3ClockwiseTurnsFromUpright;
+      errorsPresent = _errorsPresent;
+    }
+
+    bool equals(DieFace other) {
+      return (
+        // Undefined faces cannot be equal
+        letter != '\0' &&
+        digit != '\0' &&
+        // Faces are equal if their letter, digit, and orientation match,
+        // even if there were more errors when one was read than the other.
+        letter == other.letter &&
+        digit == other.digit &&
+        orientationAs0to3ClockwiseTurnsFromUpright == other.orientationAs0to3ClockwiseTurnsFromUpright
+      );
+    }
+};
+
+class DiceKey {
+  public:
+  
+  DieFace faces[NumberOfFaces];
+
+  DiceKey(std::vector<DieFace> _faces) {
+    if (_faces.size() == NumberOfFaces) {
+      throw std::string("A DiceKey must have 25 faces");
+    }
+    for (int i=0; i < NumberOfFaces; i++) {
+      faces[i] = _faces[i];
+    }
+  }
+
+  bool areLettersUnique() {
+    std::vector<char> letters;
+    for (int i = 0; i < NumberOfFaces; i++) {
+      letters.push_back(faces[i].letter);
+    }
+    std::sort(letters.begin(), letters.end(), [](char a, char b) { return a < b; });
+    for (int i = 0; i < NumberOfFaces; i++) {
+      if (letters[i] != Inconsolata700::letters.characters[i].character) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+
+  unsigned char maxError()
+  {
+    if (!areLettersUnique()) {
+      return 255;
+    }
+    unsigned char maxErrorFound = 0;
+    for (int i=0; i < NumberOfFaces; i++) {
+      if (faces[i].errorsPresent > maxErrorFound) {
+        maxErrorFound = faces[i].errorsPresent;
+      }
+    }
+    return maxErrorFound;
+  }
+
+  DiceKey rotateDiceKey(int clockwiseTurns)
+  {
+    if (clockwiseTurns < 0) {
+      clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
+    }
+    const unsigned clockwiseTurns0to3 = clockwiseTurns % 4;
+    std::vector<unsigned char> &indexToMoveDieFaceFrom = rotationIndexes[clockwiseTurns0to3];
+    std::vector<DieFace> rotatedFaces;
+    for (size_t i = 0; i < NumberOfFaces; i++) {
+      DieFace dieFace = faces[indexToMoveDieFaceFrom[i]];
+      dieFace.orientationAs0to3ClockwiseTurnsFromUpright = (dieFace.orientationAs0to3ClockwiseTurnsFromUpright + clockwiseTurns) % 4;
+      rotatedFaces.push_back(dieFace);
+    }
+    return DiceKey(rotatedFaces);
+  }
+
+  unsigned char clockwiseRotationsToCanonicalForm()
+  {
+    unsigned char clockwiseRotationsRequired = 0;
+    for (unsigned char candidateRotationRequirement = 1; candidateRotationRequirement < 4; candidateRotationRequirement++) {
+      // If the candidate rotation would result in the square having a top-left letter
+      // that is earlier in sort order (lower unicode character) than the current rotation,
+      // replace the current rotation with the candidate rotation.
+      if (faces[rotationIndexes[candidateRotationRequirement][0]].letter < faces[rotationIndexes[clockwiseRotationsRequired][0]].letter) {
+        clockwiseRotationsRequired = candidateRotationRequirement;
+      }    
+    }
+    return clockwiseRotationsRequired;
+  }
+
+  DiceKey rotateToCanonicalDiceKey()
+  {
+    return rotateDiceKey(clockwiseRotationsToCanonicalForm());
+  }
+
+  int countMatchingDice(const DiceKey &other) {
+    int numMatchingDice = 0;
+    for (int i=0; i < NumberOfFaces; i++) {
+      if (faces[i].equals(other.faces[i])) {
+        numMatchingDice++;
+      }
+    }
+  }
+
+  DiceKey rotateToBestMatchOtherDiceKey(const DiceKey &other) {
+    
+  }
+
+};
