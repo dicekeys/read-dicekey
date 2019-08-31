@@ -123,7 +123,7 @@ class DiceKey {
     return maxErrorFound;
   }
 
-  DiceKey rotateDiceKey(int clockwiseTurns)
+  DiceKey rotate(int clockwiseTurns)
   {
     if (clockwiseTurns < 0) {
       clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
@@ -155,20 +155,57 @@ class DiceKey {
 
   DiceKey rotateToCanonicalDiceKey()
   {
-    return rotateDiceKey(clockwiseRotationsToCanonicalForm());
+    return rotate(clockwiseRotationsToCanonicalForm());
   }
 
-  int countMatchingDice(const DiceKey &other) {
+  bool isPotentialMatch(const DiceKey &other) {
     int numMatchingDice = 0;
     for (int i=0; i < NumberOfFaces; i++) {
       if (faces[i].equals(other.faces[i])) {
         numMatchingDice++;
+      } else {
+        // faces don't match
+        if (other.faces[i].errorsPresent == 0 && faces[i].errorsPresent == 0) {
+          // The faces are different, but neither is supposed to be in error.
+          // This means the entire grid must be different.  Either we're now
+          // looking at another set of dice, the orientation rotated, or there
+          // was an undetected die face read error.
+          return false;
+        }
       }
     }
-  }
+    return numMatchingDice > 9;
+  };
 
-  DiceKey rotateToBestMatchOtherDiceKey(const DiceKey &other) {
-    
+  const DiceKey mergePrevious(DiceKey &previous) {
+    std::vector<DieFace> newFaces;
+    if (isPotentialMatch(previous)) {
+      // There are enough matching dice in the previously-scanned DiceKey,
+      // and no clear conflicts, so we can merge faces from the previous
+      // DiceKey in cases where the face was scanned with fewer errors in the
+      // past.
+      for (int i=0; i < NumberOfFaces; i++) {
+        newFaces.push_back(
+          (faces[i].errorsPresent <= previous.faces[i].errorsPresent) ?
+          faces[i] :
+          previous.faces[i]
+        );        
+      }
+      return DiceKey(newFaces);
+    } else {
+      for (int clockwiseTurns = 1; clockwiseTurns < 4; clockwiseTurns++) {
+        // Since this rotation wasn't a potential match, try the 3 other potential
+        // rotations and recurse a single time only if one is a match.
+        // (where it will enter the above clause)
+        DiceKey rotatedKey = previous.rotate(clockwiseTurns);
+        if (isPotentialMatch(rotatedKey)) {
+          return mergePrevious(rotatedKey);
+        }
+      }
+    }
+    // The previous key did not match closely enough to merge, even
+    // when rotated to any of the four possible rotations.  Just return
+    // a copy of the current key that isn't marged.
+    return *this;
   }
-
 };
