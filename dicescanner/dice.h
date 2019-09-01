@@ -51,8 +51,8 @@ class DiceKey {
   DieFace faces[NumberOfFaces];
 
   const DiceKey(std::vector<DieFace> _faces) {
-    if (_faces.size() == NumberOfFaces) {
-      throw std::string("A DiceKey must have 25 faces");
+    if (_faces.size() != NumberOfFaces) {
+      throw std::string("A DiceKey must have " + std::to_string(NumberOfFaces) + " faces");
     }
     for (int i=0; i < NumberOfFaces; i++) {
       faces[i] = _faces[i];
