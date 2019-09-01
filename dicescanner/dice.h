@@ -8,6 +8,7 @@
 #include "find-undoverlines.h"
 #include "simple-ocr.h"
 #include "bit-operations.h"
+#include "die-face.h"
 
 
 const int NumberOfFaces = 25;
@@ -44,48 +45,12 @@ std::vector<std::vector<unsigned char>> rotationIndexes = {
  };
 
 
-
-class DieFace {
-  public:
-    char letter;
-    char digit;
-    unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
-    unsigned char errorsPresent;
-
-    DieFace() {
-      letter = 0;
-      digit = 0;
-      orientationAs0to3ClockwiseTurnsFromUpright = 0;
-      errorsPresent = 0xFF;
-    }
-
-    DieFace(char _letter, char _digit, unsigned char _orientationAs0to3ClockwiseTurnsFromUpright, unsigned char _errorsPresent = 0) {
-      letter = _letter;
-      digit = _digit;
-      orientationAs0to3ClockwiseTurnsFromUpright = _orientationAs0to3ClockwiseTurnsFromUpright;
-      errorsPresent = _errorsPresent;
-    }
-
-    bool equals(DieFace other) {
-      return (
-        // Undefined faces cannot be equal
-        letter != '\0' &&
-        digit != '\0' &&
-        // Faces are equal if their letter, digit, and orientation match,
-        // even if there were more errors when one was read than the other.
-        letter == other.letter &&
-        digit == other.digit &&
-        orientationAs0to3ClockwiseTurnsFromUpright == other.orientationAs0to3ClockwiseTurnsFromUpright
-      );
-    }
-};
-
 class DiceKey {
   public:
   
   DieFace faces[NumberOfFaces];
 
-  DiceKey(std::vector<DieFace> _faces) {
+  const DiceKey(std::vector<DieFace> _faces) {
     if (_faces.size() == NumberOfFaces) {
       throw std::string("A DiceKey must have 25 faces");
     }
@@ -94,7 +59,7 @@ class DiceKey {
     }
   }
 
-  bool areLettersUnique() {
+  bool areLettersUnique() const {
     std::vector<char> letters;
     for (int i = 0; i < NumberOfFaces; i++) {
       letters.push_back(faces[i].letter);
@@ -109,21 +74,21 @@ class DiceKey {
   };
 
 
-  unsigned char maxError()
+  unsigned char maxError() const
   {
     if (!areLettersUnique()) {
       return 255;
     }
     unsigned char maxErrorFound = 0;
     for (int i=0; i < NumberOfFaces; i++) {
-      if (faces[i].errorsPresent > maxErrorFound) {
-        maxErrorFound = faces[i].errorsPresent;
+      if (faces[i].error.magnitude > maxErrorFound) {
+        maxErrorFound = faces[i].error.magnitude;
       }
     }
     return maxErrorFound;
   }
 
-  DiceKey rotate(int clockwiseTurns)
+  const DiceKey rotate(int clockwiseTurns) const
   {
     if (clockwiseTurns < 0) {
       clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
@@ -139,7 +104,7 @@ class DiceKey {
     return DiceKey(rotatedFaces);
   }
 
-  unsigned char clockwiseRotationsToCanonicalForm()
+  unsigned char clockwiseRotationsToCanonicalOrientation() const
   {
     unsigned char clockwiseRotationsRequired = 0;
     for (unsigned char candidateRotationRequirement = 1; candidateRotationRequirement < 4; candidateRotationRequirement++) {
@@ -153,19 +118,19 @@ class DiceKey {
     return clockwiseRotationsRequired;
   }
 
-  DiceKey rotateToCanonicalDiceKey()
+  const DiceKey rotateToCanonicalOrientation() const
   {
-    return rotate(clockwiseRotationsToCanonicalForm());
+    return rotate(clockwiseRotationsToCanonicalOrientation());
   }
 
-  bool isPotentialMatch(const DiceKey &other) {
+  bool isPotentialMatch(const DiceKey &other) const {
     int numMatchingDice = 0;
     for (int i=0; i < NumberOfFaces; i++) {
       if (faces[i].equals(other.faces[i])) {
         numMatchingDice++;
       } else {
         // faces don't match
-        if (other.faces[i].errorsPresent == 0 && faces[i].errorsPresent == 0) {
+        if (other.faces[i].error.magnitude == 0 && faces[i].error.magnitude == 0) {
           // The faces are different, but neither is supposed to be in error.
           // This means the entire grid must be different.  Either we're now
           // looking at another set of dice, the orientation rotated, or there
@@ -177,7 +142,7 @@ class DiceKey {
     return numMatchingDice > 9;
   };
 
-  const DiceKey mergePrevious(DiceKey &previous) {
+  const DiceKey mergePrevious(DiceKey &previous) const {
     std::vector<DieFace> newFaces;
     if (isPotentialMatch(previous)) {
       // There are enough matching dice in the previously-scanned DiceKey,
@@ -185,14 +150,62 @@ class DiceKey {
       // DiceKey in cases where the face was scanned with fewer errors in the
       // past.
       for (int i=0; i < NumberOfFaces; i++) {
-        newFaces.push_back(
-          (faces[i].errorsPresent <= previous.faces[i].errorsPresent) ?
-          faces[i] :
-          previous.faces[i]
-        );        
+        // The face in this, the more-recent scan
+        const DieFace &face = faces[i];
+        // The face from the previous scan
+        const DieFace &previousFace = previous.faces[i];
+
+        // If we're merging, we know that either the faces match, or one
+        // of them was not defined.
+        if (!previousFace.isDefined() && !face.isDefined()) {
+          // Neither is defined, but we can use the one with the smaller error
+          newFaces.push_back(
+            (face.error.magnitude <= previousFace.error.magnitude) ?
+              face : previousFace
+          );
+        } else if (previousFace.isDefined() && !face.isDefined()) {
+          // The previous scan succeeded in reading this face with majority agreement amnng
+          // the three encodings, but this scan failed, so use the previously-scanned face.
+          newFaces.push_back(previousFace);
+        } else if (!previousFace.isDefined() && face.isDefined()) {
+          // This scan succeeded in reading this face with majority agreement amnng
+          // the three encodings, where the preivous scan failed, so use the face read
+          // by this scan.
+          newFaces.push_back(face);
+        } else {
+          // Both faces are defined, and must agree (otherwise isPotentialMatch would have returned false).
+          //
+          // There are three encodings of a die face: underline, overline, and the letter & digit between them.
+          // We report errors in one of the encodings when the other two encodings agree.
+          //
+          // When two scans of a die face agree, but have errors in different locations, we may
+          // (and below will) conclude that these were scanning errors, that the face is correct,
+          // and so remove the individual scanning errors that were present in only one of the two scans.
+          // 
+          // For example, if the previous scan misread the underline and the current one misread
+          // the overline (with OCR correctly identifying the letter/digit in both cases), we
+          // can conclude that we've now seen a correct underline, overline, and OCR result,
+          // and discard the individual errors as scanning errors.
+          //
+          // We identify the locations of errors as the intersection of the locations of errors
+          // in the two scans.
+          const unsigned char errorLocationIntersection = previousFace.error.location & face.error.location;
+          // If there are no longer locations where errors were identified
+          // (there are no longer any errors), we can set the magnitude of all (0) errors to 0.
+          // Otherwise, we take the better (lower) error magnitude from the two scans.
+          unsigned char errorMagnitude = (errorLocationIntersection == 0) ? 0 :
+            MIN(previousFace.error.magnitude, face.error.magnitude);
+          newFaces.push_back(DieFace(
+            face.letter, face.digit, face.orientationAs0to3ClockwiseTurnsFromUpright,
+            { errorMagnitude, errorLocationIntersection } )
+          );
+        }
       }
       return DiceKey(newFaces);
     } else {
+      // isPotentialMatch failed, so the previous scan was incompatable with the die faces
+      // from the current scan.  Perhaps the previous scan was at a different frame of
+      // reference and the grid was rotated.
       for (int clockwiseTurns = 1; clockwiseTurns < 4; clockwiseTurns++) {
         // Since this rotation wasn't a potential match, try the 3 other potential
         // rotations and recurse a single time only if one is a match.

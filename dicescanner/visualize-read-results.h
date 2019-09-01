@@ -27,7 +27,7 @@ static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead
 {
   cv::Mat resultImage = (writeInPlace ? colorImage : colorImage.clone());
   for (DieRead die: diceRead.dice) {
-    const int errors = die.error();
+    const int errors = die.error().magnitude;
     // Derive the length of each side of the die in pixels by dividing the
     // legnth off and 
     const float dieSizeInPixels = DieDimensionsMm::size * diceRead.pixelsPerMm;
