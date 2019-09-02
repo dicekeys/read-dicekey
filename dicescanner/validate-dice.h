@@ -15,30 +15,30 @@ three-character triples of letter, digit ('0'-'6'), and orientation (as number o
 */
 static void validateDiceRead(const std::vector<DieRead> diceRead, std::string diceAsString)
 {
-	const auto diceKeyNonCanonical = diceReadToDiceKey(diceRead, true);
-	const auto diceKey = rotateToCanonicalDiceKey(diceKeyNonCanonical);
+	const DiceKey diceKeyNonCanonical = diceReadToDiceKey(diceRead, true);
+	const DiceKey diceKey = diceKeyNonCanonical.rotateToCanonicalOrientation();
 	for (size_t dieIndex = 0; dieIndex < diceRead.size(); dieIndex++) {
-		const auto die = diceKey[dieIndex];
+		const auto dieFace = diceKey.faces[dieIndex];
 		const std::string dieAsString = diceAsString.substr(dieIndex * 3, 3);
 		const auto letter = dieAsString[0];
 		const char digit = dieAsString[1];
 		const char orientationChar = dieAsString[2];
 		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationChar - '0';
-		if (die.letter == '\0' && die.digit == '\0') {
+		if (dieFace.letter == '\0' && dieFace.digit == '\0') {
 			throw std::string("Die ") + std::to_string(dieIndex) + " letter and digit could not be read";
-		} else if (die.letter == '\0') {
+		} else if (dieFace.letter == '\0') {
 			throw std::string("Die ") + std::to_string(dieIndex) + " letter could not be read";
-		} else if (die.digit == '\0') {
+		} else if (dieFace.digit == '\0') {
 			throw std::string("Die ") + std::to_string(dieIndex) + " digit could not be read";
-		} else if (die.orientationAs0to3ClockwiseTurnsFromUpright != orientationAs0to3ClockwiseTurnsFromUpright) {
+		} else if (dieFace.orientationAs0to3ClockwiseTurnsFromUpright != orientationAs0to3ClockwiseTurnsFromUpright) {
 			throw std::string("Die ") + std::to_string(dieIndex) + " (" + dashIfNull(letter) + dashIfNull(digit) +
-  			") has orientation " + std::to_string(die.orientationAs0to3ClockwiseTurnsFromUpright) +
+  			") has orientation " + std::to_string(dieFace.orientationAs0to3ClockwiseTurnsFromUpright) +
 				" but should be " + std::to_string(orientationAs0to3ClockwiseTurnsFromUpright);
-		} else if (die.letter != letter) {
-			throw std::string("Die ") + std::to_string(dieIndex) + " has letter " + dashIfNull(die.letter) +
+		} else if (dieFace.letter != letter) {
+			throw std::string("Die ") + std::to_string(dieIndex) + " has letter " + dashIfNull(dieFace.letter) +
 				" but should be " + dashIfNull(letter);
-		} else if (die.digit != digit) {
-			throw std::string("Die ") + std::to_string(dieIndex) + " has digit " + dashIfNull(die.digit) +
+		} else if (dieFace.digit != digit) {
+			throw std::string("Die ") + std::to_string(dieIndex) + " has digit " + dashIfNull(dieFace.digit) +
 				" but should be " + dashIfNull(digit);
 		}
 	}

@@ -28,6 +28,7 @@
     <ClInclude Include="dicescanner\read-die-characters.h" />
     <ClInclude Include="dicescanner\dice-read.h" />
     <ClInclude Include="dicescanner\visualize-read-results.h" />
+    <ClInclude Include="dicescanner\die-face.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

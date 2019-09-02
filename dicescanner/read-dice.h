@@ -81,12 +81,12 @@ static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors =
 	return { true, orderedDice, orderedDiceResult.angleInRadiansNonCononicalForm, orderedDiceResult.pixelsPerMm, {} };
 }
 
-static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
+static DiceKey diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)
 {
 	if (diceRead.size() != 25) {
 		throw std::string("A DiceKey must contain 25 dice but only has " + std::to_string(diceRead.size()));
 	}
-	std::vector<DieFace> diceKey;
+	std::vector<DieFace> dieFaces;
 	for (size_t i = 0; i < diceRead.size(); i++) {
 		DieRead dieRead = diceRead[i];
 		const DieFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred();
@@ -156,15 +156,26 @@ static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRea
 			}
 		}
 
-		diceKey.push_back(DieFace({
+		dieFaces.push_back(DieFace(
 			majorityOfThree(
 				underlineInferred.letter, overlineInferred.letter, letterRead
 			),
 			majorityOfThree(
 				underlineInferred.digit, overlineInferred.digit, digitRead
 			),
-			dieRead.orientationAs0to3ClockwiseTurnsFromUpright
-			}));
+			dieRead.orientationAs0to3ClockwiseTurnsFromUpright,
+			dieRead.error()
+			));
 	}
-	return diceKey;
+	return DiceKey(dieFaces);
+}
+
+
+DiceKey mergeDiceResult(
+	const DiceKey &previousDiceResult,
+	const DiceKey &currentDiceResult	
+) {
+	// rotate;
+
+	return currentDiceResult;
 }
