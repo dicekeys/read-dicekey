@@ -33,7 +33,8 @@ static void writeDieCharacters(
 	float pixelsPerMm,
 	char letter,
 	char digit,
-	bool possibleErrors = 0
+	cv::Scalar letterColor,
+	cv::Scalar digitColor
 ) {
 	const float textHeightDestinationPixels = DieDimensionsMm::textRegionHeight * pixelsPerMm;
 	const float textWidthDestinationPixels = DieDimensionsMm::textRegionWidth * textWidthAdjustmentMultiplier * pixelsPerMm;
@@ -81,17 +82,9 @@ static void writeDieCharacters(
 		for (auto p : letterRecord->outlinePoints) {
 			const int x = int(round(letterTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
 			const int y = int(round(letterTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
-			// BGR => B=0, G=1, R=2, A=3
-			if (possibleErrors) {
-				imageColor.at<cv::Vec3b>(y, x)[2] = 192;
-				imageColor.at<cv::Vec3b>(y, x)[1] = 96;
-				imageColor.at<cv::Vec3b>(y, x)[0] = 0;
-			}
-			else {
-				imageColor.at<cv::Vec3b>(y, x)[1] = 192;
-				imageColor.at<cv::Vec3b>(y, x)[0] = 0;
-				imageColor.at<cv::Vec3b>(y, x)[2] = 0;
-			}
+			imageColor.at<cv::Vec3b>(y, x)[0] = letterColor[0];
+			imageColor.at<cv::Vec3b>(y, x)[1] = letterColor[1];
+			imageColor.at<cv::Vec3b>(y, x)[2] = letterColor[2];
 		}
 	}
 
@@ -99,16 +92,9 @@ static void writeDieCharacters(
 		for (auto p : digitRecord->outlinePoints) {
 			const int x = int(round(digitTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
 			const int y = int(round(digitTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
-			if (possibleErrors) {
-				imageColor.at<cv::Vec3b>(y, x)[2] = 192;
-				imageColor.at<cv::Vec3b>(y, x)[1] = 96;
-				imageColor.at<cv::Vec3b>(y, x)[0] = 0;
-			}
-			else {
-				imageColor.at<cv::Vec3b>(y, x)[1] = 192;
-				imageColor.at<cv::Vec3b>(y, x)[0] = 0;
-				imageColor.at<cv::Vec3b>(y, x)[2] = 0;
-			}
+			imageColor.at<cv::Vec3b>(y, x)[0] = digitColor[0];
+			imageColor.at<cv::Vec3b>(y, x)[1] = digitColor[1];
+			imageColor.at<cv::Vec3b>(y, x)[2] = digitColor[2];
 		}
 	}
 }

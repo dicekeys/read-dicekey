@@ -222,12 +222,17 @@ public:
 	bool isOverline = false;
 	unsigned char letterDigitEncoding = 0;
 	unsigned char whiteBlackThreshold = 0;
-//	unsigned int binaryCodingReadForwardOrBackward = 0;
 	cv::Point2f inferredDieCenter = {0, 0};
 
-//	DieFaceSpecification dieFaceInferred = {0, 0, 0, 0};
-	const DieFaceSpecification *dieFaceInferred() {
+	const DieFaceSpecification *dieFaceInferred() const {
 		return decodeUndoverlineByte(isOverline, letterDigitEncoding);
+	}
+
+	const cv::RotatedRect boundaryRect() const {
+		const float length = lineLength(line);
+		const float height = undoverlineWidthAsFractionOfLength * length;
+		const float angle = angleOfLineInSignedRadians2f(line);
+		return cv::RotatedRect(inferredDieCenter, cv::Size2f(length, height), angle);
 	}
 };
 

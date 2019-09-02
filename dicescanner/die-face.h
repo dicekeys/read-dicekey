@@ -37,14 +37,14 @@ class DieFace {
     unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
     DieFaceError error;
 
-    const DieFace() {
+    DieFace() {
       letter = 0;
       digit = 0;
       orientationAs0to3ClockwiseTurnsFromUpright = 0;
       error = DieFaceErrors::WorstPossible;
     }
 
-    const DieFace(char _letter, char _digit, unsigned char _orientationAs0to3ClockwiseTurnsFromUpright,
+    DieFace(char _letter, char _digit, unsigned char _orientationAs0to3ClockwiseTurnsFromUpright,
             DieFaceError _error) {
       letter = _letter;
       digit = _digit;

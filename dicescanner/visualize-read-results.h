@@ -23,19 +23,23 @@
 #include "read-die-characters.h"
 #include "read-dice.h"
 
-static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead, bool writeInPlace = false)
-{
-  cv::Mat resultImage = (writeInPlace ? colorImage : colorImage.clone());
-  if (diceRead.success) {
-    for (DieRead die: diceRead.dice) {
-      const int errors = die.error().magnitude;
-      // Derive the length of each side of the die in pixels by dividing the
-      // legnth off and 
-      const float dieSizeInPixels = DieDimensionsMm::size * diceRead.pixelsPerMm;
-      cv::RotatedRect dieEdges(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm));
+// Colors are in BGR format
+const cv::Scalar colorNoErrorGreen = cv::Scalar(0, 192, 0);
+const cv::Scalar colorSmallErrorOrange = cv::Scalar(0, 96, 192);
+const cv::Scalar colorBigErrorRed = cv::Scalar(0, 0, 128);
+
+inline cv::Scalar errorMagnitudeToColor(unsigned errorMagnitude) {
+  return errorMagnitude == 0 ?
+      colorNoErrorGreen :
+    errorMagnitude <= 3 ?
+      colorSmallErrorOrange :
+      colorBigErrorRed;
+}
+
+inline void drawRotatedRect(cv::Mat image, const cv::RotatedRect& rrect, cv::Scalar color = cv::Scalar(0,0,0), int thickness = 1) {
       cv::Point2f pointsf[4];
       cv::Point points[4];
-      dieEdges.points(pointsf);
+      rrect.points(pointsf);
       for (int i=0; i<4; i++) {
         points[i] = pointsf[i];
       }
@@ -43,17 +47,52 @@ static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead
         points
       };
       int npt[] = { 4 };
-      // Color in BGR format
-      cv::Scalar color = errors == 0 ?
-          cv::Scalar(0, 192, 0) :
-        errors <= 3 ?
-          cv::Scalar(0, 96, 192) :
-          cv::Scalar(0, 00, 128);
-      const int thickness = errors == 0 ? 1 : 2;
-      polylines(resultImage, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
-      writeDieCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerMm, die.letter(), die.digit(), errors > 0);
+      polylines(image, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
+}
+
+static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead, bool writeInPlace = false)
+{
+  cv::Mat resultImage = (writeInPlace ? colorImage : colorImage.clone());
+  // Derive the length of each side of the die in pixels by dividing the
+  // legnth off and 
+  const float dieSizeInPixels = DieDimensionsMm::size * diceRead.pixelsPerMm;
+
+  if (diceRead.success) {
+    for (DieRead die: diceRead.dice) {
+      const auto error = die.error();
+      drawRotatedRect(
+        resultImage,
+        cv::RotatedRect(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm)),
+        errorMagnitudeToColor(error.magnitude),
+        error.magnitude == 0 ? 1 : 2
+      );
+      if (die.underline.found) {
+        drawRotatedRect(resultImage, die.underline.boundaryRect(),
+          errorMagnitudeToColor( (error.location & DieFaceErrors::Location::Underline) ? error.magnitude : 0 ),
+          1);
+      }
+      if (die.overline.found) {
+        drawRotatedRect(resultImage, die.overline.boundaryRect(),
+          errorMagnitudeToColor( (error.location & DieFaceErrors::Location::Overline) ? error.magnitude : 0 ),
+          1);
+      }
+      writeDieCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerMm, die.letter(), die.digit(),
+        errorMagnitudeToColor( (error.location & DieFaceErrors::Location::OcrLetter) ? error.magnitude : 0 ),
+        errorMagnitudeToColor( (error.location & DieFaceErrors::Location::OcrDigit) ? error.magnitude : 0 )
+      );
     }
   }
+  for (Undoverline undoverline: diceRead.strayUndoverlines) {
+    drawRotatedRect(resultImage, undoverline.boundaryRect(), colorBigErrorRed, 1);
+  }
+  for (DieRead die: diceRead.strayDice) {
+      drawRotatedRect(
+        resultImage,
+        cv::RotatedRect(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm)),
+        colorBigErrorRed, 1
+      );
+  }
+
 
 	return resultImage;
 }
