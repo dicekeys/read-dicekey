@@ -27,7 +27,6 @@
 		176940BA22FBC4610069FDDA /* geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geometry.h; sourceTree = "<group>"; };
 		176940BB22FBC4610069FDDA /* find-rectangles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "find-rectangles.h"; sourceTree = "<group>"; };
 		176940BC22FBC4610069FDDA /* dice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dice.h; sourceTree = "<group>"; };
-		176940BD22FBC4610069FDDA /* ocr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ocr.h; sourceTree = "<group>"; };
 		176940BE22FBC4610069FDDA /* decode-die.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "decode-die.h"; sourceTree = "<group>"; };
 		176940BF22FBC4610069FDDA /* sample-point.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sample-point.h"; sourceTree = "<group>"; };
 		176940C022FBC4610069FDDA /* find-undoverlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "find-undoverlines.h"; sourceTree = "<group>"; };
@@ -107,7 +106,6 @@
 				176940BB22FBC4610069FDDA /* find-rectangles.h */,
 				176940C022FBC4610069FDDA /* find-undoverlines.h */,
 				176940BA22FBC4610069FDDA /* geometry.h */,
-				176940BD22FBC4610069FDDA /* ocr.h */,
 				176940BF22FBC4610069FDDA /* sample-point.h */,
 				176940C122FBC4610069FDDA /* validate-dice.h */,
 			);

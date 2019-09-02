@@ -23,10 +23,15 @@
 #include "assemble-dice-key.h"
 #include "read-die-characters.h"
 
-struct ReadDiceResult {
+
+class ReadDiceResult {
+	public:
+	bool success;
 	std::vector<DieRead> dice;
 	float angleInRadiansNonCononicalForm;
 	float pixelsPerMm;
+	std::vector<DieRead> strayDice;
+	std::vector<Undoverline> strayUndoverlines;
 };
 
 static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
@@ -37,7 +42,7 @@ static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors =
 	DiceAndStrayUndoverlinesFound diceAndStrayUndoverlinesFound = findDiceAndStrayUndoverlines(colorImage, grayscaleImage);
 	auto orderedDiceResult = orderDiceAndInferMissingUndoverlines(diceAndStrayUndoverlinesFound);
 	if (!orderedDiceResult.valid) {
-		return {};
+		return { false, {}, 0, 0, diceAndStrayUndoverlinesFound.diceFound, diceAndStrayUndoverlinesFound.strayUndoverlines };
 	}
 	std::vector<DieRead> orderedDice = orderedDiceResult.orderedDice;
 	const float angleOfDiceKeyInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
@@ -73,7 +78,7 @@ static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors =
 		die.ocrDigit = charsRead.digitsMostLikelyFirst;
 	}
 
-	return { orderedDice, orderedDiceResult.angleInRadiansNonCononicalForm, orderedDiceResult.pixelsPerMm };
+	return { true, orderedDice, orderedDiceResult.angleInRadiansNonCononicalForm, orderedDiceResult.pixelsPerMm, {} };
 }
 
 static std::vector<DieFace> diceReadToDiceKey(const std::vector<DieRead> diceRead, bool reportErrsToStdErr = false)

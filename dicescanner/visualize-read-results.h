@@ -26,32 +26,34 @@
 static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead, bool writeInPlace = false)
 {
   cv::Mat resultImage = (writeInPlace ? colorImage : colorImage.clone());
-  for (DieRead die: diceRead.dice) {
-    const int errors = die.error();
-    // Derive the length of each side of the die in pixels by dividing the
-    // legnth off and 
-    const float dieSizeInPixels = DieDimensionsMm::size * diceRead.pixelsPerMm;
-    cv::RotatedRect dieEdges(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm));
-    cv::Point2f pointsf[4];
-    cv::Point points[4];
-    dieEdges.points(pointsf);
-    for (int i=0; i<4; i++) {
-      points[i] = pointsf[i];
+  if (diceRead.success) {
+    for (DieRead die: diceRead.dice) {
+      const int errors = die.error();
+      // Derive the length of each side of the die in pixels by dividing the
+      // legnth off and 
+      const float dieSizeInPixels = DieDimensionsMm::size * diceRead.pixelsPerMm;
+      cv::RotatedRect dieEdges(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm));
+      cv::Point2f pointsf[4];
+      cv::Point points[4];
+      dieEdges.points(pointsf);
+      for (int i=0; i<4; i++) {
+        points[i] = pointsf[i];
+      }
+      const cv:: Point* ppoints[1] = {
+        points
+      };
+      int npt[] = { 4 };
+      // Color in BGR format
+      cv::Scalar color = errors == 0 ?
+          cv::Scalar(0, 192, 0) :
+        errors <= 3 ?
+          cv::Scalar(0, 96, 192) :
+          cv::Scalar(0, 00, 128);
+      const int thickness = errors == 0 ? 1 : 2;
+      polylines(resultImage, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
+      writeDieCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerMm, die.letter(), die.digit(), errors > 0);
     }
-    const cv:: Point* ppoints[1] = {
-		  points
-	  };
-    int npt[] = { 4 };
-    // Color in BGR format
-    cv::Scalar color = errors == 0 ?
-        cv::Scalar(0, 192, 0) :
-      errors <= 3 ?
-        cv::Scalar(0, 96, 192) :
-        cv::Scalar(0, 00, 128);
-    const int thickness = errors == 0 ? 1 : 2;
-    polylines(resultImage, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
-		writeDieCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerMm, die.letter(), die.digit(), errors > 0);
   }
-
+  
 	return resultImage;
 }
