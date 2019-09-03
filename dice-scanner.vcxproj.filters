@@ -30,6 +30,7 @@
     <ClInclude Include="dicescanner\visualize-read-results.h" />
     <ClInclude Include="dicescanner\die-face.h" />
     <ClInclude Include="dicescanner\color.h" />
+    <ClInclude Include="dicescanner\undoverline.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

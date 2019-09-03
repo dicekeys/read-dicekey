@@ -18,9 +18,8 @@
 #include "sample-point.h"
 #include "decode-die.h"
 #include "statistics.h"
+#include "undoverline.h"
 
-
-const float undoverlineWidthAsFractionOfLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
 const float minWidthOverLength = undoverlineWidthAsFractionOfLength / 1.5f;
 const float maxWidthOverLength = undoverlineWidthAsFractionOfLength * 1.5f;
 
@@ -214,34 +213,6 @@ static uint readUndoverlineBits(const cv::Mat &grayscaleImage, const Line &undov
 	return binaryCodingReadForwardOrBackward;
 }
 
-
-class Undoverline {
-public:
-	bool found = false;
-	cv::RotatedRect fromRotatedRect = cv::RotatedRect();
-	Line line  = { {0, 0}, {0, 0} };
-	bool isOverline = false;
-	unsigned char letterDigitEncoding = 0;
-	unsigned char whiteBlackThreshold = 0;
-	cv::Point2f inferredDieCenter = {0, 0};
-
-	const DieFaceSpecification *dieFaceInferred() const {
-		return decodeUndoverlineByte(isOverline, letterDigitEncoding);
-	}
-
-	const cv::RotatedRect rederiveBoundaryRect() const {
-		const cv::Point2f center = midpointOfLine(line);
-		const float length = lineLength(line);
-		const float height = undoverlineWidthAsFractionOfLength * length;
-		const float angle = angleOfLineInSignedRadians2f(line);
-		const float absAngle = abs(angle);
-		const bool isHorizontalish = absAngle <= (M_PI / 4) || absAngle > ((M_PI * 3) / 4);
-		const cv::Size2f rectSize = isHorizontalish ? cv::Size2f(length, height) : cv::Size2f(height, length);
-		return cv::RotatedRect(center, rectSize, float(angle + M_PI/2));
-	}
-};
-
-
 struct UnderlinesAndOverlines {
 	std::vector<Undoverline> underlines;
 	std::vector<Undoverline> overlines;
@@ -279,66 +250,68 @@ Undoverline readUndoverline(const cv::Mat &colorImage, const cv::Mat &grayscaleI
 	const float undoverlineLength = lineLength(undoverlineStartingAtImageLeft);
 	unsigned char whiteBlackThreshold = 0;
 	const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverlineStartingAtImageLeft, whiteBlackThreshold);
-	const bool isVertical =
-		abs(undoverlineStartingAtImageLeft.end.x - undoverlineStartingAtImageLeft.start.x) <
-		abs(undoverlineStartingAtImageLeft.end.y - undoverlineStartingAtImageLeft.start.y);
 
-	// FIXME -- remove debugging when all works.
-	///Users/stuart/github/dice-scanner/
-		//cv::imwrite("undoverlineStartingAtImageLeft-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
-		// const cv::Point2f center = midpointOfLine(undoverlineStartingAtImageLeft);
-		// const float lineLen = lineLength(undoverlineStartingAtImageLeft);
-		// const float angle = angleOfLineInSignedDegrees2f(undoverlineStartingAtImageLeft);
-		//cv::imwrite("underline-isolated.png", copyRotatedRectangle(
-		//	grayscaleImage,
-		//	center,
-		//	angle,
-		//	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
+	return Undoverline(rectEncompassingLine.rotatedRect, undoverlineStartingAtImageLeft, whiteBlackThreshold, binaryCodingReadForwardOrBackward);
 
-	const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
-	if (!decoded.isValid) {
-		return {
-			false,
-			rectEncompassingLine.rotatedRect,
-			undoverlineStartingAtImageLeft,
-		};
-	}
+	// const bool isVertical =
+	// 	abs(undoverlineStartingAtImageLeft.end.x - undoverlineStartingAtImageLeft.start.x) <
+	// 	abs(undoverlineStartingAtImageLeft.end.y - undoverlineStartingAtImageLeft.start.y);
 
-	// If the die was up-side down, the underline would appear at the top of the die,
-	// and when we scanned it from image left to right we read the bits in reverse order.
-	// To determine the actual direction of the die, we will need to reverse it in situations
-	// where the orientation bits reveal that we read it in reverse order.
-	// This yields a line directed from the side of the die that would be on the left if it were
-	// not rotated (the side on which the letter appears) to the right side of the die if it were
-	// not rotated (the side on which the digit appears)
-	const Line undoverlineStartingAtTextLeft =
-		decoded.wasReadInReverseOrder ? reverseLineDirection(undoverlineStartingAtImageLeft) : undoverlineStartingAtImageLeft;
+	// // FIXME -- remove debugging when all works.
+	// ///Users/stuart/github/dice-scanner/
+	// 	//cv::imwrite("undoverlineStartingAtImageLeft-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+	// 	// const cv::Point2f center = midpointOfLine(undoverlineStartingAtImageLeft);
+	// 	// const float lineLen = lineLength(undoverlineStartingAtImageLeft);
+	// 	// const float angle = angleOfLineInSignedDegrees2f(undoverlineStartingAtImageLeft);
+	// 	//cv::imwrite("underline-isolated.png", copyRotatedRectangle(
+	// 	//	grayscaleImage,
+	// 	//	center,
+	// 	//	angle,
+	// 	//	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
+	// const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
+	// if (!decoded.isValid) {
+	// 	return {
+	// 		false,
+	// 		rectEncompassingLine.rotatedRect,
+	// 		undoverlineStartingAtImageLeft,
+	// 	};
+	// }
 
-	float upAngleInRadians = angleOfLineInSignedRadians2f(undoverlineStartingAtTextLeft) +
-		(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
+	// // If the die was up-side down, the underline would appear at the top of the die,
+	// // and when we scanned it from image left to right we read the bits in reverse order.
+	// // To determine the actual direction of the die, we will need to reverse it in situations
+	// // where the orientation bits reveal that we read it in reverse order.
+	// // This yields a line directed from the side of the die that would be on the left if it were
+	// // not rotated (the side on which the letter appears) to the right side of the die if it were
+	// // not rotated (the side on which the digit appears)
+	// const Line undoverlineStartingAtTextLeft =
+	// 	decoded.wasReadInReverseOrder ? reverseLineDirection(undoverlineStartingAtImageLeft) : undoverlineStartingAtImageLeft;
 
-	// pixels per mm the length of the overline in pixels of it's length in mm,
-	// or, undoverlineLength / mmDieUndoverlineLength;
-	double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
+	// float upAngleInRadians = angleOfLineInSignedRadians2f(undoverlineStartingAtTextLeft) +
+	// 	(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
 
-	float pixelsFromCenterOfUnderlineToCenterOfDie = float(
-		DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
-		mmToPixels);
+	// // pixels per mm the length of the overline in pixels of it's length in mm,
+	// // or, undoverlineLength / mmDieUndoverlineLength;
+	// double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
 
-	const cv::Point2f lineCenter = midpointOfLine(undoverlineStartingAtImageLeft);
-	const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
-	const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
-	const cv::Point2f dieCenter = cv::Point2f(x, y);
+	// float pixelsFromCenterOfUnderlineToCenterOfDie = float(
+	// 	DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
+	// 	mmToPixels);
 
-	return {
-		true,
-		rectEncompassingLine.rotatedRect,
-		undoverlineStartingAtTextLeft,
-		decoded.isOverline,
-		decoded.letterDigitEncoding,
-		whiteBlackThreshold,
-		dieCenter
-	};
+	// const cv::Point2f lineCenter = midpointOfLine(undoverlineStartingAtImageLeft);
+	// const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
+	// const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
+	// const cv::Point2f dieCenter = cv::Point2f(x, y);
+
+	// return {
+	// 	true,
+	// 	rectEncompassingLine.rotatedRect,
+	// 	undoverlineStartingAtTextLeft,
+	// 	decoded.isOverline,
+	// 	decoded.letterDigitEncoding,
+	// 	whiteBlackThreshold,
+	// 	dieCenter
+	// };
 }
 
 
@@ -353,72 +326,73 @@ static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage
 	for (const RectangleDetected &rectEncompassingLine: candidateUndoverlineRects) {
 		// FIXME -- remove after debugging
 		// cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+		const Undoverline undoverline = readUndoverline(colorImage, grayscaleImage, rectEncompassingLine);
+		// const Line undoverlineStartingAtImageLeft = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
+		// const float undoverlineLength = lineLength(undoverlineStartingAtImageLeft);
+		// unsigned char whiteBlackThreshold = 0;
+		// const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverlineStartingAtImageLeft, whiteBlackThreshold);
+		// const bool isVertical =
+		// 	abs(undoverlineStartingAtImageLeft.end.x - undoverlineStartingAtImageLeft.start.x) <
+		// 	abs(undoverlineStartingAtImageLeft.end.y - undoverlineStartingAtImageLeft.start.y);
 
-		const Line undoverlineStartingAtImageLeft = undoverlineRectToLine(grayscaleImage, rectEncompassingLine);
-		const float undoverlineLength = lineLength(undoverlineStartingAtImageLeft);
-		unsigned char whiteBlackThreshold = 0;
-		const uint binaryCodingReadForwardOrBackward = readUndoverlineBits(grayscaleImage, undoverlineStartingAtImageLeft, whiteBlackThreshold);
-		const bool isVertical =
-			abs(undoverlineStartingAtImageLeft.end.x - undoverlineStartingAtImageLeft.start.x) <
-			abs(undoverlineStartingAtImageLeft.end.y - undoverlineStartingAtImageLeft.start.y);
+		// // FIXME -- remove debugging when all works.
+		// ///Users/stuart/github/dice-scanner/
+		//  //cv::imwrite("undoverlineStartingAtImageLeft-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
+		//  // const cv::Point2f center = midpointOfLine(undoverlineStartingAtImageLeft);
+		//  // const float lineLen = lineLength(undoverlineStartingAtImageLeft);
+		//  // const float angle = angleOfLineInSignedDegrees2f(undoverlineStartingAtImageLeft);
+		//  //cv::imwrite("underline-isolated.png", copyRotatedRectangle(
+		//  //	grayscaleImage,
+		//  //	center,
+		//  //	angle,
+		//  //	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
 
-		// FIXME -- remove debugging when all works.
-		///Users/stuart/github/dice-scanner/
-		 //cv::imwrite("undoverlineStartingAtImageLeft-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
-		 // const cv::Point2f center = midpointOfLine(undoverlineStartingAtImageLeft);
-		 // const float lineLen = lineLength(undoverlineStartingAtImageLeft);
-		 // const float angle = angleOfLineInSignedDegrees2f(undoverlineStartingAtImageLeft);
-		 //cv::imwrite("underline-isolated.png", copyRotatedRectangle(
-		 //	grayscaleImage,
-		 //	center,
-		 //	angle,
-		 //	cv::Size2f( lineLen, lineLen * undoverlineWidthAsFractionOfLength )));
+		// const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
+		// if (!decoded.isValid) {
+		// 	continue;
+		// }
 
-		const auto decoded = decodeUndoverline11Bits(binaryCodingReadForwardOrBackward, isVertical);
-		if (!decoded.isValid) {
-			continue;
-		}
+		// // If the die was up-side down, the underline would appear at the top of the die,
+		// // and when we scanned it from image left to right we read the bits in reverse order.
+		// // To determine the actual direction of the die, we will need to reverse it in situations
+		// // where the orientation bits reveal that we read it in reverse order.
+		// // This yields a line directed from the side of the die that would be on the left if it were
+		// // not rotated (the side on which the letter appears) to the right side of the die if it were
+		// // not rotated (the side on which the digit appears)
+		// const Line undoverlineStartingAtTextLeft =
+		// 	decoded.wasReadInReverseOrder ? reverseLineDirection(undoverlineStartingAtImageLeft) : undoverlineStartingAtImageLeft;
 
-		// If the die was up-side down, the underline would appear at the top of the die,
-		// and when we scanned it from image left to right we read the bits in reverse order.
-		// To determine the actual direction of the die, we will need to reverse it in situations
-		// where the orientation bits reveal that we read it in reverse order.
-		// This yields a line directed from the side of the die that would be on the left if it were
-		// not rotated (the side on which the letter appears) to the right side of the die if it were
-		// not rotated (the side on which the digit appears)
-		const Line undoverlineStartingAtTextLeft =
-			decoded.wasReadInReverseOrder ? reverseLineDirection(undoverlineStartingAtImageLeft) : undoverlineStartingAtImageLeft;
+		// float upAngleInRadians = angleOfLineInSignedRadians2f(undoverlineStartingAtTextLeft) +
+		// 	(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
 
-		float upAngleInRadians = angleOfLineInSignedRadians2f(undoverlineStartingAtTextLeft) +
-			(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
+		// // pixels per mm the length of the overline in pixels of it's length in mm,
+		// // or, undoverlineLength / mmDieUndoverlineLength;
+		// double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
 
-		// pixels per mm the length of the overline in pixels of it's length in mm,
-		// or, undoverlineLength / mmDieUndoverlineLength;
-		double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
+		// float pixelsFromCenterOfUnderlineToCenterOfDie = float(
+		// 	DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
+		// 	mmToPixels);
 
-		float pixelsFromCenterOfUnderlineToCenterOfDie = float(
-			DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
-			mmToPixels);
+		// const cv::Point2f lineCenter = midpointOfLine(undoverlineStartingAtImageLeft);
+		// const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
+		// const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
+		// const cv::Point2f dieCenter = cv::Point2f(x, y);
 
-		const cv::Point2f lineCenter = midpointOfLine(undoverlineStartingAtImageLeft);
-		const auto x = lineCenter.x + pixelsFromCenterOfUnderlineToCenterOfDie * cos(upAngleInRadians);
-		const auto y = lineCenter.y + pixelsFromCenterOfUnderlineToCenterOfDie * sin(upAngleInRadians);
-		const cv::Point2f dieCenter = cv::Point2f(x, y);
-
-		Undoverline thisUndoverline = {
-			true,
-			rectEncompassingLine.rotatedRect,
-			undoverlineStartingAtTextLeft,
-			decoded.isOverline,
-			decoded.letterDigitEncoding,
-			whiteBlackThreshold,
-//			binaryCodingReadForwardOrBackward,
-			dieCenter
-		};
-		if (decoded.isOverline) {
-			overlines.push_back(thisUndoverline);
-		} else {
-			underlines.push_back(thisUndoverline);
+		// Undoverline thisUndoverline = {
+		// 	true,
+		// 	rectEncompassingLine.rotatedRect,
+		// 	undoverlineStartingAtTextLeft,
+		// 	decoded.isOverline,
+		// 	decoded.letterDigitEncoding,
+		// 	whiteBlackThreshold,
+		// 	dieCenter
+		// };
+		if (undoverline.found && undoverline.determinedIfUnderlineOrOverline) {
+			if (undoverline.isOverline) {
+				overlines.push_back(undoverline);
+			} else {
+				underlines.push_back(undoverline);
+			}
 		}
 	}
 

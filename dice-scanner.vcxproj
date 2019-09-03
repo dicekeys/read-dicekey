@@ -179,6 +179,7 @@
     <ClInclude Include="dicescanner\sample-point.h" />
     <ClInclude Include="dicescanner\simple-ocr.h" />
     <ClInclude Include="dicescanner\statistics.h" />
+    <ClInclude Include="dicescanner\undoverline.h" />
     <ClInclude Include="dicescanner\validate-dice.h" />
     <ClInclude Include="dicescanner\vfunctional.h" />
     <ClInclude Include="dicescanner\value-clusters.h" />

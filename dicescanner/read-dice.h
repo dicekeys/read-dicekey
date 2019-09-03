@@ -48,7 +48,7 @@ static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors =
 	const float angleOfDiceKeyInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
 
 	for (auto &die : orderedDice) {
-		if (!(die.underline.found || die.overline.found)) {
+		if (!(die.underline.determinedIfUnderlineOrOverline || die.overline.determinedIfUnderlineOrOverline)) {
 			continue;
 			// Without an overline or underline to orient the die, we can't read it.
 		}
@@ -61,8 +61,8 @@ static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors =
 			die.underline.found ?
 				die.underline.whiteBlackThreshold :
 				die.overline.whiteBlackThreshold;
-		const DieFaceSpecification &underlineInferred = *die.underline.dieFaceInferred();
-		const DieFaceSpecification &overlineInferred = *die.overline.dieFaceInferred();
+		const DieFaceSpecification &underlineInferred = *die.underline.dieFaceInferred;
+		const DieFaceSpecification &overlineInferred = *die.overline.dieFaceInferred;
 		const DieCharactersRead charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
 			diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
 			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.letter)) + std::string(1, dashIfNull(overlineInferred.letter))) : "",
@@ -89,8 +89,8 @@ static DiceKey diceReadToDiceKey(const std::vector<DieRead> diceRead, bool repor
 	std::vector<DieFace> dieFaces;
 	for (size_t i = 0; i < diceRead.size(); i++) {
 		DieRead dieRead = diceRead[i];
-		const DieFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred();
-		const DieFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred();
+		const DieFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred;
+		const DieFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred;
 		const char digitRead = dieRead.ocrDigit.size() == 0 ? '\0' : dieRead.ocrDigit[0].character;
 		const char letterRead = dieRead.ocrLetter.size() == 0 ? '\0' :  dieRead.ocrLetter[0].character;
 		if (!dieRead.underline.found) {

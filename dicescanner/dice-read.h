@@ -34,12 +34,12 @@ public:
 
   char letter() {
     return majorityOfThree(
-      underline.dieFaceInferred()->letter, overline.dieFaceInferred()->letter, ocrLetterMostLikely()
+      underline.dieFaceInferred->letter, overline.dieFaceInferred->letter, ocrLetterMostLikely()
     );
   }
   char digit() {
     return majorityOfThree(
-      underline.dieFaceInferred()->digit, overline.dieFaceInferred()->digit, ocrDigitMostLikely()
+      underline.dieFaceInferred->digit, overline.dieFaceInferred->digit, ocrDigitMostLikely()
     );
   }
 
@@ -58,13 +58,13 @@ public:
 		unsigned int errorMagnitude = 0;
 		const char ocrLetter0 = ocrLetter[0].character;
 		const char ocrDigit0 = ocrDigit[0].character;
-		const DieFaceSpecification* pUnderlineFaceInferred = underline.dieFaceInferred();
-		const DieFaceSpecification* pOverlineFaceInferred = overline.dieFaceInferred();
+		const DieFaceSpecification* pUnderlineFaceInferred = underline.dieFaceInferred;
+		const DieFaceSpecification* pOverlineFaceInferred = overline.dieFaceInferred;
 
 		// Test hypothesis of no error
 		if (pUnderlineFaceInferred == pOverlineFaceInferred) {
 			// The underline and overline map to the same die face
-			const DieFaceSpecification& undoverlineFaceInferred = *(underline.dieFaceInferred());
+			const DieFaceSpecification& undoverlineFaceInferred = *(underline.dieFaceInferred);
 
 			// Check for OCR errors for the letter read
 			if (undoverlineFaceInferred.letter != ocrLetter[0].character) {
