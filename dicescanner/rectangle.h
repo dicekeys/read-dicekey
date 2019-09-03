@@ -7,6 +7,11 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
+/**
+ * This class calculates the corners of a rotated rect since OpenCV's
+ * RotatedRect class doesn't always calculate points the way the spec
+ * says it should.
+ */
 class RRectCorners {
 	public:
 		cv::Point bottomLeft;
@@ -48,6 +53,11 @@ class RRectCorners {
 	}
 };
 
+/**
+ * Store summary information about rectangles detected in an image so that we can
+ * test to see whether they meet certain criteria (e.g., are they shaped like underlines)
+ * and perform naive, inaccurate, but fast tests of overlap.
+ */
 class RectangleDetected {
 public:
 	float contourArea;
@@ -106,10 +116,19 @@ public:
 		return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
 	};
 
+	/**
+	 * Test whether the rectangle contains a point at a given coordinate.
+	 **/
 	bool contains(const cv::Point2d &point) const {
 		return cv::pointPolygonTest(points, point, false) >= 0;
 	}
 
+	/**
+	 * Test whether two rectangles overlap.  This won't have
+	 * false positives, but misses some overlaps as it only
+	 * detects those where the center of one rectangle falls
+	 * within the other rectangle.
+	 * */
 	bool overlaps(const RectangleDetected& otherRect) {
 		return
 			otherRect.contains(center) || contains(otherRect.center);
