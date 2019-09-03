@@ -24,31 +24,9 @@ static void help(const char* programName)
 		"Using OpenCV version " << CV_VERSION << "\n" << std::endl;
 }
 
-
-// const char* wndname = "Dice Reading";
-// the function draws all the squares in the image
-//static void drawSquares(cv::Mat & image, const std::vector<std::vector<cv::Point> > & squares)
-//{
-//	auto clone = image.clone();
-//	for (size_t i = 0; i < squares.size(); i++)
-//	{
-//		const cv::Point* p = &squares[i][0];
-//		int n = (int)squares[i].size();
-//		polylines(clone, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
-//	}
-//
-//	imshow(wndname, clone);
-//}
-
 int main(int argc, char** argv)
 {
-#ifdef _WIN32
-//	std::string tesseractPath = "C:\\Users\\stuar\\github\\dice-scanner\\dicescanner";
-#else
-//	std::string tesseractPath = "/usr/local/Cellar/tesseract/4.0.0_1/share/tessdata/";
-#endif
-//	initOcr(tesseractPath);
-	help(argv[0]);
+	// help(argv[0]);
 
 #ifdef _WIN32
 	for (const auto& entry : std::filesystem::directory_iterator("img/")) {
