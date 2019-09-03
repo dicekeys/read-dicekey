@@ -101,9 +101,10 @@ static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& c
 			return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
 			});
 
-			for (auto const r : candidateUndoverlines) {
-				drawRotatedRect(colorImage, r.rotatedRect, cv::Scalar(255, 0, 255));
-			}
+			// Uncomment for debugging
+			// for (auto const r : candidateUndoverlines) {
+			// 	drawRotatedRect(colorImage, r.rotatedRect, cv::Scalar(255, 0, 255));
+			// }
 	}
 
 	return candidateUndoverlines;
