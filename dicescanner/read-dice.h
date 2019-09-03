@@ -40,7 +40,7 @@ static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors =
 
 	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
 	DiceAndStrayUndoverlinesFound diceAndStrayUndoverlinesFound = findDiceAndStrayUndoverlines(colorImage, grayscaleImage);
-	auto orderedDiceResult = orderDiceAndInferMissingUndoverlines(diceAndStrayUndoverlinesFound);
+	auto orderedDiceResult = orderDiceAndInferMissingUndoverlines(colorImage, grayscaleImage, diceAndStrayUndoverlinesFound);
 	if (!orderedDiceResult.valid) {
 		return { false, {}, 0, 0, diceAndStrayUndoverlinesFound.diceFound, diceAndStrayUndoverlinesFound.strayUndoverlines };
 	}

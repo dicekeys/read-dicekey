@@ -195,7 +195,10 @@ struct DiceOrderdWithMissingDiceInferredFromUnderlines {
 	float angleInRadiansNonCononicalForm = NAN;
 	float pixelsPerMm;
 };
+
 static DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverlines(
+	const cv::Mat &colorImage,
+	const cv::Mat &grayscaleImage,
 	const DiceAndStrayUndoverlinesFound& diceAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine = 1.0f // 1 mm
 ) {
@@ -221,9 +224,15 @@ static DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingU
 			// We were able to find this undoverline's die in the grid model, so copy it in
 			if (undoverline.isOverline) {
 				orderedDice[dieIndex].overline = undoverline;
+				if (!orderedDice[dieIndex].underline.found) {
+					orderedDice[dieIndex].underline = readUndoverline(colorImage, grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
+				}
 			}
 			else {
 				orderedDice[dieIndex].underline = undoverline;
+				if (!orderedDice[dieIndex].overline.found) {
+					orderedDice[dieIndex].overline = readUndoverline(colorImage, grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
+				}
 			}
 			orderedDice[dieIndex].inferredAngleInRadians = angleOfLineInSignedRadians2f(undoverline.line);
 			orderedDice[dieIndex].center = undoverline.inferredDieCenter;
