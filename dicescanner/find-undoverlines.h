@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <limits>
 #include "vfunctional.h"
 #include "geometry.h"
 #include "find-rectangles.h"
@@ -19,72 +20,93 @@
 #include "decode-die.h"
 #include "statistics.h"
 #include "undoverline.h"
+#include "drawing.h"
 
 const float minWidthOverLength = undoverlineWidthAsFractionOfLength / 1.5f;
 const float maxWidthOverLength = undoverlineWidthAsFractionOfLength * 1.5f;
 
-static bool isRectangleShapedLikeUndoverline(RectangleDetected rect) {
-	float shortToLongRatio = rect.shorterSideLength / rect.longerSideLength;
+static bool isRectangleShapedLikeUndoverline(const RectangleDetected* rect) {
+	float shortToLongRatio = rect->shorterSideLength / rect->longerSideLength;
 	return (
 		shortToLongRatio >= minWidthOverLength &&
 		shortToLongRatio <= maxWidthOverLength
 		);
 }
 
+float findTighestModalAreaOfRects(const std::vector<RectangleDetected> &rects, int numberInMode = 35) {
+	const int halfModeSize = MIN(int((rects.size() / 2) - 1), numberInMode / 2);
+	std::vector<float> areas = vmap<RectangleDetected, float>(rects, [](const RectangleDetected *r) -> float {
+		return r->area;
+	});
+	std::sort(areas.begin(), areas.end(), [](float a, float b) -> bool {return a < b;});
+	float tightestModeRange = std::numeric_limits<float>::max();
+	float areaAtTigghtestMode = NAN;
+	int maxPossibleIndex = int(areas.size() - (halfModeSize + 2));
+	for (int i = halfModeSize; i < maxPossibleIndex; i++) {
+		const float modeRange = areas[i + halfModeSize] / areas[i - halfModeSize];
+
+		if (modeRange < tightestModeRange ||
+				// Just in case we found a very tight range of tiny things
+				// (e.g., lots of 6x1 boxes that have small total area)
+				(modeRange < 1.2 && areas[i] > 3 * areaAtTigghtestMode)
+			) {
+			tightestModeRange = modeRange;
+			areaAtTigghtestMode = areas[i];
+		}
+	}
+	return areaAtTigghtestMode;
+}
+
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& grayscaleImage, int N = 13)
+static std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& colorImage, const cv::Mat& grayscaleImage, int N = 13)
 {
-	std::vector<RectangleDetected> candidateUnderOverLines = vfilter<RectangleDetected>(
+	std::vector<RectangleDetected> candidateUndoverlines = vfilter<RectangleDetected>(
 		findRectangles(grayscaleImage, N), isRectangleShapedLikeUndoverline);
 
-	if (candidateUnderOverLines.size() > 25) {
-		// Remove rectangles that stray from the median
-
-		float medianArea = median(vmap<RectangleDetected, float>(candidateUnderOverLines,
-			[](RectangleDetected r) -> float { return r.area; }));
-		float minArea = 0.75f * medianArea;
-		float maxArea = medianArea / 0.75f;
-		candidateUnderOverLines = vfilter<RectangleDetected>(candidateUnderOverLines, [minArea, maxArea](RectangleDetected r) {
-			return  (r.area >= minArea && r.area <= maxArea);
+	if (candidateUndoverlines.size() > 25) {
+		float tightestArea = findTighestModalAreaOfRects(candidateUndoverlines);
+		float minArea = 0.75f * tightestArea;
+		float maxArea = tightestArea / 0.75f;
+		candidateUndoverlines = vfilter<RectangleDetected>(candidateUndoverlines, [minArea, maxArea](const RectangleDetected *r) {
+			return  (r->area >= minArea && r->area <= maxArea);
 			});
 
-		// Recalculate median for survivors
-		float areaHighPercentile = percentile(
-			vmap<RectangleDetected, float>(candidateUnderOverLines, [](RectangleDetected r) -> float { return r.area; }),
-			85
-		);
 		// Calculate the modal slope of the surviving undoverlines (mod 90) so that we can
 		// favor underlines with similar slopes
 		// (mod 90 because undoverlines may be at one of four 90-degree rotations,
 		//  and on a cicular line so that angles of 1 and 89 are distance 2, not distance 88)
 		float targetAngleInDegrees = findPointOnCircularSignedNumberLineClosestToCenterOfMass(
-			vmap<RectangleDetected, float>(candidateUnderOverLines,
-				[](RectangleDetected r) -> float { return r.angleInDegrees; }),
+			vmap<RectangleDetected, float>(candidateUndoverlines,
+				[](const RectangleDetected *r) -> float { return r->angleInDegrees; }),
 			float(45));
 
-		candidateUnderOverLines = removeOverlappingRectangles(candidateUnderOverLines, [areaHighPercentile, targetAngleInDegrees](RectangleDetected r) -> float {
+		candidateUndoverlines = removeOverlappingRectangles(candidateUndoverlines, [tightestArea, targetAngleInDegrees](RectangleDetected r) -> float {
 			float deviationFromSideRatio = (r.shorterSideLength / r.longerSideLength) / undoverlineWidthAsFractionOfLength;
 			if (deviationFromSideRatio < 1 && deviationFromSideRatio > 0) {
 				deviationFromSideRatio = 1 / deviationFromSideRatio;
 			}
 			deviationFromSideRatio -= 1;
 			float devationFromSideLengthRatioPenalty = 2.0f * deviationFromSideRatio;
-			float deviationFromTargetArea = r.area < areaHighPercentile ?
+			float deviationFromTargetArea = r.area < tightestArea ?
 				// Deviation penalty for falling short of target
-				((areaHighPercentile / r.area) - 1) :
+				((tightestArea / r.area) - 1) :
 				// The consequences of capturing extra area are smaller,
 				// so cut the penalty in half for those.
-				(((r.area / areaHighPercentile) - 1) / 2);
+				(((r.area / tightestArea) - 1) / 2);
 			// The penalty from deviating from the target angle
 			const float angleDiff = distanceInModCircularRangeFromNegativeNToN(r.angleInDegrees, targetAngleInDegrees, float(90));
 			float deviationFromTargetAngle = 2.0f * angleDiff;
 
 			return devationFromSideLengthRatioPenalty + deviationFromTargetArea + deviationFromTargetAngle;
 			});
+
+			for (auto const r : candidateUndoverlines) {
+				drawRotatedRect(colorImage, r.rotatedRect, cv::Scalar(255, 0, 255));
+			}
 	}
 
-	return candidateUnderOverLines;
+	return candidateUndoverlines;
 }
 
 
@@ -209,14 +231,12 @@ struct UnderlinesAndOverlines {
 static UnderlinesAndOverlines findReadableUndoverlines(const cv::Mat &colorImage, const cv::Mat &grayscaleImage)
 {
 	const std::vector<RectangleDetected> candidateUndoverlineRects =
-		findCandidateUndoverlines(grayscaleImage);
+		findCandidateUndoverlines(colorImage, grayscaleImage);
 
 	std::vector<Undoverline> underlines;
 	std::vector<Undoverline> overlines;
 
 	for (const RectangleDetected &rectEncompassingLine: candidateUndoverlineRects) {
-		// FIXME -- remove after debugging
-		// cv::imwrite("undoverline-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
 		const Undoverline undoverline = readUndoverline(colorImage, grayscaleImage, rectEncompassingLine.rotatedRect);
 
 		if (undoverline.found && undoverline.determinedIfUnderlineOrOverline) {

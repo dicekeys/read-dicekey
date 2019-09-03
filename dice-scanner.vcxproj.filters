@@ -31,6 +31,7 @@
     <ClInclude Include="dicescanner\die-face.h" />
     <ClInclude Include="dicescanner\color.h" />
     <ClInclude Include="dicescanner\undoverline.h" />
+    <ClInclude Include="dicescanner\drawing.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dice-scanner.rc" />

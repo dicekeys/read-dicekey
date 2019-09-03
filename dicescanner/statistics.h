@@ -344,8 +344,8 @@ a right angle (in range -45 to 45 degrees)
 static float findPointOnCircularSignedNumberLineClosestToCenterOfMass(const std::vector<float> points, const float R) {
 	if (points.size() == 0)
 		return NAN;
-	std::vector<float> pointsInRange = vmap<float, float>(points, [R](const float point) {
-		return reduceToSignedRange(point, R);
+	std::vector<float> pointsInRange = vmap<float, float>(points, [R](const float *point) {
+		return reduceToSignedRange(*point, R);
 		});
 	float minDistance = std::numeric_limits<float>::max();
 	size_t indexAtWhichMinDistanceFound = 0;

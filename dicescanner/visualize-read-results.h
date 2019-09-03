@@ -23,6 +23,7 @@
 #include "read-die-characters.h"
 #include "read-dice.h"
 #include "color.h"
+#include "drawing.h"
 
 // Colors are in BGR format
 const Color colorNoErrorGreen(0, 192, 0);
@@ -35,20 +36,6 @@ inline Color errorMagnitudeToColor(unsigned errorMagnitude) {
     errorMagnitude <= 3 ?
       colorSmallErrorOrange :
       colorBigErrorRed;
-}
-
-inline void drawRotatedRect(cv::Mat image, const cv::RotatedRect& rrect, cv::Scalar color = cv::Scalar(0,0,0), int thickness = 1) {
-      cv::Point2f pointsf[4];
-      cv::Point points[4];
-      rrect.points(pointsf);
-      for (int i=0; i<4; i++) {
-        points[i] = pointsf[i];
-      }
-      const cv:: Point* ppoints[1] = {
-        points
-      };
-      int npt[] = { 4 };
-      polylines(image, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
 }
 
 static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead, bool writeInPlace = false)

@@ -128,10 +128,10 @@ static DiceKeyGridModel calculateDiceKeyGrid(
 
 		
 		// Now check that our row has near-constant distances
-		std::vector<float> xValuesOfRowsWithinColumn = vmap<cv::Point2f, float>(sameColumn, [](cv::Point2f p) { return p.x; });
-		std::vector<float> yValuesOfRowsWithinColumn = vmap<cv::Point2f, float>(sameColumn, [](cv::Point2f p) { return p.y; });
-		std::vector<float> xValuesOfColumnsWithinRow = vmap<cv::Point2f, float>(sameRow, [](cv::Point2f p) { return p.x; });
-		std::vector<float> yValuesOfColumnsWithinRow = vmap<cv::Point2f, float>(sameRow, [](cv::Point2f p) { return p.y; });
+		std::vector<float> xValuesOfRowsWithinColumn = vmap<cv::Point2f, float>(sameColumn, [](const cv::Point2f *p) { return p->x; });
+		std::vector<float> yValuesOfRowsWithinColumn = vmap<cv::Point2f, float>(sameColumn, [](const cv::Point2f *p) { return p->y; });
+		std::vector<float> xValuesOfColumnsWithinRow = vmap<cv::Point2f, float>(sameRow, [](const cv::Point2f *p) { return p->x; });
+		std::vector<float> yValuesOfColumnsWithinRow = vmap<cv::Point2f, float>(sameRow, [](const cv::Point2f *p) { return p->y; });
 		const auto meanXDistanceBetweenColumns = findAndValidateMeanDifference(xValuesOfColumnsWithinRow);
 		const auto meanYDistanceBetweenColumns = findAndValidateMeanDifference(yValuesOfColumnsWithinRow);
 		const auto meanXDistanceBetweenRows = findAndValidateMeanDifference(xValuesOfRowsWithinColumn);

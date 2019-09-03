@@ -126,12 +126,12 @@ static std::vector<uchar> samplePointsAlongLine(
 		pointsAsFractionsOfDistanceFromStartToEnd,
 		[grayscaleImage, start, deltaX, deltaY, samplesPerPoint,
 		 ifSamplingThreePointsUseThoseAboveAndBelowRatherThanThoseOnSides
-		](float dotFraction) {
+		](const float* dotFraction) {
 			return samplePoint(
 				grayscaleImage,
 				cv::Point2i(
-					int(round(start.x + (dotFraction * deltaX))),
-					int(round(start.y + (dotFraction * deltaY)))
+					int(round(start.x + ((*dotFraction) * deltaX))),
+					int(round(start.y + ((*dotFraction) * deltaY)))
 				),
 				samplesPerPoint,
 				ifSamplingThreePointsUseThoseAboveAndBelowRatherThanThoseOnSides

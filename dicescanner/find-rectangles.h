@@ -89,8 +89,8 @@ static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, uint N
 		std::vector<std::vector<cv::Point>> contours;
 		findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
-		contours = vfilter<std::vector<cv::Point>>(contours, [minPerimeter](std::vector<cv::Point> contour) -> bool {
-			return cv::arcLength(contour, false) >= minPerimeter;
+		contours = vfilter<std::vector<cv::Point>>(contours, [minPerimeter](const std::vector<cv::Point> *contour) -> bool {
+			return cv::arcLength(*contour, false) >= minPerimeter;
 		});
 
 		for (auto contour : contours) {

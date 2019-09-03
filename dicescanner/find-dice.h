@@ -34,7 +34,7 @@ static DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(const cv::Mat 
 	std::vector<Undoverline> overlines(undoverlines.overlines);
 
 	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
-		[](Undoverline underline) { return lineLength(underline.line); });
+		[](const Undoverline *underline) { return lineLength(underline->line); });
 	const float medianUnderlineLength = medianInPlace(underlineLengths);
 	const float pixelsPerMm = medianUnderlineLength / DieDimensionsMm::undoverlineLength;
 	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm

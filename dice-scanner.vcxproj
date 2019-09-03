@@ -168,6 +168,7 @@
     <ClInclude Include="dicescanner\assemble-dice-key.h" />
     <ClInclude Include="dicescanner\die-face.h" />
     <ClInclude Include="dicescanner\die-specification.h" />
+    <ClInclude Include="dicescanner\drawing.h" />
     <ClInclude Include="dicescanner\find-dice.h" />
     <ClInclude Include="dicescanner\find-rectangles.h" />
     <ClInclude Include="dicescanner\geometry.h" />

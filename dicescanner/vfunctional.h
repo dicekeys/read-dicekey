@@ -33,10 +33,10 @@ to a vector of type U.  Unlike the JavaScript equivalent, the lambda function
 you provide does not receive the index of the item.
 */
 template <typename T, typename U>
-static std::vector<U> vmap(const std::vector<T>& data, const std::function<U(const T)> mapper) {
+static std::vector<U> vmap(const std::vector<T>& data, const std::function<U(const T*)> mapper) {
 	std::vector<U> result;
-	for (auto e : data) {
-		result.push_back(mapper(e));
+	for (T e : data) {
+		result.push_back(mapper(&e));
 	};
 	return result;
 }
@@ -47,10 +47,10 @@ and returns a vector with only those members for which the filter function retur
 It preserves the order of the items that pass the filter function.
 */
 template <typename T>
-static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(const T)> filterFn) {
+static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(const T*)> filterFn) {
 	std::vector<T> result = data;
 	result.erase(remove_if(result.begin(), result.end(), [filterFn](T element) {
-		return !filterFn(element);
+		return !filterFn(&element);
 		}), result.end());
 	return result;
 }
