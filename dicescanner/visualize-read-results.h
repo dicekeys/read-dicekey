@@ -22,13 +22,14 @@
 #include "assemble-dice-key.h"
 #include "read-die-characters.h"
 #include "read-dice.h"
+#include "color.h"
 
 // Colors are in BGR format
-const cv::Scalar colorNoErrorGreen = cv::Scalar(0, 192, 0);
-const cv::Scalar colorSmallErrorOrange = cv::Scalar(0, 96, 192);
-const cv::Scalar colorBigErrorRed = cv::Scalar(0, 0, 128);
+const Color colorNoErrorGreen(0, 192, 0);
+const Color colorSmallErrorOrange = Color(192, 96, 0);
+const Color colorBigErrorRed = Color(128, 0, 0);
 
-inline cv::Scalar errorMagnitudeToColor(unsigned errorMagnitude) {
+inline Color errorMagnitudeToColor(unsigned errorMagnitude) {
   return errorMagnitude == 0 ?
       colorNoErrorGreen :
     errorMagnitude <= 3 ?
@@ -56,26 +57,37 @@ static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead
   // Derive the length of each side of the die in pixels by dividing the
   // legnth off and 
   const float dieSizeInPixels = DieDimensionsMm::size * diceRead.pixelsPerMm;
+  const int thinLineThickness = 1 + int(dieSizeInPixels / 70);
+  const int thickLineThickness = 2 * thinLineThickness;
 
   if (diceRead.success) {
     for (DieRead die: diceRead.dice) {
       const auto error = die.error();
-      drawRotatedRect(
-        resultImage,
-        cv::RotatedRect(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm)),
-        errorMagnitudeToColor(error.magnitude),
-        error.magnitude == 0 ? 1 : 2
-      );
+
+      // Draw a rectangle around the die if an error has been found
+      if (error.magnitude > 0) {
+        drawRotatedRect(
+          resultImage,
+          cv::RotatedRect(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm)),
+          errorMagnitudeToColor(error.magnitude).scalar,
+          error.magnitude == 0 ? thinLineThickness : thickLineThickness
+        );
+      }
+      // Draw a rectangle arond the underline
       if (die.underline.found) {
-        drawRotatedRect(resultImage, die.underline.boundaryRect(),
-          errorMagnitudeToColor( (error.location & DieFaceErrors::Location::Underline) ? error.magnitude : 0 ),
-          1);
+        bool underlineError = (error.location & DieFaceErrors::Location::Underline);
+        drawRotatedRect(resultImage, die.underline.fromRotatedRect,
+          errorMagnitudeToColor( underlineError ? error.magnitude : 0 ).scalar,
+          underlineError ? thickLineThickness : thinLineThickness );
       }
+      // Draw a rectangle arond the overline
       if (die.overline.found) {
-        drawRotatedRect(resultImage, die.overline.boundaryRect(),
-          errorMagnitudeToColor( (error.location & DieFaceErrors::Location::Overline) ? error.magnitude : 0 ),
-          1);
+        bool overlineError = (error.location & DieFaceErrors::Location::Overline);
+        drawRotatedRect(resultImage, die.overline.fromRotatedRect,
+          errorMagnitudeToColor( overlineError ? error.magnitude : 0 ).scalar,
+          overlineError ? thickLineThickness : thinLineThickness );
       }
+      // Draw the characters read
       writeDieCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerMm, die.letter(), die.digit(),
         errorMagnitudeToColor( (error.location & DieFaceErrors::Location::OcrLetter) ? error.magnitude : 0 ),
         errorMagnitudeToColor( (error.location & DieFaceErrors::Location::OcrDigit) ? error.magnitude : 0 )
@@ -83,13 +95,13 @@ static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead
     }
   }
   for (Undoverline undoverline: diceRead.strayUndoverlines) {
-    drawRotatedRect(resultImage, undoverline.boundaryRect(), colorBigErrorRed, 1);
+    drawRotatedRect(resultImage, undoverline.fromRotatedRect, colorBigErrorRed.scalar, 1);
   }
   for (DieRead die: diceRead.strayDice) {
       drawRotatedRect(
         resultImage,
         cv::RotatedRect(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm)),
-        colorBigErrorRed, 1
+        colorBigErrorRed.scalar, 1
       );
   }
 

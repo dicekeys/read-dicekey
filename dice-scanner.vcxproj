@@ -161,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dicescanner\bit-operations.h" />
+    <ClInclude Include="dicescanner\color.h" />
     <ClInclude Include="dicescanner\decode-die.h" />
     <ClInclude Include="dicescanner\dice-read.h" />
     <ClInclude Include="dicescanner\dice.h" />

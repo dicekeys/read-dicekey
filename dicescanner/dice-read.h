@@ -102,6 +102,7 @@ public:
 					(unsigned char)hammingDistance(overlineFaceInferred.underlineCode, underline.letterDigitEncoding) :				
 					// Since the underline was not found, the magntidue is specified via a constant
 					DieFaceErrors::Magnitude::UnderlineOrOverlineMissing,
+					DieFaceErrors::Location::Underline
 			};
 		}
 		// No good matching.  Return max error

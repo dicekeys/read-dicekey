@@ -16,6 +16,7 @@
 #include "simple-ocr.h"
 #include "rotate.h"
 #include "inconsolata-700.h"
+#include "color.h"
 
 // FIXME -- constant in next line is a hack derived by trial and error
 // and would be better to derive in a more formal way
@@ -33,8 +34,8 @@ static void writeDieCharacters(
 	float pixelsPerMm,
 	char letter,
 	char digit,
-	cv::Scalar letterColor,
-	cv::Scalar digitColor
+	Color letterColor,
+	Color digitColor
 ) {
 	const float textHeightDestinationPixels = DieDimensionsMm::textRegionHeight * pixelsPerMm;
 	const float textWidthDestinationPixels = DieDimensionsMm::textRegionWidth * textWidthAdjustmentMultiplier * pixelsPerMm;
@@ -82,9 +83,9 @@ static void writeDieCharacters(
 		for (auto p : letterRecord->outlinePoints) {
 			const int x = int(round(letterTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
 			const int y = int(round(letterTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
-			imageColor.at<cv::Vec3b>(y, x)[0] = letterColor[0];
-			imageColor.at<cv::Vec3b>(y, x)[1] = letterColor[1];
-			imageColor.at<cv::Vec3b>(y, x)[2] = letterColor[2];
+			imageColor.at<cv::Vec3b>(y, x)[0] = letterColor.b;
+			imageColor.at<cv::Vec3b>(y, x)[1] = letterColor.g;
+			imageColor.at<cv::Vec3b>(y, x)[2] = letterColor.r;
 		}
 	}
 
@@ -92,9 +93,9 @@ static void writeDieCharacters(
 		for (auto p : digitRecord->outlinePoints) {
 			const int x = int(round(digitTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
 			const int y = int(round(digitTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
-			imageColor.at<cv::Vec3b>(y, x)[0] = digitColor[0];
-			imageColor.at<cv::Vec3b>(y, x)[1] = digitColor[1];
-			imageColor.at<cv::Vec3b>(y, x)[2] = digitColor[2];
+			imageColor.at<cv::Vec3b>(y, x)[0] = digitColor.b;
+			imageColor.at<cv::Vec3b>(y, x)[1] = digitColor.g;
+			imageColor.at<cv::Vec3b>(y, x)[2] = digitColor.r;
 		}
 	}
 }
