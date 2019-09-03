@@ -115,11 +115,11 @@ public:
 		const cv::Point2f center = midpointOfLine(line);
 		const float length = lineLength(line);
 		const float height = undoverlineWidthAsFractionOfLength * length;
-		const float angle = angleOfLineInSignedRadians2f(line);
-		const float absAngle = abs(angle);
-		const bool isHorizontalish = absAngle <= (M_PI / 4) || absAngle > ((M_PI * 3) / 4);
+		const float angleInDegrees = angleOfLineInSignedDegrees2f(line);
+		const float absAngleInDegrees = abs(angleInDegrees);
+		const bool isHorizontalish = absAngleInDegrees <= 45 || absAngleInDegrees > 135;
 		const cv::Size2f rectSize = isHorizontalish ? cv::Size2f(length, height) : cv::Size2f(height, length);
-		return cv::RotatedRect(center, rectSize, float(angle + M_PI/2));
+		return cv::RotatedRect(center, rectSize, angleInDegrees); // float(angle + M_PI/2)
 	}
 };
 

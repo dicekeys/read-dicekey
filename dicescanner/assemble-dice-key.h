@@ -1,5 +1,11 @@
 #pragma once
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
 #include <float.h>
 #include <math.h>
 #include "vfunctional.h"
@@ -9,6 +15,7 @@
 #include "dice.h"
 #include "find-undoverlines.h"
 #include "find-dice.h"
+#include "drawing.h"
 
 
 class DiceKeyGridModel {
@@ -56,7 +63,7 @@ public:
 		Returns the index [0, 24] for a die center point, or -1 if the point provided
 	 	Is not sufficiently close to a center of the grid in the DiceKey model
 	*/
-	const int getDieIndex(const cv::Point2f candidateDieCenter, const float maxFractionFromCenter = 0.1f) {
+	const int getDieIndex(const cv::Point2f candidateDieCenter, const float maxFractionFromCenter = 0.25f) {
 		const cv::Point2f rotatedPoint = rotatePointClockwise(candidateDieCenter, centerPoint, angleInRadians);
 		const float xDistanceFromLeft = rotatedPoint.x - topLeftPointRotatedClockwise.x;
 		const float yDistanceFromTop = rotatedPoint.y - topLeftPointRotatedClockwise.y;
@@ -86,6 +93,7 @@ public:
 };
 
 static DiceKeyGridModel calculateDiceKeyGrid(
+	const cv::Mat &colorImage,
 	const DiceAndStrayUndoverlinesFound &diceAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine = 1.0f // 1 mm
 ) {
@@ -126,6 +134,9 @@ static DiceKeyGridModel calculateDiceKeyGrid(
 		std::sort(sameRow.begin(), sameRow.end(), [](cv::Point2f a, cv::Point2f b) { return a.x < b.x; });
 		std::sort(sameColumn.begin(), sameColumn.end(), [](cv::Point2f a, cv::Point2f b) { return a.y < b.y; });
 
+		// Uncomment when debugging grid, to see row and column the grid was constructed from
+		// cv::line(colorImage, sameRow[0], sameRow[4], cv::Scalar(255, 255), 2);
+		// cv::line(colorImage, sameColumn[0], sameColumn[4], cv::Scalar(255, 255), 2);
 		
 		// Now check that our row has near-constant distances
 		std::vector<float> xValuesOfRowsWithinColumn = vmap<cv::Point2f, float>(sameColumn, [](const cv::Point2f *p) { return p->x; });
@@ -175,12 +186,18 @@ static DiceKeyGridModel calculateDiceKeyGrid(
 		// Average the distance between the dice in rows and columsn to get the mean distanc
 		const float distanceBetweenRows = distance2f(meanXDistanceBetweenColumns, meanYDistanceBetweenColumns);
 		const float distanceBetweenColumns = distance2f(meanXDistanceBetweenRows, meanYDistanceBetweenRows);
+		const cv::Point2f center(centerX, centerY);
+		// Uncomment to debug grid boundaries
+		// drawRotatedRect(colorImage,
+		// 	cv::RotatedRect(center, cv::Size2f(distanceBetweenColumns * 5, distanceBetweenRows * 5), radiansToDegrees(angleInRadians)),
+		// 	cv::Scalar(255, 0, 255, 4)
+		// );
 
 		return DiceKeyGridModel(
 			distanceBetweenRows,
 			distanceBetweenColumns,
 			angleInRadians,
-			cv::Point2f(centerX, centerY)
+			center
 		);
 	}
 	// Made it to end without finding a grid.  Return invalid.
@@ -204,7 +221,7 @@ static DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingU
 ) {
 	// First, take the dice and undoverlines we've found and try to build
 	// a model a model that describes the locations within a 5x5 grid 
-	auto grid = calculateDiceKeyGrid(diceAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
+	auto grid = calculateDiceKeyGrid(colorImage, diceAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
 	if (!grid.valid) {
 		return {};
 	}
@@ -241,6 +258,8 @@ static DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingU
 	// Provide a center point for dice we know should be there, but for which we could find an overline
 	// or underline.  We can use that center point for drawing a box around what we couldn't read.
 	for (int i=0; i < 25; i++) {
+		// Uncomment when debugging grid
+		// circle(colorImage, grid.getDieCenterPoint(i), 6, cv::Scalar(255, 0, 255), 3);
 		if (!orderedDice[i].underline.found && !orderedDice[i].overline.found) {
 			orderedDice[i].center = grid.getDieCenterPoint(i);
 		}
