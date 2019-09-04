@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		17F51ECC228BE0B900E6BD74 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 17F51ECB228BE0B900E6BD74 /* main.cpp */; };
-		17F51ED1228BE12100E6BD74 /* dice-scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 17F51EC2228BCBD400E6BD74 /* dice-scanner.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -50,7 +49,6 @@
 		17E4F19F231F8215002C4EF3 /* color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
 		17E4F1A0231F8215002C4EF3 /* undoverline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = undoverline.h; sourceTree = "<group>"; };
 		17E4F1A1231F8215002C4EF3 /* drawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = drawing.h; sourceTree = "<group>"; };
-		17F51EC2228BCBD400E6BD74 /* dice-scanner.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "dice-scanner.cpp"; sourceTree = "<group>"; };
 		17F51EC8228BE0B900E6BD74 /* dicesacanner */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = dicesacanner; sourceTree = BUILT_PRODUCTS_DIR; };
 		17F51ECB228BE0B900E6BD74 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -106,7 +104,6 @@
 				17CE24DD2295155C00FF9B70 /* rotate.h */,
 				17CE24DF2295155C00FF9B70 /* value-clusters.h */,
 				17CE24E22295155C00FF9B70 /* vfunctional.h */,
-				17F51EC2228BCBD400E6BD74 /* dice-scanner.cpp */,
 				17F51ECB228BE0B900E6BD74 /* main.cpp */,
 				176940BE22FBC4610069FDDA /* decode-die.h */,
 				176940BC22FBC4610069FDDA /* dice.h */,
@@ -177,7 +174,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				17F51ECC228BE0B900E6BD74 /* main.cpp in Sources */,
-				17F51ED1228BE12100E6BD74 /* dice-scanner.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
