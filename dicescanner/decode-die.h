@@ -3,20 +3,7 @@
 #include <string>
 #include <vector>
 #include "die-specification.h"
-
-
-static unsigned int reverseBits(unsigned int bitsToReverse, unsigned int lengthInBits)
-{
-	unsigned int reversedBits = 0;
-	for (unsigned int i = 0; i < lengthInBits; i++) {
-		reversedBits <<= 1;
-		if (bitsToReverse & 1) {
-			reversedBits += 1;
-		}
-		bitsToReverse >>= 1;
-	}
-	return reversedBits;
-}
+#include "bit-operations.h"
 
 struct UndoverlineTypeOrientationAndEncoding {
 	bool isValid = false;

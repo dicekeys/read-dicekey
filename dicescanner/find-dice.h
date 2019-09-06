@@ -13,10 +13,9 @@
 #include "statistics.h"
 #include "geometry.h"
 #include "die-specification.h"
-#include "dice.h"
+#include "dice-key.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
-#include "value-clusters.h"
 #include "bit-operations.h"
 #include "dice-read.h"
 

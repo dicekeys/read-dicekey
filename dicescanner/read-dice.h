@@ -1,6 +1,7 @@
 #pragma once
 
 #include <float.h>
+#include <ctime>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -12,12 +13,10 @@
 #include "vfunctional.h"
 #include "statistics.h"
 #include "geometry.h"
-#include "die-specification.h"
-#include "dice.h"
+#include "dice-key.h"
 #include "simple-ocr.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
-#include "value-clusters.h"
 #include "bit-operations.h"
 #include "find-dice.h"
 #include "assemble-dice-key.h"
@@ -170,12 +169,58 @@ static DiceKey diceReadToDiceKey(const std::vector<DieRead> diceRead, bool repor
 	return DiceKey(dieFaces);
 }
 
+struct ResultOfScanAndAugmentDiceKeyImage {
+	// This value is true if the result was returned from a call to readDiceKey and
+	// is false when a default result is constructed by the caller and a pointer is
+	// passed to it.
+	bool initialized = false;
+	std::chrono::time_point<std::chrono::system_clock> whenFirstRead = std::chrono::time_point<std::chrono::system_clock>::min();
+	std::chrono::time_point<std::chrono::system_clock> whenLastImproved = std::chrono::time_point<std::chrono::system_clock>::min();
+	std::chrono::time_point<std::chrono::system_clock> whenLastRead = std::chrono::time_point<std::chrono::system_clock>::min();
+	DiceKey diceKey = DiceKey();
+	cv::Mat augmentedColorImage_BGR_CV_8UC3 = cv::Mat();
+	bool terminate = false;
+};
 
-DiceKey mergeDiceResult(
-	const DiceKey &previousDiceResult,
-	const DiceKey &currentDiceResult	
+const unsigned int maxCorrectableError = 2;
+const int millisecondsToTryToRemoveCorrectableErrors = 4000;
+
+
+
+
+static bool scanAndAugmentDiceKeyImage(
+	cv::Mat &sourceColorImageBGR_CV_8UC3,
+	ResultOfScanAndAugmentDiceKeyImage* result
 ) {
-	// rotate;
+	const ReadDiceResult diceRead = readDice(sourceColorImageBGR_CV_8UC3, false);
 
-	return currentDiceResult;
+	const DiceKey latestDiceKey = diceRead.success ? diceReadToDiceKey(diceRead.dice) : DiceKey();
+	
+	const DiceKey mergedDiceKey = (!result->initialized) ? latestDiceKey :
+		latestDiceKey.initialized ?
+			latestDiceKey.mergePrevious(result->diceKey) :
+			latestDiceKey;
+
+	result->whenLastRead = std::chrono::system_clock::now();
+	result->whenFirstRead = (result->initialized) ? result->whenFirstRead : result->whenLastRead;
+	result->whenLastImproved =
+		(!result->initialized || result->diceKey.totalError() > mergedDiceKey.totalError()) ?
+			result->whenLastRead : result->whenLastImproved;
+
+	// We're done when we either have an error-free scan, or no die that can't be improved after
+	const bool terminate = (
+			// We have an error free scan, or...
+			mergedDiceKey.totalError() == 0
+		) || (
+			// We have only correctable errors, and we've our budget of time hoping more
+			// scanning will remove those errors.
+			mergedDiceKey.maxError() <= maxCorrectableError &&
+			std::chrono::duration_cast<std::chrono::milliseconds>(result->whenLastRead - result->whenLastImproved).count >
+				millisecondsToTryToRemoveCorrectableErrors
+		);
+	// auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(foo - now).count;
+
+	result->diceKey = mergedDiceKey;
+	result->augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(sourceColorImageBGR_CV_8UC3, diceRead, false);
+	return terminate;
 }

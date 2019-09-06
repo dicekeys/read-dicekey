@@ -13,7 +13,7 @@
 
 const int NumberOfFaces = 25;
 
-std::vector<std::vector<unsigned char>> rotationIndexes = {
+const std::vector<std::vector<unsigned char>> rotationIndexes = {
   {
      0,  1,  2,  3,  4,
      5,  6,  7,  8,  9,
@@ -48,18 +48,25 @@ std::vector<std::vector<unsigned char>> rotationIndexes = {
 class DiceKey {
   public:
   
+  bool initialized;
   DieFace faces[NumberOfFaces];
+
+  DiceKey() {
+    initialized = false;
+  }
 
   DiceKey(std::vector<DieFace> _faces) {
     if (_faces.size() != NumberOfFaces) {
       throw std::string("A DiceKey must have " + std::to_string(NumberOfFaces) + " faces");
     }
+    initialized = true;
     for (int i=0; i < NumberOfFaces; i++) {
       faces[i] = _faces[i];
     }
   }
 
   bool areLettersUnique() const {
+    if (!initialized) return false;
     std::vector<char> letters;
     for (int i = 0; i < NumberOfFaces; i++) {
       letters.push_back(faces[i].letter);
@@ -88,13 +95,26 @@ class DiceKey {
     return maxErrorFound;
   }
 
+  unsigned int totalError() const
+  {
+    if (!initialized || !areLettersUnique()) {
+      return NumberOfFaces * (unsigned int)DieFaceErrors::Magnitude::Max;
+    }
+    unsigned int sumOfDieFaceErrors = 0;
+    for (int i=0; i < NumberOfFaces; i++) {
+      sumOfDieFaceErrors += (unsigned int) faces[i].error.magnitude;
+    }
+    return sumOfDieFaceErrors;
+  }
+
   const DiceKey rotate(int clockwiseTurns) const
   {
+    if (!initialized) return *this;
     if (clockwiseTurns < 0) {
       clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
     }
     const unsigned clockwiseTurns0to3 = clockwiseTurns % 4;
-    std::vector<unsigned char> &indexToMoveDieFaceFrom = rotationIndexes[clockwiseTurns0to3];
+    const std::vector<unsigned char> &indexToMoveDieFaceFrom = rotationIndexes[clockwiseTurns0to3];
     std::vector<DieFace> rotatedFaces;
     for (size_t i = 0; i < NumberOfFaces; i++) {
       DieFace dieFace = faces[indexToMoveDieFaceFrom[i]];
@@ -106,6 +126,7 @@ class DiceKey {
 
   unsigned char clockwiseRotationsToCanonicalOrientation() const
   {
+    if (!initialized) return 0;
     unsigned char clockwiseRotationsRequired = 0;
     for (unsigned char candidateRotationRequirement = 1; candidateRotationRequirement < 4; candidateRotationRequirement++) {
       // If the candidate rotation would result in the square having a top-left letter
@@ -124,6 +145,7 @@ class DiceKey {
   }
 
   bool isPotentialMatch(const DiceKey &other) const {
+    if (!initialized || !other.initialized) return false;
     int numMatchingDice = 0;
     for (int i=0; i < NumberOfFaces; i++) {
       if (faces[i].equals(other.faces[i])) {
@@ -142,9 +164,10 @@ class DiceKey {
     return numMatchingDice > 9;
   };
 
-  const DiceKey mergePrevious(DiceKey &previous) const {
-    std::vector<DieFace> newFaces;
+  const DiceKey mergePrevious(const DiceKey &previous) const {
+    if (!initialized) return previous;
     if (isPotentialMatch(previous)) {
+      std::vector<DieFace> newFaces;
       // There are enough matching dice in the previously-scanned DiceKey,
       // and no clear conflicts, so we can merge faces from the previous
       // DiceKey in cases where the face was scanned with fewer errors in the
