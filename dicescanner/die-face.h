@@ -52,6 +52,13 @@ class DieFace {
       error = _error;
     }
 
+    std::string toJson() const {
+      return "{ letter: '" + ( letter ? std::string(1, letter) : "" ) +
+        "', digit: '" + ( digit ? std::string(1, digit) : "" ) +
+        "', orientationAs0to3ClockwiseTurnsFromUpright: '" + std::string(1, '0' + orientationAs0to3ClockwiseTurnsFromUpright) +
+        "', error: { magnitude: " + std::to_string(error.magnitude) + ", location: " + std::to_string(error.location) + " } }";
+    }
+
     bool isDefined() const {
       return letter != '\0' && digit != '\0' && error.magnitude < DieFaceErrors::Magnitude::Max;
     }

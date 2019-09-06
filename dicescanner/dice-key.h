@@ -65,6 +65,15 @@ class DiceKey {
     }
   }
 
+  std::string toJson() const {
+    std::string json = "{\n";
+    for (int i = 0; i < NumberOfFaces; i++) {
+      json += "\t" + faces[i].toJson() + "\n";
+    }
+    json += "}";
+    return json;
+  };
+
   bool areLettersUnique() const {
     if (!initialized) return false;
     std::vector<char> letters;

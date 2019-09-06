@@ -187,7 +187,27 @@ const int millisecondsToTryToRemoveCorrectableErrors = 4000;
 
 
 
-
+/**
+ * This function is the base for an augmented reality loop in which
+ * we scan images from the camera repeatedly until we have successfully
+ * scanned a DiceKey.
+ * 
+ * The first parameter should be the last frame from the camera,
+ * as an OpenCV Mat (image) in 8-bit unsigned BGR (blue, green, red)
+ * format.
+ * 
+ * Your event loop should allocate a ResultOfScanAndAugmentDiceKeyImage
+ * struct and pass it to every call.  It will consume your previous result
+ * to compare it with the new scan, then write the new result over the
+ * old one.
+ * 
+ * The return value will be true when there is a DiceKey to return to
+ * the caller.
+ * 
+ * Upon cmpletion, access the diceKey field of the result object and call
+ * toJson() on it to get a std::string() to pass back to the caller in
+ * JSON format.
+ */
 static bool scanAndAugmentDiceKeyImage(
 	cv::Mat &sourceColorImageBGR_CV_8UC3,
 	ResultOfScanAndAugmentDiceKeyImage* result
