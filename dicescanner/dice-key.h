@@ -44,7 +44,9 @@ const std::vector<std::vector<unsigned char>> rotationIndexes = {
   }
  };
 
-
+/**
+ * This class represents a DiceKey that has been read by scanning one or more images.
+ */
 class DiceKey {
   public:
   
@@ -65,15 +67,39 @@ class DiceKey {
     }
   }
 
+  /**
+   * Return the DiceKey as a JSON array of 25 faces, or an empty array
+   * if the DiceKey was not initialized
+   * 
+   * Each face follows the JSON format for DieFaces:
+   *   inteface DieFace {
+   *     letter: (string & DieLetter) | "",
+   *     digit: (string & DieDigit) | "",
+   *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
+   *     error {
+   *       magnitude: number,
+   *       location: number
+   *     }
+   *   }
+   * 
+   */
   std::string toJson() const {
-    std::string json = "{\n";
+    if (!initialized) {
+      return "[]";
+    }
+    std::string json = "[\n";
     for (int i = 0; i < NumberOfFaces; i++) {
       json += "\t" + faces[i].toJson() + "\n";
     }
-    json += "}";
+    json += "]";
     return json;
   };
 
+  /**
+   * Test to determine if every die face in the DiceKey has a different (unique)
+   * letter from all others.  If a letter were to appear twice, indicating the
+   * same die appeared twice, we would conclude the key to be invalid.
+   */
   bool areLettersUnique() const {
     if (!initialized) return false;
     std::vector<char> letters;
@@ -89,11 +115,15 @@ class DiceKey {
     return true;
   };
 
-
+  /**
+   * Find the maximum error at any individual die face
+   * (or return max error if two die faces have the same letter, indicating
+   *  on of them must have a fatal read error because all die should be unique)
+   **/
   unsigned char maxError() const
   {
     if (!areLettersUnique()) {
-      return 255;
+      return DieFaceErrors::Magnitude::Max;
     }
     unsigned char maxErrorFound = 0;
     for (int i=0; i < NumberOfFaces; i++) {
@@ -103,7 +133,10 @@ class DiceKey {
     }
     return maxErrorFound;
   }
-
+  
+  /**
+   * Calculate the sum of the errors over all dice.
+   */
   unsigned int totalError() const
   {
     if (!initialized || !areLettersUnique()) {
@@ -116,6 +149,10 @@ class DiceKey {
     return sumOfDieFaceErrors;
   }
 
+  /**
+   * Return a copy of this DiceKey that has been rotated by the specified
+   * number of clockwise turns.
+   */
   const DiceKey rotate(int clockwiseTurns) const
   {
     if (!initialized) return *this;
@@ -133,6 +170,14 @@ class DiceKey {
     return DiceKey(rotatedFaces);
   }
 
+  /**
+   * Calculate the number of clockwise turns required to put this DiceKey in
+   * canonical orientation.
+   * 
+   * Canonical orientation assigns the top left corner to be the one with
+   * the die with the smallest letter encoding (the first in the alphabet
+   * for our ASCII capital letters).
+   */
   unsigned char clockwiseRotationsToCanonicalOrientation() const
   {
     if (!initialized) return 0;
@@ -148,6 +193,11 @@ class DiceKey {
     return clockwiseRotationsRequired;
   }
 
+  /**
+   * Return a copy of this DiceKey rotated into the canonical orientation
+   * where the corner with the earliest character in the alphabet is at the
+   * top left of the 5x5 square.
+   */
   const DiceKey rotateToCanonicalOrientation() const
   {
     return rotate(clockwiseRotationsToCanonicalOrientation());
@@ -173,6 +223,11 @@ class DiceKey {
     return numMatchingDice > 9;
   };
 
+  /**
+   * Merge an earlier-scanned DiceKey into this one if possible, so that we can
+   * remove any errors that appear in the previous or current scan but appear to
+   * be scanned without error in one of the two scans.
+   **/
   const DiceKey mergePrevious(const DiceKey &previous) const {
     if (!initialized) return previous;
     if (isPotentialMatch(previous)) {

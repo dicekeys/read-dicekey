@@ -197,17 +197,21 @@ const int millisecondsToTryToRemoveCorrectableErrors = 4000;
  * format.
  * 
  * Your event loop should allocate a ResultOfScanAndAugmentDiceKeyImage
- * struct and pass it to every call.  It will consume your previous result
- * to compare it with the new scan, then write the new result over the
- * old one.
+ * struct and pass it to every call.  This function will consume your
+ * previous result to compare it with the new scan, then write the
+ * new result over the old one.
  * 
- * The return value will be true when there is a DiceKey to return to
- * the caller.
+ * The function will return when there is a DiceKey to return to
+ * the caller and false if scanniing should continue.
  * 
- * Upon cmpletion, access the diceKey field of the result object and call
- * toJson() on it to get a std::string() to pass back to the caller in
- * JSON format.
- */
+ * If generating an API for callers that can consume the
+ * ResultOfScanAndAugmentDiceKeyImage struct directly, simply
+ * return that struct on terminating. 
+ * For APIs that cannot consume the struct directly, call the toJson()
+ * method of the diceKey field (result.diceKey.toJson()) to get a
+ * std::string in JSON format that can be returned back to any
+ * consumer that can parse JSON format.
+ **/
 static bool scanAndAugmentDiceKeyImage(
 	cv::Mat &sourceColorImageBGR_CV_8UC3,
 	ResultOfScanAndAugmentDiceKeyImage* result

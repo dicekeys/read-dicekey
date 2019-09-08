@@ -52,6 +52,18 @@ class DieFace {
       error = _error;
     }
 
+    /**
+     * Return the die face as a JSON object with the following interface:
+     *   inteface DieFace {
+     *     letter: (string & DieLetter) | "",
+     *     digit: (string & DieDigit) | "",
+     *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
+     *     error {
+     *       magnitude: number,
+     *       location: number
+     *     }
+     *   }
+     **/
     std::string toJson() const {
       return "{ letter: '" + ( letter ? std::string(1, letter) : "" ) +
         "', digit: '" + ( digit ? std::string(1, digit) : "" ) +
