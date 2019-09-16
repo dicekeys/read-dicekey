@@ -2,12 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="dicescanner\main.cpp" />
-    <ClCompile Include="dicescanner\dice-scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dicescanner\rectangle.h" />
     <ClInclude Include="dicescanner\vfunctional.h" />
-    <ClInclude Include="dicescanner\value-clusters.h" />
     <ClInclude Include="dicescanner\read-dice.h" />
     <ClInclude Include="dicescanner\rotate.h" />
     <ClInclude Include="resource.h" />
@@ -17,7 +15,6 @@
     <ClInclude Include="dicescanner\find-rectangles.h" />
     <ClInclude Include="dicescanner\geometry.h" />
     <ClInclude Include="dicescanner\die-specification.h" />
-    <ClInclude Include="dicescanner\dice.h" />
     <ClInclude Include="dicescanner\validate-dice.h" />
     <ClInclude Include="dicescanner\statistics.h" />
     <ClInclude Include="dicescanner\bit-operations.h" />
@@ -32,8 +29,6 @@
     <ClInclude Include="dicescanner\color.h" />
     <ClInclude Include="dicescanner\undoverline.h" />
     <ClInclude Include="dicescanner\drawing.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="dice-scanner.rc" />
+    <ClInclude Include="dicescanner\read-dice-result.h" />
   </ItemGroup>
 </Project>

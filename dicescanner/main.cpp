@@ -50,9 +50,9 @@ int main(int argc, char** argv)
 		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
 		const std::string filename = filepath.substr(indexOfLastSlash);
 
-		//if (filename[0] != 'E') {
-		//	continue;
-		//}
+		if (filename[0] != 'R') {
+			continue;
+		}
 
 		std::cerr << "Reading " << filename << "\n";
 

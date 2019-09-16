@@ -1,6 +1,5 @@
-//  © 2019 Stuart Edward Schechter (Github: @uppajung)
-
 #pragma once
+//  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include <float.h>
 #include <opencv2/opencv.hpp>
@@ -20,10 +19,6 @@
 #include "inconsolata-700.h"
 #include "color.h"
 
-// FIXME -- constant in next line is a hack derived by trial and error
-// and would be better to derive in a more formal way
-const float textWidthAdjustmentMultiplier = 0.825f;
-
 struct DieCharactersRead {
 	const OcrResult lettersMostLikelyFirst;
 	const OcrResult digitsMostLikelyFirst;
@@ -40,7 +35,7 @@ static void writeDieCharacters(
 	Color digitColor
 ) {
 	const float textHeightDestinationPixels = DieDimensionsMm::textRegionHeight * pixelsPerMm;
-	const float textWidthDestinationPixels = DieDimensionsMm::textRegionWidth * textWidthAdjustmentMultiplier * pixelsPerMm;
+	const float textWidthDestinationPixels = DieDimensionsMm::textRegionWidth * pixelsPerMm;
 	const float destinationPixelsBetweenLetterAndDigit = DieDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm;
 	float charWidthDestinationPixels = (textWidthDestinationPixels - destinationPixelsBetweenLetterAndDigit) / 2;
 
@@ -116,7 +111,7 @@ static DieCharactersRead readDieCharacters(
 	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
 	const int textHeightPixels = int(ceil(DieDimensionsMm::textRegionHeight * mmToPixels));
 	// FIXME -- constant in next line is a hack
-	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * textWidthAdjustmentMultiplier * mmToPixels));
+	int textWidthPixels = int(ceil(DieDimensionsMm::textRegionWidth * mmToPixels));
 	// Use an even text region width so we can even split it in two at the center;
 	if ((textWidthPixels % 2) == 1) {
 		textWidthPixels += 1;

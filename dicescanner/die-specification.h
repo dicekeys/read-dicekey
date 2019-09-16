@@ -1,5 +1,3 @@
-//  © 2019 Stuart Edward Schechter (Github: @uppajung)
-
 #pragma once
 
 //////////////////////////////////////////////////////////
@@ -54,7 +52,8 @@ namespace DieDimensionsMm {
   const float undoverlineMarginAtLineStartAndEnd = float(0.35);
   const float undoverlineMarginAlongLength = float(0.3);
   const float textBaselineY = float(5.4);
-  const float textRegionWidth = float(6);
+  const float textRegionWidth = float(4.949999999999999);
+  const float textRegionHeight = float(3.0267999999999997);
   const float spaceBetweenLetterAndDigit = float(0.35);
   const float underlineTop = float(6);
   const float center = float(4);
@@ -63,7 +62,6 @@ namespace DieDimensionsMm {
   const float undoverlineDotWidth = float(0.5);
   const float undoverlineDotHeight = float(0.5);
   const float centerOfUndoverlineToCenterOfDie = float(2.55);
-  const float textRegionHeight = float(3.6);
   const float overlineDotTop = float(1.2);
   const float underlineDotTop = float(6.3);
 };
@@ -79,8 +77,8 @@ namespace DieDimensionsFractional {
   const float undoverlineMarginAtLineStartAndEnd = float(0.04375);
   const float undoverlineMarginAlongLength = float(0.0375);
   const float textBaselineY = float(0.675);
-  const float textRegionHeight = float(0.45);
-  const float textRegionWidth = float(0.75);
+  const float textRegionHeight = float(0.37834999999999996);
+  const float textRegionWidth = float(0.6187499999999999);
   const float fontSize = float(0.575);
   const float spaceBetweenLetterAndDigit = float(0.04375);
   const float undoverlineLeftEdge = float(0.1125);

@@ -1,9 +1,10 @@
-//  © 2019 Stuart Edward Schechter (Github: @uppajung)
-
 #pragma once
+
+//  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include <float.h>
 #include <ctime>
+#include <chrono>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -23,17 +24,9 @@
 #include "find-dice.h"
 #include "assemble-dice-key.h"
 #include "read-die-characters.h"
+#include "read-dice-result.h"
+#include "visualize-read-results.h"
 
-
-class ReadDiceResult {
-	public:
-	bool success;
-	std::vector<DieRead> dice;
-	float angleInRadiansNonCononicalForm;
-	float pixelsPerMm;
-	std::vector<DieRead> strayDice;
-	std::vector<Undoverline> strayUndoverlines;
-};
 
 static ReadDiceResult readDice(const cv::Mat &colorImage, bool outputOcrErrors = false)
 {
@@ -112,13 +105,13 @@ static DiceKey diceReadToDiceKey(const std::vector<DieRead> diceRead, bool repor
 			const int bitErrorsIfUnderlineCorrect = hammingDistance(underlineInferred.overlineCode, dieRead.overline.letterDigitEncoding);
 			const int bitErrorsIfOverlineCorrect = hammingDistance(overlineInferred.underlineCode, dieRead.underline.letterDigitEncoding);
 			const int minBitErrors = std::min(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
-			// See if this error can be explained by a single bit-read error.
 			// report error mismatch between undoverline and overline
 			if (reportErrsToStdErr) {
 				std::cerr << "Mismatch at die " << i << " between underline and overline: " <<
 					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
 					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) <<
-					" best explained by " << minBitErrors << " bit error in " << 
+					" best explained by "  << minBitErrors <<
+					" bit error in " << 
 						(bitErrorsIfUnderlineCorrect < bitErrorsIfOverlineCorrect ? "overline" : "underline") <<
 					" (ocr returned " << dashIfNull(letterRead) << dashIfNull(digitRead) << ")" <<
 					"\n";
@@ -262,7 +255,7 @@ static bool scanAndAugmentDiceKeyImage(
 			// We have only correctable errors, and we've our budget of time hoping more
 			// scanning will remove those errors.
 			mergedDiceKey.maxError() <= maxCorrectableError &&
-			std::chrono::duration_cast<std::chrono::milliseconds>(result->whenLastRead - result->whenLastImproved).count >
+			std::chrono::duration_cast<std::chrono::milliseconds>(result->whenLastRead - result->whenLastImproved).count() >
 				millisecondsToTryToRemoveCorrectableErrors
 		);
 	// auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(foo - now).count;

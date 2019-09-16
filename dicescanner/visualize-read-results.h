@@ -1,6 +1,6 @@
-//  © 2019 Stuart Edward Schechter (Github: @uppajung)
-
 #pragma once
+
+//  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include <float.h>
 #include <opencv2/opencv.hpp>
@@ -38,7 +38,8 @@ inline Color errorMagnitudeToColor(unsigned errorMagnitude) {
       colorBigErrorRed;
 }
 
-static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead, bool writeInPlace = false)
+// FIXME -- pass diceRead by reference?
+static cv::Mat visualizeReadResults(cv::Mat &colorImage, const ReadDiceResult &diceRead, bool writeInPlace = false)
 {
   cv::Mat resultImage = (writeInPlace ? colorImage : colorImage.clone());
   // Derive the length of each side of the die in pixels by dividing the
@@ -48,7 +49,7 @@ static cv::Mat visualizeReadResults(cv::Mat &colorImage, ReadDiceResult diceRead
   const int thickLineThickness = 2 * thinLineThickness;
 
   if (diceRead.success) {
-    for (DieRead die: diceRead.dice) {
+    for (const DieRead die: diceRead.dice) {
       const auto error = die.error();
 
       // Draw a rectangle around the die if an error has been found

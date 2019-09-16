@@ -1,6 +1,6 @@
-//  © 2019 Stuart Edward Schechter (Github: @uppajung)
-
 #pragma once
+
+//  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include <string>
 #include <vector>
@@ -10,7 +10,7 @@
 #include "find-undoverlines.h"
 #include "simple-ocr.h"
 #include "bit-operations.h"
-
+#include "die-face.h"
 
 class DieRead {
 public:
@@ -27,19 +27,19 @@ public:
 	std::vector<OcrResultEntry> ocrDigit;
 
   //
-  char ocrLetterMostLikely() {
+  char ocrLetterMostLikely() const {
     return this->ocrLetter.size() == 0 ? '\0' : ocrLetter[0].character;
   }
-  char ocrDigitMostLikely() {
+  char ocrDigitMostLikely() const {
     return ocrDigit.size() == 0 ? '\0' : ocrDigit[0].character;
   }
 
-  char letter() {
+  char letter() const {
     return majorityOfThree(
       underline.dieFaceInferred->letter, overline.dieFaceInferred->letter, ocrLetterMostLikely()
     );
   }
-  char digit() {
+  char digit() const {
     return majorityOfThree(
       underline.dieFaceInferred->digit, overline.dieFaceInferred->digit, ocrDigitMostLikely()
     );
@@ -52,7 +52,7 @@ public:
   // that doesn't match the OCR result.
   // If the underline and overline match but matched with the OCR's second choice of
   // letter or digit, we return 2.
-	DieFaceError error() {
+	DieFaceError error() const {
 		if (ocrLetter.size() == 0 || ocrDigit.size() == 0) {
 			return DieFaceErrors::WorstPossible;
 		}
