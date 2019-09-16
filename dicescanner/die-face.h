@@ -1,5 +1,6 @@
-#pragma once
+//  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
+#pragma once
 
 struct DieFaceError {
 	unsigned char magnitude;

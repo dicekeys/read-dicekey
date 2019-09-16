@@ -1,3 +1,5 @@
+//  © 2019 Stuart Edward Schechter (Github: @uppajung)
+
 #pragma once
 
 #include <math.h>
