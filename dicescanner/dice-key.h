@@ -97,6 +97,17 @@ class DiceKey {
     return json;
   };
 
+  std::string toHumanReadableForm() const {
+    if (!initialized) {
+      return "";
+    }
+    std::string humanReadableForm = "";
+    for (int i = 0; i < NumberOfFaces; i++) {
+      humanReadableForm += faces[i].toTriple();
+    }
+    return humanReadableForm;
+  };
+
   /**
    * Test to determine if every die face in the DiceKey has a different (unique)
    * letter from all others.  If a letter were to appear twice, indicating the
@@ -173,36 +184,24 @@ class DiceKey {
   }
 
   /**
-   * Calculate the number of clockwise turns required to put this DiceKey in
-   * canonical orientation.
-   * 
-   * Canonical orientation assigns the top left corner to be the one with
-   * the die with the smallest letter encoding (the first in the alphabet
-   * for our ASCII capital letters).
-   */
-  unsigned char clockwiseRotationsToCanonicalOrientation() const
-  {
-    if (!initialized) return 0;
-    unsigned char clockwiseRotationsRequired = 0;
-    for (unsigned char candidateRotationRequirement = 1; candidateRotationRequirement < 4; candidateRotationRequirement++) {
-      // If the candidate rotation would result in the square having a top-left letter
-      // that is earlier in sort order (lower unicode character) than the current rotation,
-      // replace the current rotation with the candidate rotation.
-      if (faces[rotationIndexes[candidateRotationRequirement][0]].letter < faces[rotationIndexes[clockwiseRotationsRequired][0]].letter) {
-        clockwiseRotationsRequired = candidateRotationRequirement;
-      }    
-    }
-    return clockwiseRotationsRequired;
-  }
-
-  /**
    * Return a copy of this DiceKey rotated into the canonical orientation
    * where the corner with the earliest character in the alphabet is at the
    * top left of the 5x5 square.
    */
   const DiceKey rotateToCanonicalOrientation() const
   {
-    return rotate(clockwiseRotationsToCanonicalOrientation());
+    if (!initialized) return *this;
+    DiceKey canonicalDiceKey = *this;
+    std::string canonicalKeysHumanReadableForm = canonicalDiceKey.toHumanReadableForm();
+    for (int clockwise90DegreeTurns = 1; clockwise90DegreeTurns < 4; clockwise90DegreeTurns++) {
+      DiceKey candidate = this->rotate(clockwise90DegreeTurns);
+      std::string candidateHumanReadableForm = candidate.toHumanReadableForm();
+      if (candidateHumanReadableForm < canonicalKeysHumanReadableForm) {
+        canonicalDiceKey = candidate;
+        canonicalKeysHumanReadableForm = candidateHumanReadableForm;
+      }
+    }
+    return canonicalDiceKey;
   }
 
   bool isPotentialMatch(const DiceKey &other) const {
