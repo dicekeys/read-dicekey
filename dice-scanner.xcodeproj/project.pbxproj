@@ -31,6 +31,8 @@
 		176940C022FBC4610069FDDA /* find-undoverlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "find-undoverlines.h"; sourceTree = "<group>"; };
 		176940C122FBC4610069FDDA /* validate-dice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "validate-dice.h"; sourceTree = "<group>"; };
 		176940C222FBC4620069FDDA /* die-specification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "die-specification.h"; sourceTree = "<group>"; };
+		177185A22330632700CE7E8E /* dice-key.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "dice-key.h"; sourceTree = "<group>"; };
+		177185A32330632700CE7E8E /* read-dice-result.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "read-dice-result.h"; sourceTree = "<group>"; };
 		17B42CE4230B93D4004B4012 /* statistics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = statistics.h; sourceTree = "<group>"; };
 		17B42CE5230B93D4004B4012 /* find-dice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "find-dice.h"; sourceTree = "<group>"; };
 		17B42CE6230B93D4004B4012 /* bit-operations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "bit-operations.h"; sourceTree = "<group>"; };
@@ -86,6 +88,8 @@
 		17F51ECA228BE0B900E6BD74 /* dicescanner */ = {
 			isa = PBXGroup;
 			children = (
+				177185A22330632700CE7E8E /* dice-key.h */,
+				177185A32330632700CE7E8E /* read-dice-result.h */,
 				17E4F19F231F8215002C4EF3 /* color.h */,
 				17E4F1A1231F8215002C4EF3 /* drawing.h */,
 				17E4F1A0231F8215002C4EF3 /* undoverline.h */,

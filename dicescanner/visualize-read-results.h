@@ -49,7 +49,7 @@ static cv::Mat visualizeReadResults(cv::Mat &colorImage, const ReadDiceResult &d
   const int thickLineThickness = 2 * thinLineThickness;
 
   if (diceRead.success) {
-    for (const DieRead die: diceRead.dice) {
+    for (const DieRead &die: diceRead.dice) {
       const auto error = die.error();
 
       // Draw a rectangle around the die if an error has been found

@@ -777,7 +777,6 @@ const DieFaceSpecification* overlineCodeToDieFaceSpecification[256] = {
 // This function never returns null.  Rather, if the encoding does not map to one of the 150 valid
 // die faces, the result will be a pointer to the NullDieFaceSpecification. 
 inline const DieFaceSpecification* decodeUndoverlineByte(bool isOverline, unsigned char letterDigitEncodingByte) {
-	assert(letterDigitEncodingByte < 256);
 	return isOverline ?
 		overlineCodeToDieFaceSpecification[letterDigitEncodingByte] :
 		underlineCodeToDieFaceSpecification[letterDigitEncodingByte];

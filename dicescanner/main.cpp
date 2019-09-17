@@ -19,13 +19,7 @@
 #include "read-dice.h"
 #include "validate-dice.h"
 #include "visualize-read-results.h"
-
-static void help(const char* programName)
-{
-	std::cout <<
-		"Using OpenCV version " << CV_VERSION << "\n" << std::endl;
-}
-
+s
 int main(int argc, char** argv)
 {
 	// help(argv[0]);
