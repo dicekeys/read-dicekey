@@ -9,6 +9,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include "vfunctional.h"
+#include "statistics.h"
+#include "geometry.h"
 
 const std::vector<cv::Point> SampleOffsetsHorizontalFirst = {
 	cv::Point(0, 0),
