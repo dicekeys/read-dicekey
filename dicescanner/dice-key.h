@@ -59,6 +59,48 @@ class DiceKey {
     initialized = false;
   }
 
+  DiceKey(std::string humanReadableFormat) {
+    if (humanReadableFormat.length != 3 * NumberOfFaces) {
+      throw "Invalid format";
+    }
+    for (int dieIndex=0; dieIndex < NumberOfFaces; dieIndex++) {
+      const int charIndex = dieIndex * 3;
+      const char letter = humanReadableFormat[charIndex];
+      if (DieLetters.find(letter) == std::string::npos) {
+        throw "Invalid letter at die " + std::to_string(dieIndex);
+      }
+      const char digit = humanReadableFormat[charIndex + 1];
+      if (DieDigits.find(digit) == std::string::npos) {
+        throw "Invalid digit at die " + std::to_string(dieIndex);
+      }
+      const char orientationChar = humanReadableFormat[charIndex + 2];
+      unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
+      switch (orientationChar) {
+        case '0':
+        case 't':
+          orientationAs0to3ClockwiseTurnsFromUpright = 0;
+          break;
+        case '1':
+        case 'r':
+          orientationAs0to3ClockwiseTurnsFromUpright = 1;
+          break;
+        case '2':
+        case 'b':
+          orientationAs0to3ClockwiseTurnsFromUpright = 2;
+          break;
+        case '3':
+        case 'l':
+          orientationAs0to3ClockwiseTurnsFromUpright = 3;
+          break;
+          default:
+            throw "Invalid orientation at die " + std::to_string(dieIndex);
+      }
+      unsigned char orientationAs0to3ClockwiseTurnsFromUpright = (unsigned char)('0' - orientationChar);
+      faces[dieIndex] = DieFace(letter, digit, orientationAs0to3ClockwiseTurnsFromUpright);
+    }
+
+  }
+
   DiceKey(std::vector<DieFace> _faces) {
     if (_faces.size() != NumberOfFaces) {
       throw std::string("A DiceKey must have " + std::to_string(NumberOfFaces) + " faces");
@@ -97,13 +139,17 @@ class DiceKey {
     return json;
   };
 
-  std::string toHumanReadableForm() const {
+  /**
+   * Convert a DiceKey to a human-readable format with 3 characters representing
+   * each die face as a letter, digit, and orientation.
+   */
+  std::string toHumanReadableForm(bool useDigitsForOrientation = false) const {
     if (!initialized) {
       return "";
     }
     std::string humanReadableForm = "";
     for (int i = 0; i < NumberOfFaces; i++) {
-      humanReadableForm += faces[i].toTriple();
+      humanReadableForm += faces[i].toTriple(useDigitsForOrientation);
     }
     return humanReadableForm;
   };
