@@ -19,13 +19,29 @@
 #include "read-dice.h"
 #include "validate-dice.h"
 #include "visualize-read-results.h"
-s
+
+
+void testRevising() {
+	const std::string humanReadableForm;
+	DiceKey first(humanReadableForm);
+	first.faces[0].error.magnitude = 3;
+	first.faces[0].error.magnitude = DieFaceErrors::Location::Underline;
+	DiceKey second(humanReadableForm);
+	second.faces[0].error.magnitude = 2;
+	second.faces[0].error.magnitude = DieFaceErrors::Location::Overline;
+	second.mergePrevious(first);
+	
+
+}
+
 int main(int argc, char** argv)
 {
 	// help(argv[0]);
 
 #ifdef _WIN32
-	for (const auto& entry : std::filesystem::directory_iterator("img/")) {
+	// std::cerr << std::filesystem::current_path();
+
+	for (const auto& entry : std::filesystem::directory_iterator("../../../img/")) {
 		if (!entry.is_regular_file()) {
 	 		continue;
 		}
@@ -43,10 +59,6 @@ int main(int argc, char** argv)
 		
 		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
 		const std::string filename = filepath.substr(indexOfLastSlash);
-
-		if (filename[0] != 'R') {
-			continue;
-		}
 
 		std::cerr << "Reading " << filename << "\n";
 

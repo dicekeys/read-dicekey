@@ -31,6 +31,10 @@
 *.out
 *.app
 
+
+/out
+slnx.sqlite
+*.suo
 Debug/
 /squares
 /.vs/dice-scanner/v16/Browse.VC.opendb
@@ -54,3 +58,4 @@ dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInt
 
 *.png
 tesseract.log
+.vs/ProjectSettings.json

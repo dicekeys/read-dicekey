@@ -59,8 +59,8 @@ class DiceKey {
     initialized = false;
   }
 
-  DiceKey(std::string humanReadableFormat) {
-    if (humanReadableFormat.length != 3 * NumberOfFaces) {
+  DiceKey(const std::string humanReadableFormat) {
+    if (humanReadableFormat.length() != 3 * NumberOfFaces) {
       throw "Invalid format";
     }
     for (int dieIndex=0; dieIndex < NumberOfFaces; dieIndex++) {
@@ -95,7 +95,6 @@ class DiceKey {
           default:
             throw "Invalid orientation at die " + std::to_string(dieIndex);
       }
-      unsigned char orientationAs0to3ClockwiseTurnsFromUpright = (unsigned char)('0' - orientationChar);
       faces[dieIndex] = DieFace(letter, digit, orientationAs0to3ClockwiseTurnsFromUpright);
     }
 
