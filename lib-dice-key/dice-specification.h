@@ -26,8 +26,8 @@
 #include <string>
 #include <vector>
 
-const std::string DieLetters = "ABCDEFGHIJKLMNOPRSTUVWXYZ";
-const std::string DieDigits = "123456";
+extern const std::string DieLetters;
+extern const std::string DieDigits;
 
 const int NumberOfDotsInUndoverline = 11;
 const int MinNumberOfBlackDotsInUndoverline = 4;
@@ -41,7 +41,7 @@ struct DieFaceSpecification {
   unsigned char overlineCode;
 };
 
-const DieFaceSpecification NullDieFaceSpecification = {'\0', '\0', 0, 0};
+extern const DieFaceSpecification NullDieFaceSpecification;
 
 namespace DieDimensionsMm {
   const float size = float(8);
@@ -87,25 +87,13 @@ namespace DieDimensionsFractional {
   const float undoverlineDotHeight = float(0.0625);
   const float overlineDotTop = float(0.15);
   const float underlineDotTop = float(0.7875);
-  const std::vector<float> dotCentersAsFractionOfUndoverline = {
-    float(0.0967741935483871),
-    float(0.1774193548387097),
-    float(0.25806451612903225),
-    float(0.33870967741935487),
-    float(0.41935483870967744),
-    float(0.5),
-    float(0.5806451612903226),
-    float(0.6612903225806451),
-    float(0.7419354838709676),
-    float(0.8225806451612903),
-    float(0.9032258064516128),
-  };
+  extern const std::vector<float> dotCentersAsFractionOfUndoverline;
 };
 
 
-extern const DieFaceSpecification letterIndexTimesSixPlusDigitIndexToDieFaceSpecification[];
-extern const DieFaceSpecification *underlineCodeToDieFaceSpecification[];
-extern const DieFaceSpecification *overlineCodeToDieFaceSpecification[];
+extern const DieFaceSpecification letterIndexTimesSixPlusDigitIndexToDieFaceSpecification[150];
+extern const DieFaceSpecification *underlineCodeToDieFaceSpecification[256];
+extern const DieFaceSpecification *overlineCodeToDieFaceSpecification[256];
 
 /**
  * Get a pointer to a DieFaceSpecification for from the eight-bit letter digit encoding
