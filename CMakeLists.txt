@@ -25,7 +25,6 @@ get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 
-
 # Outputs
 set(BIN_DIR ${PROJECT_DIR}/bin)
 
@@ -41,40 +40,15 @@ if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Build type not specified: Use Release by default.")
 endif(NOT CMAKE_BUILD_TYPE)
 
-
-##############################################################
-# Master project: read-dicekeys
-##############################################################
-include_directories(
-    ${OpenCV_INCLUDE_DIRS}
-    "lib-dice-key"
-)
-
-# Source Files
-file(GLOB SRC_FILES
-    "read-dicekeys/*.cpp"
-)
-file(GLOB HEADER_FILES
-    "read-dicekeys/*.h"
-)
-
-
-source_group("Sources" FILES ${SRC_FILES})
-source_group("Headers" FILES ${HEADERS_FILES})
-
-# Add executable to build.
-add_executable(${PROJECT_NAME} 
-   ${SRC_FILES} ${HEADERS_FILES}
-)
-
-set_target_properties(${PROJECT_NAME}  PROPERTIES
-	CXX_STANDARD 17
-)
-
-
 ##########################################################
 # Other libraries used by read-diceksy and also exported
 ##########################################################
+
+####################################################
+# External libraries
+####################################################
+
+find_package( OpenCV REQUIRED )
 
 ##
 # lib-dice-key
@@ -92,21 +66,55 @@ add_library(lib-dice-key
     ${LIB_DICE_KEY_SRCS}
 )
 
-# Import lib-dice-key into read-dice-keys
-target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-    lib-dice-key
+#add_library(lib-dice-key-shared
+#    SHARED
+#    ${LIB_DICE_KEY_SRCS}
+#)
+
+##################### Testing ###############################
+# Must come after the libraries being tested
+###
+option(PACKAGE_TESTS "Build the tests" ON)
+if(PACKAGE_TESTS)
+    include(CTest)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
+
+##############################################################
+# Master project: read-dicekeys
+##############################################################
+include_directories(
+    ${OpenCV_INCLUDE_DIRS}
+    "lib-dice-key"
 )
 
-####################################################
-# External libraries
-####################################################
+# Source Files
+file(GLOB SRC_FILES
+    "read-dicekeys/*.cpp"
+) 
+file(GLOB HEADER_FILES
+    "read-dicekeys/*.h"
+)
 
-find_package( OpenCV REQUIRED )
+
+source_group("Sources" FILES ${SRC_FILES})
+source_group("Headers" FILES ${HEADERS_FILES})
+
+# Add executable to build.
+add_executable(${PROJECT_NAME} 
+   ${SRC_FILES} ${HEADERS_FILES}
+)
+
+set_target_properties(${PROJECT_NAME}  PROPERTIES
+	CXX_STANDARD 17
+)
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
     ${OpenCV_LIBS}
+    lib-dice-key
 )
 
 
@@ -128,7 +136,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
    -D_CONSOLE 
     )
     if(MSVC)
-        target_compile_options(${PROJECT_NAME} PRIVATE  /W3 /Od /EHsc) # / Zi /MD
+        target_compile_options(${PROJECT_NAME} PRIVATE /W3 /Od /EHsc) # / Zi /MD
+		message("*************************************")
     endif()
 endif()
 
@@ -138,7 +147,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
    -D_CONSOLE 
     )
     if(MSVC)
-        target_compile_options(${PROJECT_NAME} PRIVATE  /W3 /GL /Oi /Gy /EHsc) # /Zi
+        target_compile_options(${PROJECT_NAME} PRIVATE /MTd /W3 /GL /Oi /Gy /EHsc) # /Zi
     endif()
 endif()
 
@@ -147,14 +156,6 @@ endif()
 ############################################################
 
 if(MSVC)
-   target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32.lib )
+#   target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32.lib )
 endif(MSVC)
 
-##################### Testing ###############################
-#
-
-option(PACKAGE_TESTS "Build the tests" ON)
-if(PACKAGE_TESTS)
-    enable_testing()
-    add_subdirectory(tests)
-endif()

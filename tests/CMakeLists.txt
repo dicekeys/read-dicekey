@@ -1,7 +1,14 @@
 
 # See: https://cliutils.gitlab.io/modern-cmake/chapters/testing/googletest.html#fn_1
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "extern/googletest")
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "/extern/googletest")
+
+link_directories(${CMAKE_SOURCE_DIR}/lib)
+
+include_directories(
+  ${PROJECT_DIR}/extern/googletest/googletest/include
+)
 
 mark_as_advanced(
     BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
@@ -14,6 +21,7 @@ set_target_properties(gtest_main PROPERTIES FOLDER extern)
 set_target_properties(gmock PROPERTIES FOLDER extern)
 set_target_properties(gmock_main PROPERTIES FOLDER extern)
 
+
 macro(package_add_test TESTNAME)
     add_executable(${TESTNAME} ${ARGN})
     target_link_libraries(${TESTNAME} gtest gmock gtest_main)
@@ -22,3 +30,10 @@ macro(package_add_test TESTNAME)
 endmacro()
 
 # package_add_test(test1 test1.cpp)
+
+###################################
+# Add test subdirectories
+###################################
+add_subdirectory(
+    test-lib-dice-key
+)
