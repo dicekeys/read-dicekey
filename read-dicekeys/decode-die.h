@@ -4,7 +4,7 @@
 
 #include <string>
 #include <vector>
-#include "die-specification.h"
+#include "dice-specification.h"
 #include "bit-operations.h"
 
 struct UndoverlineTypeOrientationAndEncoding {

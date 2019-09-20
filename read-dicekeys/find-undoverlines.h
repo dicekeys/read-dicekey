@@ -16,7 +16,7 @@
 #include "geometry.h"
 #include "find-rectangles.h"
 #include "rectangle.h"
-#include "die-specification.h"
+#include "dice-specification.h"
 #include "rotate.h"
 #include "sample-point.h"
 #include "decode-die.h"

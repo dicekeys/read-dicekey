@@ -1,19 +1,33 @@
-# File generated at : 09:53:05, Thu 19 Sep 
-# Converted Project : .\dice-scanner.vcxproj
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+################## CMAKE Version ###########################
+# Make sure we're using CMAKE 3.1 or higher, ideally the latest
+# From https://cliutils.gitlab.io/modern-cmake/chapters/basics.html
+############################################################
+cmake_minimum_required(VERSION 3.1)
+
+if(${CMAKE_VERSION} VERSION_LESS 3.15)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+else()
+    cmake_policy(VERSION 3.15)
+endif()
 
 ##################### Variables ############################
 # Change if you want modify path or other values           #
 ############################################################
 
 # Project
-get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
-set(DEPENDENCIES_DIR ${PROJECT_DIR}/dependencies)
 set(PROJECT_NAME read-dicekeys)
+project(${PROJECT_NAME}
+    VERSION 0.1
+    DESCRIPTION "A library for working with DiceKeys and scanning images of them."
+    LANGUAGES CXX
+)
+get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
+message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
+
 
 # Outputs
-set(OUTPUT_DEBUG ${PROJECT_DIR}/bin)
-set(OUTPUT_RELEASE ${PROJECT_DIR}/bin)
+set(BIN_DIR ${PROJECT_DIR}/bin)
 
 ################# CMake Project ############################
 # The main options of project                              #
@@ -27,78 +41,72 @@ if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Build type not specified: Use Release by default.")
 endif(NOT CMAKE_BUILD_TYPE)
 
-############## Artifacts Output ############################
-# Defines outputs , depending BUILD TYPE                   #
-############################################################
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_DEBUG}")
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_DEBUG}")
-  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_DEBUG}")
-else()
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_RELEASE}")
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_RELEASE}")
-  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_RELEASE}")
-endif()
-
-# Messages
-message("${PROJECT_NAME}: MAIN PROJECT: ${CMAKE_PROJECT_NAME}")
-message("${PROJECT_NAME}: CURR PROJECT: ${CMAKE_CURRENT_SOURCE_DIR}")
-message("${PROJECT_NAME}: CURR BIN DIR: ${CMAKE_CURRENT_BINARY_DIR}")
-
-############### Files & Targets ############################
-# Files of project and target to build                     #
-############################################################
+##############################################################
+# Master project: read-dicekeys
+##############################################################
+include_directories(
+    ${OpenCV_INCLUDE_DIRS}
+    "lib-dice-key"
+)
 
 # Source Files
-set(SRC_FILES
-    dicescanner/main.cpp
+file(GLOB SRC_FILES
+    "read-dicekeys/*.cpp"
 )
+file(GLOB HEADER_FILES
+    "read-dicekeys/*.h"
+)
+
+
 source_group("Sources" FILES ${SRC_FILES})
-
-# Header Files
-set(HEADERS_FILES
-    dicescanner/assemble-dice-key.h
-    dicescanner/bit-operations.h
-    dicescanner/color.h
-    dicescanner/decode-die.h
-    dicescanner/dice-key.h
-    dicescanner/dice-read.h
-    dicescanner/die-face.h
-    dicescanner/die-specification.h
-    dicescanner/drawing.h
-    dicescanner/find-dice.h
-    dicescanner/find-rectangles.h
-    dicescanner/find-undoverlines.h
-    dicescanner/geometry.h
-    dicescanner/inconsolata-700.h
-    dicescanner/read-dice-result.h
-    dicescanner/read-dice.h
-    dicescanner/read-die-characters.h
-    dicescanner/rectangle.h
-    dicescanner/rotate.h
-    dicescanner/sample-point.h
-    dicescanner/simple-ocr.h
-    dicescanner/statistics.h
-    dicescanner/undoverline.h
-    dicescanner/validate-dice.h
-    dicescanner/vfunctional.h
-    dicescanner/visualize-read-results.h
-)
 source_group("Headers" FILES ${HEADERS_FILES})
-
-find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 # Add executable to build.
 add_executable(${PROJECT_NAME} 
    ${SRC_FILES} ${HEADERS_FILES}
 )
 
-target_link_libraries( ${PROJECT_NAME} ${OpenCV_LIBS} )
-
 set_target_properties(${PROJECT_NAME}  PROPERTIES
 	CXX_STANDARD 17
+)
+
+
+##########################################################
+# Other libraries used by read-diceksy and also exported
+##########################################################
+
+##
+# lib-dice-key
+###
+
+add_subdirectory("lib-dice-key")
+
+file(GLOB LIB_DICE_KEY_SRCS
+    "lib-dice-key/*.h"
+    "lib-dice-key/*.cpp"
+)
+
+add_library(lib-dice-key
+    STATIC
+    ${LIB_DICE_KEY_SRCS}
+)
+
+# Import lib-dice-key into read-dice-keys
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+    lib-dice-key
+)
+
+####################################################
+# External libraries
+####################################################
+
+find_package( OpenCV REQUIRED )
+
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+    ${OpenCV_LIBS}
 )
 
 
@@ -139,5 +147,14 @@ endif()
 ############################################################
 
 if(MSVC)
-   target_link_libraries(${PROJECT_NAME} Ws2_32.lib )
+   target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32.lib )
 endif(MSVC)
+
+##################### Testing ###############################
+#
+
+option(PACKAGE_TESTS "Build the tests" ON)
+if(PACKAGE_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

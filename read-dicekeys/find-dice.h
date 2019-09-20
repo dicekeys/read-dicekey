@@ -14,7 +14,7 @@
 #include "vfunctional.h"
 #include "statistics.h"
 #include "geometry.h"
-#include "die-specification.h"
+#include "dice-specification.h"
 #include "dice-key.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"

@@ -13,7 +13,7 @@
 #include "vfunctional.h"
 #include "statistics.h"
 #include "geometry.h"
-#include "die-specification.h"
+#include "dice-specification.h"
 #include "simple-ocr.h"
 #include "rotate.h"
 #include "inconsolata-700.h"
@@ -146,8 +146,8 @@ static DieCharactersRead readDieCharacters(
 	// cv::imwrite("temp/text-edges.png", textEdges);
 	// cv::imwrite("temp/letter.png", letterImage);
 	// cv::imwrite("temp/digit.png", digitImage);
-	// cv::imwrite("/Users/stuart/github/dice-scanner/temp/letter-error-map.png", ocrErrorHeatMap(Inconsolata700::letters, lettersMostLikelyFirst[0].character, letterImage));
-	// cv::imwrite("/Users/stuart/github/dice-scanner/temp/digit-error-map.png", ocrErrorHeatMap(Inconsolata700::letters, digitsMostLikelyFirst[0].character, digitImage));
+	// cv::imwrite("temp/letter-error-map.png", ocrErrorHeatMap(Inconsolata700::letters, lettersMostLikelyFirst[0].character, letterImage));
+	// cv::imwrite("temp/digit-error-map.png", ocrErrorHeatMap(Inconsolata700::letters, digitsMostLikelyFirst[0].character, digitImage));
 
 	const char letter0 = lettersMostLikelyFirst[0].character;
 	const char digit0 = digitsMostLikelyFirst[0].character;

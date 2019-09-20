@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <limits>
-#include "die-specification.h"
+#include "dice-specification.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
 #include "simple-ocr.h"

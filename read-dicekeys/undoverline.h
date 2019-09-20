@@ -13,7 +13,7 @@
 #include <math.h>
 #include "vfunctional.h"
 #include "geometry.h"
-#include "die-specification.h"
+#include "dice-specification.h"
 #include "decode-die.h"
 
 const float undoverlineWidthAsFractionOfLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
@@ -50,7 +50,6 @@ public:
 			abs(undoverlineStartingAtImageLeft.end.y - undoverlineStartingAtImageLeft.start.y);
 
 		// FIXME -- remove debugging when all works.
-		///Users/stuart/github/dice-scanner/
 		 //cv::imwrite("undoverlineStartingAtImageLeft-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
 		 // const cv::Point2f center = midpointOfLine(undoverlineStartingAtImageLeft);
 		 // const float lineLen = lineLength(undoverlineStartingAtImageLeft);

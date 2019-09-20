@@ -13,7 +13,7 @@
 #include "vfunctional.h"
 #include "statistics.h"
 #include "geometry.h"
-#include "die-specification.h"
+#include "dice-specification.h"
 #include "dice-key.h"
 #include "find-undoverlines.h"
 #include "find-dice.h"

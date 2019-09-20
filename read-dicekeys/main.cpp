@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 #ifdef _WIN32
 	// std::cerr << std::filesystem::current_path();
 
-	for (const auto& entry : std::filesystem::directory_iterator("../../../img/")) {
+	for (const auto& entry : std::filesystem::directory_iterator("../../img/")) {
 		if (!entry.is_regular_file()) {
 	 		continue;
 		}

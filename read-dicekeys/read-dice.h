@@ -13,10 +13,12 @@
 
 #include <iostream>
 #include <math.h>
+
+#include "dice-key.h"
+
 #include "vfunctional.h"
 #include "statistics.h"
 #include "geometry.h"
-#include "dice-key.h"
 #include "simple-ocr.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
