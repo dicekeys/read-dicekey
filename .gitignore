@@ -37,7 +37,8 @@ slnx.sqlite
 *.suo
 Debug/
 /squares
-/.vs/dice-scanner/v16/Browse.VC.opendb
+.vs/*
+
 *.ipch
 Browse.VC.dylib
 ipch/*
