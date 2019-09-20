@@ -25,12 +25,8 @@ namespace DieFaceErrors {
     const unsigned char Max = std::numeric_limits<unsigned char>::max();
   }
 
-  const DieFaceError WorstPossible = {
-    DieFaceErrors::Magnitude::Max,
-    DieFaceErrors::Location::All
-  };
-
-  const DieFaceError None = { 0, 0 };
+  extern const DieFaceError WorstPossible;
+  extern const DieFaceError None;
 }
 
 class DieFace {

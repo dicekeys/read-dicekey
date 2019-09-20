@@ -3,6 +3,16 @@
 
 #include <limits>
 
+namespace DieFaceErrors {
+  const DieFaceError WorstPossible = {
+    DieFaceErrors::Magnitude::Max,
+    DieFaceErrors::Location::All
+  };
+
+  const DieFaceError None = { 0, 0 };
+}
+
+
 DieFace::DieFace() {
   letter = 0;
   digit = 0;
