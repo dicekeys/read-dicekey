@@ -3,7 +3,7 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include "undoverline.h"
-#include "dice-key.h"
+#include "dicekey.h"
 #include "find-dice.h"
 //#include "read-die-characters.h"
 

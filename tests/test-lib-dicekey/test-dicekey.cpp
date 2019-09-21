@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "../../lib-dice-key/dice-key.h"
+#include "../../lib-dicekey/dicekey.h"
 
 
 TEST(DiceKey, NotInitalized) {

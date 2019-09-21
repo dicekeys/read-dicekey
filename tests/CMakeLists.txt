@@ -28,19 +28,22 @@ set_target_properties(gmock PROPERTIES FOLDER extern)
 set_target_properties(gmock_main PROPERTIES FOLDER extern)
 
 
-macro(package_add_test TESTNAME)
-    add_executable(${TESTNAME} ${ARGN})
-    target_link_libraries(${TESTNAME} gtest gmock gtest_main)
-    add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
+macro(package_add_test TESTNAME FILES LIBRARIES)
+    message("Additng test >${TESTNAME}<  files: ${FILES}  libraries: ${LIBRARIES}")
+    add_executable(${TESTNAME} "${FILES}")
+    target_link_libraries(${TESTNAME} gtest gmock gtest_main "${LIBRARIES}")
+    add_test(
+        NAME ${TESTNAME}
+        COMMAND ${TESTNAME}
+        WORKING_DIRECTORY ${PROJECT_DIR}
+    )
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
-# package_add_test(test1 test1.cpp)
-
 ###################################
 # Add test subdirectories
-
 ###################################
 add_subdirectory(
-    test-lib-dice-key
+    test-lib-dicekey
+    test-read-dicekey
 )

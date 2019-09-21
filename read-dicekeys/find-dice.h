@@ -15,7 +15,7 @@
 #include "statistics.h"
 #include "geometry.h"
 #include "dice-specification.h"
-#include "dice-key.h"
+#include "dicekey.h"
 #include "decode-die.h"
 #include "find-undoverlines.h"
 #include "bit-operations.h"

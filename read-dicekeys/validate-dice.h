@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include "vfunctional.h"
-#include "dice-key.h"
+#include "dicekey.h"
 
 
 /*

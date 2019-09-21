@@ -14,7 +14,7 @@
 #include <iostream>
 #include <math.h>
 
-#include "dice-key.h"
+#include "dicekey.h"
 
 #include "vfunctional.h"
 #include "statistics.h"
@@ -24,7 +24,7 @@
 #include "find-undoverlines.h"
 #include "bit-operations.h"
 #include "find-dice.h"
-#include "assemble-dice-key.h"
+#include "assemble-dicekey.h"
 #include "read-die-characters.h"
 #include "read-dice-result.h"
 #include "visualize-read-results.h"

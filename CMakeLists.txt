@@ -45,22 +45,22 @@ endif(NOT CMAKE_BUILD_TYPE)
 ####################################################
 
 ##
-# lib-dice-key
+# lib-dicekey
 ###
 
-add_subdirectory("lib-dice-key")
+add_subdirectory("lib-dicekey")
 
 file(GLOB LIB_DICE_KEY_SRCS
-    "lib-dice-key/*.h"
-    "lib-dice-key/*.cpp"
+    "lib-dicekey/*.h"
+    "lib-dicekey/*.cpp"
 )
 
-add_library(lib-dice-key
+add_library(lib-dicekey
     STATIC
     ${LIB_DICE_KEY_SRCS}
 )
 
-#add_library(lib-dice-key-shared
+#add_library(lib-dicekey-shared
 #    SHARED
 #    ${LIB_DICE_KEY_SRCS}
 #)
@@ -91,7 +91,7 @@ endif()
 
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
-    "lib-dice-key"
+    "lib-dicekey"
 )
 
 # Gather all the source files
@@ -119,12 +119,12 @@ set_target_properties(${PROJECT_NAME}  PROPERTIES
 # Ensure OpenCV is installed
 find_package( OpenCV REQUIRED )
 
-# Link OpenCV and lib-dice-key so that they're both accessible as part of this add_library
+# Link OpenCV and lib-dicekey so that they're both accessible as part of this add_library
 # (public)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
     ${OpenCV_LIBS}
-    lib-dice-key
+    lib-dicekey
 )
 
 
