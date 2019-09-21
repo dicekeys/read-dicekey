@@ -21,19 +21,6 @@
 #include "visualize-read-results.h"
 
 
-void testRevising() {
-	const std::string humanReadableForm;
-	DiceKey first(humanReadableForm);
-	first.faces[0].error.magnitude = 3;
-	first.faces[0].error.magnitude = DieFaceErrors::Location::Underline;
-	DiceKey second(humanReadableForm);
-	second.faces[0].error.magnitude = 2;
-	second.faces[0].error.magnitude = DieFaceErrors::Location::Overline;
-	second.mergePrevious(first);
-	
-
-}
-
 int main(int argc, char** argv)
 {
 	// help(argv[0]);
