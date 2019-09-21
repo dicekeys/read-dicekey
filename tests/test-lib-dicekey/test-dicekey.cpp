@@ -23,7 +23,7 @@ TEST(DiceKey, DoesMergeRemoveErrors) {
 	DiceKey second(orderedDiceKeyHrf);
 	second.faces[0].error.magnitude = 2;
 	second.faces[0].error.magnitude = DieFaceErrors::Location::Overline;
-	ASSERT_GT(second.totalError(), 0);
+	ASSERT_GT(second.totalError(), (unsigned int) 0);
 	second = second.mergePrevious(first);
 	ASSERT_EQ(second.totalError(), 0);
 }

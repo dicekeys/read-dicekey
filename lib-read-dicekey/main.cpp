@@ -21,47 +21,47 @@
 #include "visualize-read-results.h"
 
 
-int main(int argc, char** argv)
-{
-	// help(argv[0]);
+// int main(int argc, char** argv)
+// {
+// 	// help(argv[0]);
 
-#ifdef _WIN32
-	// std::cerr << std::filesystem::current_path();
+// #ifdef _WIN32
+// 	// std::cerr << std::filesystem::current_path();
 
-	for (const auto& entry : std::filesystem::directory_iterator("../../img/")) {
-		if (!entry.is_regular_file()) {
-	 		continue;
-		}
-		const auto filepath = entry.path().generic_string();
-#else
-	for (int argi = 1; argi < argc; argi++) {
-		const std::string filepath = argv[argi];
-#endif
-		cv::Mat image = cv::imread(filepath, cv::IMREAD_COLOR);
-		if (image.empty()) {
-			std::cout << "Couldn't load " << filepath << std::endl;
-			// return -1;
-			continue;
-		}
+// 	for (const auto& entry : std::filesystem::directory_iterator("../../img/")) {
+// 		if (!entry.is_regular_file()) {
+// 	 		continue;
+// 		}
+// 		const auto filepath = entry.path().generic_string();
+// #else
+// 	for (int argi = 1; argi < argc; argi++) {
+// 		const std::string filepath = argv[argi];
+// #endif
+// 		cv::Mat image = cv::imread(filepath, cv::IMREAD_COLOR);
+// 		if (image.empty()) {
+// 			std::cout << "Couldn't load " << filepath << std::endl;
+// 			// return -1;
+// 			continue;
+// 		}
 		
-		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
-		const std::string filename = filepath.substr(indexOfLastSlash);
+// 		const size_t indexOfLastSlash = filepath.find_last_of("/") + 1;
+// 		const std::string filename = filepath.substr(indexOfLastSlash);
 
-		std::cerr << "Reading " << filename << "\n";
+// 		std::cerr << "Reading " << filename << "\n";
 
-		try {
-			const auto diceRead = readDice(image, true);
-			const cv::Mat dieReadOutput = visualizeReadResults(image, diceRead, true);
+// 		try {
+// 			const auto diceRead = readDice(image, true);
+// 			const cv::Mat dieReadOutput = visualizeReadResults(image, diceRead, true);
 			
-			cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", dieReadOutput);
+// 			cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", dieReadOutput);
 
 
-			validateDiceRead(diceRead.dice, filename.substr(0, 75));
-			std::cerr << "Validated " << filename << "\n";
-		} catch (std::string errStr) {
-			std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
-		}
-	}
+// 			validateDiceRead(diceRead.dice, filename.substr(0, 75));
+// 			std::cerr << "Validated " << filename << "\n";
+// 		} catch (std::string errStr) {
+// 			std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
+// 		}
+// 	}
 
 
 // 	for (const auto& entry : std::filesystem::directory_iterator(path)) {
@@ -94,5 +94,5 @@ int main(int argc, char** argv)
 // 			std::cerr << "Exception: " << strErr << "\n";
 // 		}
 // 	}
-	return 0;
-}
+// 	return 0;
+// }

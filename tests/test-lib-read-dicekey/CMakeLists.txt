@@ -1,0 +1,1 @@
+package_add_test_custom_main(test-dicekey-file-inputs test-dicekey-file-inputs.cpp "lib-read-dicekey")

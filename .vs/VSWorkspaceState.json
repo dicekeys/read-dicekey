@@ -1,11 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\lib-dice-key",
-    "\\read-dicekeys",
-    "\\tests",
-    "\\tests\\test-lib-dice-key"
+    "\\tests"
   ],
-  "SelectedNode": "\\tests\\CMakeLists.txt",
+  "SelectedNode": "\\ocr-errors",
   "PreviewInSolutionExplorer": false
 }

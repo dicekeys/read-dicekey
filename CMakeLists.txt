@@ -15,10 +15,10 @@ endif()
 ############################################################
 
 # Project
-set(PROJECT_NAME read-dicekey)
+set(PROJECT_NAME lib-read-dicekey)
 project(${PROJECT_NAME}
     VERSION 0.10
-    DESCRIPTION "A library for working with DiceKeys and scanning images of them."
+    DESCRIPTION "Libraries for working with DiceKeys and scanning images of them."
     LANGUAGES CXX
 )
 get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
@@ -41,29 +41,11 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 ####################################################
-# Modules
+# Libraries to build
 ####################################################
-
-##
-# lib-dicekey
-###
-
 add_subdirectory("lib-dicekey")
+add_subdirectory("lib-read-dicekey")
 
-file(GLOB LIB_DICE_KEY_SRCS
-    "lib-dicekey/*.h"
-    "lib-dicekey/*.cpp"
-)
-
-add_library(lib-dicekey
-    STATIC
-    ${LIB_DICE_KEY_SRCS}
-)
-
-#add_library(lib-dicekey-shared
-#    SHARED
-#    ${LIB_DICE_KEY_SRCS}
-#)
 
 #############################################################
 # Testing
@@ -79,42 +61,6 @@ if(PACKAGE_TESTS)
     add_subdirectory(tests)
 endif()
 
-
-#############################################################
-# Master project:
-#
-#  ###############
-#   read-dicekey
-#  ###############
-#
-#############################################################
-
-include_directories(
-    ${OpenCV_INCLUDE_DIRS}
-    "lib-dicekey"
-)
-
-# Gather all the source files
-# Source Files
-file(GLOB SRC_FILES
-    "read-dicekey/*.cpp"
-) 
-file(GLOB HEADER_FILES
-    "read-dicekey/*.h"
-)
-
-source_group("Sources" FILES ${SRC_FILES})
-source_group("Headers" FILES ${HEADERS_FILES})
-
-# Add executable to build.
-add_executable(${PROJECT_NAME} 
-   ${SRC_FILES} ${HEADERS_FILES}
-)
-
-# Use C++ 17
-set_target_properties(${PROJECT_NAME}  PROPERTIES
-	CXX_STANDARD 17
-)
 
 # Ensure OpenCV is installed
 find_package( OpenCV REQUIRED )
@@ -143,7 +89,7 @@ endif(NOT MSVC)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(${PROJECT_NAME} PRIVATE 
    -D_DEBUG 
-   -D_CONSOLE 
+   -D_CONSOLE
     )
     if(MSVC)
         target_compile_options(${PROJECT_NAME} PRIVATE /W3 /Od /EHsc) # / Zi /MD
@@ -168,4 +114,3 @@ endif()
 if(MSVC)
 #   target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32.lib )
 endif(MSVC)
-
