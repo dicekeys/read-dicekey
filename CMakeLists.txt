@@ -15,7 +15,7 @@ endif()
 ############################################################
 
 # Project
-set(PROJECT_NAME read-dicekeys)
+set(PROJECT_NAME read-dicekey)
 project(${PROJECT_NAME}
     VERSION 0.10
     DESCRIPTION "A library for working with DiceKeys and scanning images of them."
@@ -84,7 +84,7 @@ endif()
 # Master project:
 #
 #  ###############
-#   read-dicekeys
+#   read-dicekey
 #  ###############
 #
 #############################################################
@@ -97,10 +97,10 @@ include_directories(
 # Gather all the source files
 # Source Files
 file(GLOB SRC_FILES
-    "read-dicekeys/*.cpp"
+    "read-dicekey/*.cpp"
 ) 
 file(GLOB HEADER_FILES
-    "read-dicekeys/*.h"
+    "read-dicekey/*.h"
 )
 
 source_group("Sources" FILES ${SRC_FILES})
