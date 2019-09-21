@@ -1,10 +1,16 @@
 
 # See: https://cliutils.gitlab.io/modern-cmake/chapters/testing/googletest.html#fn_1
 
+# For Visual Studio on Windows, we'll get linker errors if we don't
+# force GoogleTest to use dynamic c library.  See:
+# https://github.com/google/googletest/blob/master/googletest/README.md
+#   Look for the section titled "Visual Studio Dynamic vs Static Runtimes"
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "/extern/googletest")
 
-link_directories(${CMAKE_SOURCE_DIR}/lib)
+# Now bring in the Google Test subdirectory.
+# How did it get here?  We used:
+# > git submodule add https://github.com/google/googletest.git extern/googletest
+add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "/extern/googletest")
 
 include_directories(
   ${PROJECT_DIR}/extern/googletest/googletest/include
@@ -33,6 +39,7 @@ endmacro()
 
 ###################################
 # Add test subdirectories
+
 ###################################
 add_subdirectory(
     test-lib-dice-key

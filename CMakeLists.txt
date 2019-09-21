@@ -17,7 +17,7 @@ endif()
 # Project
 set(PROJECT_NAME read-dicekeys)
 project(${PROJECT_NAME}
-    VERSION 0.1
+    VERSION 0.10
     DESCRIPTION "A library for working with DiceKeys and scanning images of them."
     LANGUAGES CXX
 )
@@ -40,15 +40,9 @@ if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Build type not specified: Use Release by default.")
 endif(NOT CMAKE_BUILD_TYPE)
 
-##########################################################
-# Other libraries used by read-diceksy and also exported
-##########################################################
-
 ####################################################
-# External libraries
+# Modules
 ####################################################
-
-find_package( OpenCV REQUIRED )
 
 ##
 # lib-dice-key
@@ -71,9 +65,13 @@ add_library(lib-dice-key
 #    ${LIB_DICE_KEY_SRCS}
 #)
 
-##################### Testing ###############################
+#############################################################
+# Testing
+###########
+#
 # Must come after the libraries being tested
-###
+#
+#############################################################
 option(PACKAGE_TESTS "Build the tests" ON)
 if(PACKAGE_TESTS)
     include(CTest)
@@ -82,14 +80,21 @@ if(PACKAGE_TESTS)
 endif()
 
 
-##############################################################
-# Master project: read-dicekeys
-##############################################################
+#############################################################
+# Master project:
+#
+#  ###############
+#   read-dicekeys
+#  ###############
+#
+#############################################################
+
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
     "lib-dice-key"
 )
 
+# Gather all the source files
 # Source Files
 file(GLOB SRC_FILES
     "read-dicekeys/*.cpp"
@@ -97,7 +102,6 @@ file(GLOB SRC_FILES
 file(GLOB HEADER_FILES
     "read-dicekeys/*.h"
 )
-
 
 source_group("Sources" FILES ${SRC_FILES})
 source_group("Headers" FILES ${HEADERS_FILES})
@@ -107,10 +111,16 @@ add_executable(${PROJECT_NAME}
    ${SRC_FILES} ${HEADERS_FILES}
 )
 
+# Use C++ 17
 set_target_properties(${PROJECT_NAME}  PROPERTIES
 	CXX_STANDARD 17
 )
 
+# Ensure OpenCV is installed
+find_package( OpenCV REQUIRED )
+
+# Link OpenCV and lib-dice-key so that they're both accessible as part of this add_library
+# (public)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
     ${OpenCV_LIBS}

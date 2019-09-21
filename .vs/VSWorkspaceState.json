@@ -2,8 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\lib-dice-key",
-    "\\tests"
+    "\\read-dicekeys",
+    "\\tests",
+    "\\tests\\test-lib-dice-key"
   ],
-  "SelectedNode": "\\.gitignore",
+  "SelectedNode": "\\tests\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }
