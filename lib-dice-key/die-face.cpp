@@ -72,10 +72,9 @@ char DieFace::orientationChar(bool useDigitsForOrientation) const {
   * letter, digit, and orientation ('0' - '3') in number of turns from clockwise.
   */
 std::string DieFace::toTriple(bool useDigitsForOrientation) const {
-  return ( letter ? std::string(1, letter) : "" ) +
-    ( digit ? std::string(1, digit) : "" ) +
-    std::string(1, orientationChar(useDigitsForOrientation) ) +
-    "', error: { magnitude: " + std::to_string(error.magnitude) + ", location: " + std::to_string(error.location) + " } }";
+	return (letter ? std::string(1, letter) : "") +
+		(digit ? std::string(1, digit) : "") +
+		std::string(1, orientationChar(useDigitsForOrientation));
 }
 
 bool DieFace::isDefined() const {
