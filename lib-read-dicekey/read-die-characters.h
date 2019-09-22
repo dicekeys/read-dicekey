@@ -156,13 +156,13 @@ static DieCharactersRead readDieCharacters(
 	static int error = 1;
 	if (writeErrorUnlessThisLetterIsRead.length() != 0 && writeErrorUnlessThisLetterIsRead != "--" && writeErrorUnlessThisLetterIsRead.find_first_of( letter0 ) == -1) {
 		cv::imwrite(
-			"ocr-errors/error-" + std::to_string(error++) + "-read-" + writeErrorUnlessThisLetterIsRead +
+			"out/tests/test-lib-read-dicekey/ocr-errors/error-" + std::to_string(error++) + "-read-" + writeErrorUnlessThisLetterIsRead +
 			"-as-" + std::string(1, dashIfNull(letter0)) + ".png",
 			letterImage);
 	}
 	if (writeErrorUnlessThisDigitIsRead.length() != 0 && writeErrorUnlessThisDigitIsRead != "--" && writeErrorUnlessThisDigitIsRead.find_first_of( digit0 ) == -1) {
 		cv::imwrite(
-			"ocr-errors/error-" + std::to_string(error++) + "-read-" + writeErrorUnlessThisDigitIsRead +
+			"out/tests/test-lib-read-dicekey/ocr-errors/error-" + std::to_string(error++) + "-read-" + writeErrorUnlessThisDigitIsRead +
 			"-as-" + std::string(1, dashIfNull(digit0)) + ".png",
 			digitImage);
 	}
