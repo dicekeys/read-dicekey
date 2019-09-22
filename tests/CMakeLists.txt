@@ -28,18 +28,21 @@ set_target_properties(gmock PROPERTIES FOLDER extern)
 set_target_properties(gmock_main PROPERTIES FOLDER extern)
 
 
-macro(package_add_test_custom_main TESTNAME FILES LIBRARIES)
-    message("Addiing test >${TESTNAME}<  files: ${FILES}  libraries: ${LIBRARIES} working_directory: ${PROJECT_DIR}")
-    add_executable(${TESTNAME} "${FILES}")
-    target_link_libraries(${TESTNAME} gtest gmock "${LIBRARIES}")
-    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-    set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD 17)
-    add_test(
-        NAME ${TESTNAME}
-        COMMAND ${TESTNAME} ${PROJECT_DIR}
-        WORKING_DIRECTORY ${PROJECT_DIR}
-    )
-endmacro()
+#macro(package_add_test_custom_main TESTNAME FILES LIBRARIES)
+#    set(COMMAND "${TESTNAME} ${PROJECT_DIR}")
+#    message("Addiing test >${TESTNAME}<  files: ${FILES}  libraries: ${LIBRARIES} working_directory: ${PROJECT_DIR} command: ${COMMAND}")
+#    add_executable(${TESTNAME} "${FILES}")
+#    target_link_libraries(${TESTNAME} gtest gmock "${LIBRARIES}")
+#    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+#    set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD 17)
+#    set_target_properties(${TESTNAME} PROPERTIES WORKING_DIRECTORY "${PROJECT_DIR}")
+#    set_target_properties(${TESTNAME} PROPERTIES ENVIRONMENT "TEST_DIR=${WORKING_DIRECTORY}/img/")
+#    add_test(
+#        NAME ${TESTNAME}
+#        COMMAND ${TESTNAME}
+#        WORKING_DIRECTORY ${PROJECT_DIR}
+#    )
+#endmacro()
 
 macro(package_add_test TESTNAME FILES LIBRARIES)
     message("Addiing test >${TESTNAME}<  files: ${FILES}  libraries: ${LIBRARIES} working_directory: ${PROJECT_DIR}")
@@ -49,9 +52,12 @@ macro(package_add_test TESTNAME FILES LIBRARIES)
     set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD 17)
     add_test(
         NAME ${TESTNAME}
-        COMMAND ${TESTNAME} ${PROJECT_DIR}
+        COMMAND ${TESTNAME}
         WORKING_DIRECTORY ${PROJECT_DIR}
     )
+    set_target_properties(${TESTNAME} PROPERTIES WORKING_DIRECTORY "${PROJECT_DIR}")
+    set_target_properties(${TESTNAME} PROPERTIES ENVIRONMENT "TEST_DIR=${PROJECT_DIR}")
+    set_target_properties(${TESTNAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}")
 endmacro()
 
 

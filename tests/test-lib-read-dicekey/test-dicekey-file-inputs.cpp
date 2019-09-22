@@ -1,22 +1,19 @@
 #include "gtest/gtest.h"
-#include "../../lib-read-dicekey/read-dice.h";
-#include "../../lib-read-dicekey/validate-dice.h";
-#include <filesystem>
-
-std::string basePath;
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  //assert(argc == 2); // gtest leaved unparsed arguments for you
-  if (argc == 2) {
-    basePath = argv[1];
-  }
-  return RUN_ALL_TESTS();
-}
+#include "../../lib-read-dicekey/read-dice.h"
+#include "../../lib-read-dicekey/validate-dice.h"
+//#include <experimental/filesystem>
+//#include <filesystem>
+//#include <cstdlib>
 
 void testFile(std::string filePath = ::testing::UnitTest::GetInstance()->current_test_info()->name() ) {
-  std::cerr << "Using base path" << basePath;
-  cv::Mat image = cv::imread(basePath + "/" + filePath, cv::IMREAD_COLOR);
+//	const char* basePathCStr = std::getenv("TEST_DIR");
+//	const char* pathPathCStr = std::getenv("PATH");
+
+//	const std::string basePath = basePathCStr ? std::string(basePathCStr) : "";
+//  std::cerr << "Using base path" << basePath;
+//	const std::string currentPath = std::string(std::filesystem::current_path().u8string());
+//  std::cerr << "In working directory" << currentPath;
+  cv::Mat image = cv::imread("img/" + filePath, cv::IMREAD_COLOR);
   ASSERT_FALSE(image.empty()) << "No such file at " << filePath;
   
   const size_t indexOfLastSlash = filePath.find_last_of("/") + 1;
@@ -38,7 +35,10 @@ void testFile(std::string filePath = ::testing::UnitTest::GetInstance()->current
 }
 
 TEST(DiceKeyTestInputs, A32W41T31I33Z52J21X20F21L63V52M43B33U22O43K30R21S62Y22P63E20G61H32N22C33D11 ) {
-  testFile("./img/A32W41T31I33Z52J21X20F21L63V52M43B33U22O43K30R21S62Y22P63E20G61H32N22C33D11.jpg");
+  testFile("A32W41T31I33Z52J21X20F21L63V52M43B33U22O43K30R21S62Y22P63E20G61H32N22C33D11.jpg");
+}
+TEST(DiceKeyTestInputs, A53X23Y63Z60R32E53F31P33N42D21I62L21H11O11B10T40K63W40C50M12G12S50U61V51J40) {
+	testFile("A53X23Y63Z60R32E53F31P33N42D21I62L21H11O11B10T40K63W40C50M12G12S50U61V51J40.jpg");
 }
 // TEST(DiceKeyTestInputs, ) { testFile("A53X23Y63Z60R32E53F31P33N42D21I62L21H11O11B10T40K63W40C50M12G12S50U61V51J40.jpg"); }
 // TEST(DiceKeyTestInputs, ) { testFile("B21U11Z30O62W51C10D22T22F61X52I11R30L21H52A22K11P40J33V51Y41M33S20N63E60G32.jpg"); }

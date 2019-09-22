@@ -1,3 +1,34 @@
+#######################################################################
+# IMPORTANT SHORTCOMINGS OF THIS CMAKE CONFIG FOR VISUAL STUDIO USERS
+#
+# CMake fails to configure the working directory for running
+# tests in Visual Studio using Google Test.
+# Before running, got to Visual Studio's debug menu,
+# choose the "options" item, and then go to the
+# "TestAdapterForGoogleTest" tab.
+# Set "Working Directory" to "$(SolutionDir)"
+# (note, those are parens around SolutionDir, and not braces
+#  as one might become accustomed to seeing in CMake).
+#
+#######################################################################
+message("
+*********************************************************************
+ IMPORTANT SHORTCOMINGS OF THIS CMAKE CONFIG FOR VISUAL STUDIO USERS
+*********************************************************************
+
+CMake fails to configure the working directory for running
+tests in Visual Studio using Google Test.
+Before running, got to Visual Studio's debug menu,
+choose the 'options' item, and then go to the
+'TestAdapterForGoogleTest' tab.
+Set 'Working Directory' to '$(SolutionDir)'
+(note, those are parens around SolutionDir, and not braces
+ as one might become accustomed to seeing in CMake).
+
+ *********************************************************************
+")
+
+
 ################## CMAKE Version ###########################
 # Make sure we're using CMAKE 3.1 or higher, ideally the latest
 # From https://cliutils.gitlab.io/modern-cmake/chapters/basics.html
