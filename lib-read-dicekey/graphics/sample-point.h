@@ -8,8 +8,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include "vfunctional.h"
-#include "statistics.h"
+#include "../utilities/vfunctional.h"
+#include "../utilities/statistics.h"
 #include "geometry.h"
 
 const std::vector<cv::Point> SampleOffsetsHorizontalFirst = {
@@ -56,7 +56,7 @@ a point.
 Takes as input the expected width of the area being read.  For example, for a circle
 of radius 4 or square of size 4, pass 4.0f.
 */
-static size_t getNumberOfPixelsToSample(float physicalPixelWidthPerLogicalPixelWidth) {
+size_t getNumberOfPixelsToSample(float physicalPixelWidthPerLogicalPixelWidth) {
 	return
 		physicalPixelWidthPerLogicalPixelWidth < 2.0f ? 1 :
 		physicalPixelWidthPerLogicalPixelWidth < 3.0f ? 3 :
@@ -75,7 +75,7 @@ Requires an OpenCV image matrix with only a single, 8-bit value at each location
 The third parameter, the number of points to sample, can be obtained via a call to
 getNumberOfPixelsToSample.
 */
-static uchar samplePoint(
+uchar samplePoint(
 	const cv::Mat &grayscaleImage,
 	const cv::Point2i point,
 	size_t samplesPerPoint = SampleOffsetsHorizontalFirst.size(),
@@ -113,7 +113,7 @@ distance from start to end.
 The final, optional, parmeters specifies the number of pixels to sample
 at each point, which can be obtained using getNumberOfPixelsToSample().
 */
-static std::vector<uchar> samplePointsAlongLine(
+std::vector<uchar> samplePointsAlongLine(
 	const cv::Mat &grayscaleImage,
 	const cv::Point2f start,
 	const cv::Point2f end,
@@ -151,7 +151,7 @@ and the least-significant is the last entry in the vector.
 
 Samples strictly above the treshold are one bits and those at or below the treshold are zero bits.
 */
-static unsigned int sampledPointsToBits(std::vector<uchar> sampledPoints, uchar thresholdAboveWhichPointIsOneBit)
+unsigned int sampledPointsToBits(std::vector<uchar> sampledPoints, uchar thresholdAboveWhichPointIsOneBit)
 {
 	unsigned int resultBits = 0;
 	for (size_t i = 0; i < sampledPoints.size(); i++) {

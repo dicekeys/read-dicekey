@@ -4,7 +4,7 @@
 
 #include <math.h>
 #include <algorithm>
-#include "vfunctional.h"
+#include "../utilities/vfunctional.h"
 
 /*
 Given a vector of numbers, finds the value at a given percentile,

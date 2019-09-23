@@ -10,7 +10,7 @@ within that rectangle.
 
 Positive angles result in counter-clockwise rotation.
 */
-static cv::Mat copyRotatedRectangle(const cv::Mat &srcImageMatrix, cv::Point2f centerOfRectToBeCopiedFromSource, float angleInDegrees, cv::Size sizeOfRectangleToCopied)
+inline cv::Mat copyRotatedRectangle(const cv::Mat &srcImageMatrix, cv::Point2f centerOfRectToBeCopiedFromSource, float angleInDegrees, cv::Size sizeOfRectangleToCopied)
 {
 	// get rotation matrix for rotating the image around its center in pixel coordinates
 	cv::Mat rot = cv::getRotationMatrix2D(centerOfRectToBeCopiedFromSource, angleInDegrees, 1.0);

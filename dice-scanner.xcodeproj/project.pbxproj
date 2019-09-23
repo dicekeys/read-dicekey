@@ -50,7 +50,7 @@
 		17E4F19E231D10B6002C4EF3 /* die-face.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "die-face.h"; sourceTree = "<group>"; };
 		17E4F19F231F8215002C4EF3 /* color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
 		17E4F1A0231F8215002C4EF3 /* undoverline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = undoverline.h; sourceTree = "<group>"; };
-		17E4F1A1231F8215002C4EF3 /* drawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = drawing.h; sourceTree = "<group>"; };
+		17E4F1A1231F8215002C4EF3 /* draw-rotated-rect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = draw-rotated-rect.h; sourceTree = "<group>"; };
 		17F51EC8228BE0B900E6BD74 /* dicesacanner */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = dicesacanner; sourceTree = BUILT_PRODUCTS_DIR; };
 		17F51ECB228BE0B900E6BD74 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -91,7 +91,7 @@
 				177185A22330632700CE7E8E /* dicekey.h */,
 				177185A32330632700CE7E8E /* read-dice-result.h */,
 				17E4F19F231F8215002C4EF3 /* color.h */,
-				17E4F1A1231F8215002C4EF3 /* drawing.h */,
+				17E4F1A1231F8215002C4EF3 /* draw-rotated-rect.h */,
 				17E4F1A0231F8215002C4EF3 /* undoverline.h */,
 				17E4F19D231D10B6002C4EF3 /* dice-read.h */,
 				17E4F19E231D10B6002C4EF3 /* die-face.h */,

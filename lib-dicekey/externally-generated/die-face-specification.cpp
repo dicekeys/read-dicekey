@@ -5,7 +5,7 @@
 // This file is generated automatically by the DiceKey
 // specification generator, which is written in TypeScript.
 
-#include "dice-specification.h"
+#include "die-face-specification.h"
 #include <assert.h>
 
 const std::string DieLetters = "ABCDEFGHIJKLMNOPRSTUVWXYZ";

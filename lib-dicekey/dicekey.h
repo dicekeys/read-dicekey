@@ -3,7 +3,6 @@
 #pragma once
 
 #include <vector>
-#include "dice-specification.h"
 #include "die-face.h"
 
 const int NumberOfFaces = 25;

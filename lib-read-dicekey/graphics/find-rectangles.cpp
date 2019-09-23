@@ -1,7 +1,5 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
-#pragma once
-
 #include <float.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
@@ -10,10 +8,14 @@
 #include <opencv2/highgui.hpp>
 
 #include <iostream>
-#include "vfunctional.h"
+#include "../utilities/vfunctional.h"
 #include "rectangle.h"
+#include "find-rectangles.h"
 
-static std::vector<RectangleDetected> removeOverlappingRectangles(std::vector<RectangleDetected> rectangles, std::function<float(RectangleDetected)> comparatorLowerIsBetter) {
+std::vector<RectangleDetected> removeOverlappingRectangles(
+	std::vector<RectangleDetected> rectangles,
+	std::function<float(RectangleDetected)> comparatorLowerIsBetter
+) {
 	
 //	float targetArea, float targetAngle, float targetShortToLongSideRatio = 1) {
 	std::vector<RectangleDetected> non_overlapping_rectangles;
@@ -48,8 +50,11 @@ static std::vector<RectangleDetected> removeOverlappingRectangles(std::vector<Re
 
 
 // returns sequence of squares detected on the image.
-static std::vector<RectangleDetected> findRectangles(const cv::Mat &gray, uint N = 13, double minPerimeter = 50)
-{
+std::vector<RectangleDetected> findRectangles(
+	const cv::Mat &gray,
+	uint N,
+	double minPerimeter
+) {
 	std::vector<RectangleDetected> rectanglesFound;
 
 	 //cv::Mat pyr, timg, gray0(image.size(), CV_8U), gray;

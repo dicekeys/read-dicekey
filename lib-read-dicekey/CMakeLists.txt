@@ -2,17 +2,25 @@
 # Source Files
 file(GLOB SRC_FILES
     "*.cpp"
+    "*/*.cpp"
 ) 
 file(GLOB HEADER_FILES
     "*.h"
+    "*/*.h"
+)
+file(GLOB ALL_SRC_FILES
+    "*.h"
+    "*/*.h"
+    "*.cpp"
+    "*/*.cpp"
 )
 
-source_group("Sources" FILES ${SRC_FILES})
-source_group("Headers" FILES ${HEADERS_FILES})
+#source_group("Sources" FILES ${SRC_FILES})
+#source_group("Headers" FILES ${HEADERS_FILES})
 
 add_library(${PROJECT_NAME}
     STATIC
-   ${SRC_FILES} ${HEADERS_FILES})
+   ${ALL_SRC_FILES})
 
 target_include_directories(
     ${PROJECT_NAME} 

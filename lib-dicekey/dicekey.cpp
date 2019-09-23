@@ -6,9 +6,8 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
-#include "dice-specification.h"
-#include "die-face.h"
 #include "dicekey.h"
+#include "die-face-specification.h"
 
 
 const std::vector<std::vector<unsigned char>> rotationIndexes = {

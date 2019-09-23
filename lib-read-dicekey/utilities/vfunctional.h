@@ -15,7 +15,7 @@ using a function that is called for each item of the vector (in order)
 with the current element of type T and the current result of type U.
 */
 template <typename T, typename U>
-static U vreduce(const std::vector<T>& vectorToReduce,
+inline U vreduce(const std::vector<T>& vectorToReduce,
 	const std::function<U(U, const T*)>& reduceFn,
 	const U initialValue
 ) {
@@ -35,7 +35,7 @@ to a vector of type U.  Unlike the JavaScript equivalent, the lambda function
 you provide does not receive the index of the item.
 */
 template <typename T, typename U>
-static std::vector<U> vmap(const std::vector<T>& data, const std::function<U(const T*)> mapper) {
+inline std::vector<U> vmap(const std::vector<T>& data, const std::function<U(const T*)> mapper) {
 	std::vector<U> result;
 	for (T e : data) {
 		result.push_back(mapper(&e));
@@ -49,7 +49,7 @@ and returns a vector with only those members for which the filter function retur
 It preserves the order of the items that pass the filter function.
 */
 template <typename T>
-static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(const T*)> filterFn) {
+inline std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(const T*)> filterFn) {
 	std::vector<T> result = data;
 	result.erase(remove_if(result.begin(), result.end(), [filterFn](T element) {
 		return !filterFn(&element);
@@ -58,4 +58,4 @@ static std::vector<T> vfilter(const std::vector<T>& data, std::function<bool(con
 }
 
 
-static char dashIfNull(char c) { return c == '\0' ? '-' : c; }
+inline char dashIfNull(char c) { return c == '\0' ? '-' : c; }

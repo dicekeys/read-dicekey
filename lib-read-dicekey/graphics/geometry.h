@@ -2,7 +2,14 @@
 
 #pragma once
 
-#include "statistics.h"
+#include <float.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
+#include "../utilities/statistics.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -11,8 +18,8 @@
 const double multToGetRadiansFromDegrees = (2 * M_PI) / 360.0f;
 const double multToGetDegreesFromRadians = 360.0f / (2 * M_PI);
 
-static float radiansToDegrees(float r) { return float(r * multToGetDegreesFromRadians); }
-static float degreesToRadians(float r) { return float(r * multToGetRadiansFromDegrees); }
+inline float radiansToDegrees(float r) { return float(r * multToGetDegreesFromRadians); }
+inline float degreesToRadians(float r) { return float(r * multToGetRadiansFromDegrees); }
 
 /*
 Represent a directed line from a start point to an end point.

@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "../../lib-read-dicekey/read-dice.h"
-#include "../../lib-read-dicekey/validate-dice.h"
+#include "../../lib-read-dicekey/validate-dice-read.h"
 //#include <experimental/filesystem>
 //#include <filesystem>
 //#include <cstdlib>

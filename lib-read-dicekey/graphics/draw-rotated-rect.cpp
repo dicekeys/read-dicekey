@@ -8,7 +8,12 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
-void drawRotatedRect(cv::Mat image, const cv::RotatedRect& rrect, cv::Scalar color = cv::Scalar(0,0,0), int thickness = 1) {
+void drawRotatedRect(
+  cv::Mat image,
+  const cv::RotatedRect& rrect,
+  cv::Scalar color,
+  int thickness
+) {
       cv::Point2f pointsf[4];
       cv::Point points[4];
       rrect.points(pointsf);

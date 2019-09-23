@@ -1,0 +1,74 @@
+//  © 2019 Stuart Edward Schechter (Github: @uppajung)
+
+#pragma once
+
+#include <float.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
+#include "utilities/statistics.h"
+#include "graphics/geometry.h"
+#include "find-undoverlines.h"
+#include "read-dice.h"
+#include "find-dice.h"
+#include "die-face-specification.h"
+
+DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
+	const cv::Mat &colorImage,
+	const cv::Mat &grayscaleImage
+) {
+	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage);
+
+	std::vector<Undoverline> underlines(undoverlines.underlines);
+	std::vector<Undoverline> overlines(undoverlines.overlines);
+
+	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
+		[](const Undoverline *underline) { return lineLength(underline->line); });
+	const float medianUnderlineLength = medianInPlace(underlineLengths);
+	const float pixelsPerMm = medianUnderlineLength / DieDimensionsMm::undoverlineLength;
+	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
+
+	std::vector<Undoverline> strayUndoverlines(0);
+	std::vector<DieRead> diceFound;
+
+	for (auto underline : underlines) {
+		// Search for overline with inferred die center near that of underline.
+		bool found = false;
+		for (size_t i = 0; i < overlines.size() && !found; i++) {
+			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters) {
+				// We have a match
+				found = true;
+				// Re-infer the center of the die and its angle by drawing a line from
+				// the center of the to the center of the overline.
+				const Line lineFromUnderlineCenterToOverlineCenter = {
+					midpointOfLine(underline.line), midpointOfLine(overlines[i].line)
+				};
+				// The center of the die is the midpoint of that line.
+				const cv::Point2f center = midpointOfLine(lineFromUnderlineCenterToOverlineCenter);
+				// The angle of the die is the angle of that line, plus 90 degrees clockwise
+				const float angleOfLineFromUnderlineToOverlineCenterInRadians =
+					angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter);
+				float angleInRadians = angleOfLineFromUnderlineToOverlineCenterInRadians +
+					NinetyDegreesAsRadians;
+				if (angleInRadians > (M_PI)) {
+					angleInRadians -= float(2 * M_PI);
+				}
+				diceFound.push_back({
+					underline, overlines[i], center, angleInRadians
+				});
+				// Remove the ith element of overlines
+				overlines.erase(overlines.begin() + i);
+			}
+		}
+		if (!found) {
+			strayUndoverlines.push_back(underline);
+		}
+	}
+
+	strayUndoverlines.insert(strayUndoverlines.end(), overlines.begin(), overlines.end());
+
+	return { diceFound, strayUndoverlines, pixelsPerMm };
+}

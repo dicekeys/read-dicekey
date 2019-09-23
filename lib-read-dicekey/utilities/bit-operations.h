@@ -14,7 +14,7 @@ inline int hammingDistance(unsigned int a, unsigned int b) {
 	return countOneBits(a ^ b);
 }
 
-static unsigned int reverseBits(unsigned int bitsToReverse, unsigned int lengthInBits)
+inline unsigned int reverseBits(unsigned int bitsToReverse, unsigned int lengthInBits)
 {
 	unsigned int reversedBits = 0;
 	for (unsigned int i = 0; i < lengthInBits; i++) {
