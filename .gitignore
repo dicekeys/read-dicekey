@@ -38,8 +38,11 @@ slnx.sqlite
 Debug/
 /squares
 .vs/*
-dice-scanner.xcodeproj/*
+/**/*.xcodeproj/*
+/**/CMakeScripts/*
+/**/generated/*
 CMakeFiles/*
+*.cmake
 CMakeFiles
 CMakeCache.txt
 DartConfiguration.tcl
