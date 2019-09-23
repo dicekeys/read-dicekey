@@ -1,7 +1,5 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
-#pragma once
-
 #include <float.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>

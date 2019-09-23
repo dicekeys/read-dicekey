@@ -1,4 +1,3 @@
-#pragma once
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include <float.h>

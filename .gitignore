@@ -41,7 +41,10 @@ Debug/
 /**/*.xcodeproj/*
 /**/CMakeScripts/*
 /**/generated/*
+/**/*.build*/*
 CMakeFiles/*
+*.log
+CTestCostData.txt
 *.cmake
 CMakeFiles
 CMakeCache.txt

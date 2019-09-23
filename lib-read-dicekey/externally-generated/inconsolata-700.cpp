@@ -1,8 +1,5 @@
 // OCR font data for Inconsolata 700
 
-
-#pragma once
-
 #include "inconsolata-700.h"
 
 namespace Inconsolata700 {

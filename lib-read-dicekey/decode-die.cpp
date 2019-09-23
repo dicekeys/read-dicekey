@@ -1,7 +1,4 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
-
-#pragma once
-
 #include <string>
 #include <vector>
 #include "die-face-specification.h"
