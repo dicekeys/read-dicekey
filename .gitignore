@@ -38,6 +38,11 @@ slnx.sqlite
 Debug/
 /squares
 .vs/*
+dice-scanner.xcodeproj/*
+CMakeFiles/*
+CMakeFiles
+CMakeCache.txt
+DartConfiguration.tcl
 
 *.ipch
 Browse.VC.dylib
@@ -46,17 +51,7 @@ Browse.VC.db
 *.bin
 .DS_Store
 *.xcuserdatad
-dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
-dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
-/contours
-/gray
-/dice
-dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
-dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
-/progress
 
-/*.png
-
-*.png
 tesseract.log
 .vs/ProjectSettings.json
+dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
