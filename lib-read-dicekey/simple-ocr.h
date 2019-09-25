@@ -7,7 +7,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
-#include "externally-generated/inconsolata-700.h"
+#include "font.h"
 
 struct OcrResultEntry {
   char character;
@@ -23,6 +23,7 @@ cv::Mat ocrErrorHeatMap(
 );
 
 const OcrResult findClosestMatchingCharacter(
+  const OcrFont font,
   const OcrAlphabet &alphabet,
   const cv::Mat &bwImageOfCharacter
 );

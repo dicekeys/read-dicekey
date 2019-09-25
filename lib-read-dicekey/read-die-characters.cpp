@@ -8,7 +8,6 @@
 #include <opencv2/highgui.hpp>
 
 //#include <iostream>
-#include "externally-generated/inconsolata-700.h"
 #include "graphics/geometry.h"
 #include "graphics/color.h"
 #include "graphics/rotate.h"
@@ -65,8 +64,8 @@ DieCharactersRead readDieCharacters(
 	// cv::imwrite("temp/text-edges.png", textEdges);
 	// cv::imwrite("temp/letter.png", letterImage);
 	// cv::imwrite("temp/digit.png", digitImage);
-	// cv::imwrite("temp/letter-error-map.png", ocrErrorHeatMap(Inconsolata700::letters, lettersMostLikelyFirst[0].character, letterImage));
-	// cv::imwrite("temp/digit-error-map.png", ocrErrorHeatMap(Inconsolata700::letters, digitsMostLikelyFirst[0].character, digitImage));
+	// cv::imwrite("temp/letter-error-map.png", ocrErrorHeatMap(letters, lettersMostLikelyFirst[0].character, letterImage));
+	// cv::imwrite("temp/digit-error-map.png", ocrErrorHeatMap(digits, digitsMostLikelyFirst[0].character, digitImage));
 
 	const char letter0 = lettersMostLikelyFirst[0].character;
 	const char digit0 = digitsMostLikelyFirst[0].character;

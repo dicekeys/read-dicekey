@@ -10,9 +10,10 @@
 
 #include "utilities/vfunctional.h"
 #include "simple-ocr.h"
-#include "externally-generated/inconsolata-700.h"
+#include "font.h"
 
 cv::Mat ocrErrorHeatMap(
+  const OcrFont font,
   const OcrAlphabet &alphabet,
   const char characterRead,
   const cv::Mat &bwImageOfCharacter
@@ -31,7 +32,7 @@ cv::Mat ocrErrorHeatMap(
   // Black out the rectangle so that lines between images are black.
   rectangle(errorImage, cv::Rect(0, 0, cols, rows), cv::Scalar(0, 0, 0), cv::FILLED);
 
-  const OcrChar* charRecord = vreduce<OcrChar, const OcrChar*>( alphabet.characters,
+  const OcrChar* charRecord = vreduce<OcrChar, const OcrChar*>( alphabet,
     [characterRead](const OcrChar* r, const OcrChar* c) -> const OcrChar* {return c->character == characterRead ? c : r; },
     (const OcrChar*)(NULL));
 
@@ -39,11 +40,11 @@ cv::Mat ocrErrorHeatMap(
     for (int x=0; x < charCols; x++) {
         const uchar pixel = bwImageOfCharacter.at<uchar>(cv::Point2i(x, y));
         const bool isImagePixelBlack = pixel < 128;
-        const int modelX = int( ((x + 0.5f) * alphabet.ocrCharWidthInPixels) / float(charCols));
-        const int modelY = int( ((y + 0.5f) * alphabet.ocrCharHeightInPixels) / float(charRows));
-				assert(modelX < alphabet.ocrCharWidthInPixels);
-				assert(modelY < alphabet.ocrCharHeightInPixels);
-        const int modelIndex = (modelY * alphabet.ocrCharWidthInPixels) + modelX;
+        const int modelX = int( ((x + 0.5f) * font.ocrCharWidthInPixels) / float(charCols));
+        const int modelY = int( ((y + 0.5f) * font.ocrCharHeightInPixels) / float(charRows));
+				assert(modelX < font.ocrCharWidthInPixels);
+				assert(modelY < font.ocrCharHeightInPixels);
+        const int modelIndex = (modelY * font.ocrCharWidthInPixels) + modelX;
         const unsigned penaltyIfWhite = charRecord->ifPixelIsWhite[modelIndex];
         const unsigned penaltyIfBlack = charRecord->ifPixelIsBlack[modelIndex];
         // BGR => B=0, G=1, R=2
@@ -81,16 +82,17 @@ cv::Mat ocrErrorHeatMap(
 }
 
 const OcrResult findClosestMatchingCharacter(
+  const OcrFont font,
   const OcrAlphabet &alphabet,
   const cv::Mat &bwImageOfCharacter
 ) {
   const int imageHeight = bwImageOfCharacter.rows;
   const int imageWidth = bwImageOfCharacter.cols;
-  const int numberOfCharactersInAlphabet = (int) alphabet.characters.size();
+  const int numberOfCharactersInAlphabet = (int) alphabet.size();
   std::vector<OcrResultEntry> result(numberOfCharactersInAlphabet);
 
   for (int i=0; i < numberOfCharactersInAlphabet; i++) {
-    result[i].character = alphabet.characters[i].character;
+    result[i].character = alphabet[i].character;
     result[i].errorScore = 0;
   }
 
@@ -99,16 +101,16 @@ const OcrResult findClosestMatchingCharacter(
       for (int imageX = 0; imageX < imageWidth; imageX++) {
 				const uchar pixel = bwImageOfCharacter.at<uchar>(cv::Point2i(imageX, imageY));
         const bool isImagePixelBlack = pixel < 128;
-        const int modelX = int( ((imageX + 0.5f) * alphabet.ocrCharWidthInPixels) / float(imageWidth));
-        const int modelY = int( ((imageY + 0.5f) * alphabet.ocrCharHeightInPixels) / float(imageHeight));
-				assert(modelX < alphabet.ocrCharWidthInPixels);
-				assert(modelY < alphabet.ocrCharHeightInPixels);
-        const int modelIndex = (modelY * alphabet.ocrCharWidthInPixels) + modelX;
-				assert(modelIndex < alphabet.characters[charIndex].ifPixelIsBlack.size());
+        const int modelX = int( ((imageX + 0.5f) * font.ocrCharWidthInPixels) / float(imageWidth));
+        const int modelY = int( ((imageY + 0.5f) * font.ocrCharHeightInPixels) / float(imageHeight));
+				assert(modelX < font.ocrCharWidthInPixels);
+				assert(modelY < font.ocrCharHeightInPixels);
+        const int modelIndex = (modelY * font.ocrCharWidthInPixels) + modelX;
+				assert(modelIndex < alphabet[charIndex].ifPixelIsBlack.size());
         for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
 					const int penalty = isImagePixelBlack ?
-						alphabet.characters[charIndex].ifPixelIsBlack[modelIndex] :
-						alphabet.characters[charIndex].ifPixelIsWhite[modelIndex];
+						alphabet[charIndex].ifPixelIsBlack[modelIndex] :
+						alphabet[charIndex].ifPixelIsWhite[modelIndex];
 					assert(penalty <= 5);
 					result[charIndex].errorScore += penalty;
         }
@@ -122,10 +124,12 @@ const OcrResult findClosestMatchingCharacter(
 }
 
 const OcrResult readLetter(const cv::Mat &letterImage) {
-  return findClosestMatchingCharacter(Inconsolata700::letters, letterImage);
+  const auto font = getFont();
+  return findClosestMatchingCharacter(font, font.letters, letterImage);
 }
 
 const OcrResult readDigit(const cv::Mat &digitImage) {
-  return findClosestMatchingCharacter(Inconsolata700::digits, digitImage);
+  const auto font = getFont();
+  return findClosestMatchingCharacter(font, font.digits, digitImage);
 }
 
