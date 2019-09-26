@@ -49,6 +49,8 @@ CTestCostData.txt
 CMakeFiles
 CMakeCache.txt
 DartConfiguration.tcl
+Makefile
+bin/*
 
 *.ipch
 Browse.VC.dylib
