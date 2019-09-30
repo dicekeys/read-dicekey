@@ -25,7 +25,11 @@ void validateDiceRead(
 		const auto letter = dieAsString[0];
 		const char digit = dieAsString[1];
 		const char orientationChar = dieAsString[2];
-		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationChar - '0';
+		const int orientationAs0to3ClockwiseTurnsFromUpright =
+			(orientationChar == '0' || orientationChar == 't') ? 0 :
+			(orientationChar == '1' || orientationChar == 'r') ? 1 :
+			(orientationChar == '2' || orientationChar == 'b') ? 2 :
+			(orientationChar == '3' || orientationChar == 'l') ? 3 : -1;
 		if (dieFace.letter == '\0' && dieFace.digit == '\0') {
 			throw std::string("Die ") + std::to_string(dieIndex) + " letter and digit could not be read";
 		} else if (dieFace.letter == '\0') {
