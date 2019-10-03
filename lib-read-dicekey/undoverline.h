@@ -30,6 +30,14 @@ public:
     //
   }
 
+  const std::string toJson() const {
+    if (!found || !determinedIfUnderlineOrOverline) {
+      return "null";
+    }
+    // center, angle, length, letterDigitEncoding, whiteBlackThreshold
+
+  }
+
   Undoverline(
     cv::RotatedRect _fromRotatedRect,
     const Line &undoverlineStartingAtImageLeft,
