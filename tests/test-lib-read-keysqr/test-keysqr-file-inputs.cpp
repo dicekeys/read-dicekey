@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include "../../lib-read-dicekey/read-faces.h"
-#include "../../lib-read-dicekey/validate-dice-read.h"
+#include "../../lib-read-keysqr/read-faces.h"
+#include "../../lib-read-keysqr/validate-dice-read.h"
 //#include <experimental/filesystem>
 //#include <filesystem>
 //#include <cstdlib>
@@ -17,7 +17,7 @@ void testFile(
 //  std::cerr << "Using base path" << basePath;
 //	const std::string currentPath = std::string(std::filesystem::current_path().u8string());
 //  std::cerr << "In working directory" << currentPath;
-  cv::Mat image = cv::imread("tests/test-lib-read-dicekey/img/" + filePath, cv::IMREAD_COLOR);
+  cv::Mat image = cv::imread("tests/test-lib-read-keysqr/img/" + filePath, cv::IMREAD_COLOR);
   ASSERT_FALSE(image.empty()) << "No such file at " << filePath;
   
   const size_t indexOfLastSlash = filePath.find_last_of("/") + 1;
@@ -34,9 +34,9 @@ void testFile(
       // std::cerr << "Validated " << filename << "\n";
     }
 
-    const KeySqr diceKeyNonCanonical = diceReadToKeySqr(diceRead.dice, true);
-  	const KeySqr diceKey = diceKeyNonCanonical.rotateToCanonicalOrientation();
-    totalError = diceKey.totalError();
+    const KeySqr keySqrNonCanonical = diceReadToKeySqr(diceRead.dice, true);
+  	const KeySqr keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
+    totalError = keySqr.totalError();
   } catch (std::string errStr) {
     std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
     ASSERT_TRUE(false) << filename << "\n  " << errStr;

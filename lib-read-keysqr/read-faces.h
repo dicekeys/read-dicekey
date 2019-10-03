@@ -8,7 +8,7 @@
 #include <chrono>
 
 #include "undoverline.h"
-#include "../lib-dicekey/keysqr.h"
+#include "../lib-keysqr/keysqr.h"
 #include "simple-ocr.h"
 
 class FaceRead {
@@ -89,7 +89,7 @@ struct ResultOfScanAndAugmentKeySqrImage {
 	std::chrono::time_point<std::chrono::system_clock> whenLastRead = minTimePoint;
 	// The KeySqr that has been read is stored in this field, which also
 	// keeps track of any errors that you have to be resolved during reading.
-	KeySqr diceKey = KeySqr();
+	KeySqr keySqr = KeySqr();
 	// After each call, the image passed to scanAndAugmentKeySqrImage
 	// is augmented with the scan results and copied here. 
 	cv::Mat augmentedColorImage_BGR_CV_8UC3 = cv::Mat();
@@ -101,4 +101,4 @@ struct ResultOfScanAndAugmentKeySqrImage {
 bool scanAndAugmentKeySqrImage(
 	cv::Mat& sourceColorImageBGR_CV_8UC3,
 	ResultOfScanAndAugmentKeySqrImage* result
-)
+);

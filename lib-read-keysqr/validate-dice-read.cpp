@@ -17,10 +17,10 @@ void validateDiceRead(
 	const std::vector<FaceRead> diceRead,
 	std::string diceAsString
 ) {
-	const KeySqr diceKeyNonCanonical = diceReadToKeySqr(diceRead, true);
-	const KeySqr diceKey = diceKeyNonCanonical.rotateToCanonicalOrientation();
+	const KeySqr keySqrNonCanonical = diceReadToKeySqr(diceRead, true);
+	const KeySqr keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
 	for (size_t dieIndex = 0; dieIndex < diceRead.size(); dieIndex++) {
-		const auto dieFace = diceKey.faces[dieIndex];
+		const auto dieFace = keySqr.faces[dieIndex];
 		const std::string dieAsString = diceAsString.substr(dieIndex * 3, 3);
 		const auto letter = dieAsString[0];
 		const char digit = dieAsString[1];

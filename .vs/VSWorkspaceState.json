@@ -1,9 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\lib-read-dicekey",
-    "\\lib-read-dicekey\\externally-generated",
-    "\\tests"
+    "\\tests",
+    "\\tests\\test-lib-read-dicekey"
   ],
   "SelectedNode": "\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false

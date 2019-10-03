@@ -21,7 +21,7 @@
 #include "decode-face.h"
 #include "find-undoverlines.h"
 #include "find-faces.h"
-#include "assemble-dicekey.h"
+#include "assemble-keysqr.h"
 #include "read-face-characters.h"
 #include "visualize-read-results.h"
 
@@ -295,7 +295,7 @@ const int millisecondsToTryToRemoveCorrectableErrors = 4000;
  * ResultOfScanAndAugmentKeySqrImage struct directly, simply
  * return that struct on terminating. 
  * For APIs that cannot consume the struct directly, call the toJson()
- * method of the diceKey field (result.diceKey.toJson()) to get a
+ * method of the keySqr field (result.keySqr.toJson()) to get a
  * std::string in JSON format that can be returned back to any
  * consumer that can parse JSON format.
  **/
@@ -309,13 +309,13 @@ bool scanAndAugmentKeySqrImage(
 	
 	const KeySqr mergedKeySqr = (!result->initialized) ? latestKeySqr :
 		latestKeySqr.initialized ?
-			latestKeySqr.mergePrevious(result->diceKey) :
+			latestKeySqr.mergePrevious(result->keySqr) :
 			latestKeySqr;
 
 	result->whenLastRead = std::chrono::system_clock::now();
 	result->whenFirstRead = (result->initialized) ? result->whenFirstRead : result->whenLastRead;
 	result->whenLastImproved =
-		(!result->initialized || result->diceKey.totalError() > mergedKeySqr.totalError()) ?
+		(!result->initialized || result->keySqr.totalError() > mergedKeySqr.totalError()) ?
 			result->whenLastRead : result->whenLastImproved;
 
 	// We're done when we either have an error-free scan, or no die that can't be improved after
@@ -331,7 +331,7 @@ bool scanAndAugmentKeySqrImage(
 		);
 	// auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(foo - now).count;
 
-	result->diceKey = mergedKeySqr;
+	result->keySqr = mergedKeySqr;
 	result->augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(sourceColorImageBGR_CV_8UC3, diceRead, false);
 	return terminate;
 }

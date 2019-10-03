@@ -49,8 +49,8 @@ endmacro()
 # Add test subdirectories
 ###################################
 add_subdirectory(
-    test-lib-dicekey
+    test-lib-keysqr
 )
 add_subdirectory(    
-    test-lib-read-dicekey
+    test-lib-read-keysqr
 )

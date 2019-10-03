@@ -46,10 +46,10 @@ endif()
 ############################################################
 
 # Project
-set(PROJECT_NAME lib-read-dicekey)
+set(PROJECT_NAME lib-read-keysqr)
 project(${PROJECT_NAME}
     VERSION 0.10
-    DESCRIPTION "Libraries for working with DiceKeys and scanning images of them."
+    DESCRIPTION "Libraries for working with KeySqrs and scanning images of them."
     LANGUAGES CXX
 )
 get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
@@ -74,8 +74,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 ####################################################
 # Libraries to build
 ####################################################
-add_subdirectory("lib-dicekey")
-add_subdirectory("lib-read-dicekey")
+add_subdirectory("lib-keysqr")
+add_subdirectory("lib-read-keysqr")
 
 
 #############################################################
@@ -96,12 +96,12 @@ endif()
 # Ensure OpenCV is installed
 find_package( OpenCV REQUIRED )
 
-# Link OpenCV and lib-dicekey so that they're both accessible as part of this add_library
+# Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
 # (public)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
     ${OpenCV_LIBS}
-    lib-dicekey
+    lib-keysqr
 )
 
 

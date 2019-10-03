@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
-#include "../../lib-dicekey/keysqr.h"
+#include "../../lib-keysqr/keysqr.h"
 
 
-TEST(DiceKey, NotInitalized) {
+TEST(KeySqr, NotInitalized) {
 	KeySqr key = KeySqr();
 	ASSERT_EQ(key.initialized, false);
 }

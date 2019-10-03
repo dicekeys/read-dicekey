@@ -16,10 +16,10 @@
 #include "keysqr.h"
 #include "find-undoverlines.h"
 #include "find-faces.h"
-#include "assemble-dicekey.h"
+#include "assemble-keysqr.h"
 
 
-class DiceKeyGridModel {
+class KeySqrGridModel {
 public:
 	float valid = false;
 	float distanceBetweenRows = 0;
@@ -28,10 +28,10 @@ public:
 	cv::Point2f centerPoint = {0, 0};
 	cv::Point2f topLeftPointRotatedClockwise = {0, 0};
 
-	DiceKeyGridModel() {
+	KeySqrGridModel() {
 	}
 
-	DiceKeyGridModel(
+	KeySqrGridModel(
 		const float _distanceBetweenRows,
 		const float _distanceBetweenColumns,
 		const float _angleInRadians,
@@ -62,7 +62,7 @@ public:
 
 	/*
 		Returns the index [0, 24] for a die center point, or -1 if the point provided
-	 	Is not sufficiently close to a center of the grid in the DiceKey model
+	 	Is not sufficiently close to a center of the grid in the KeySqr model
 	*/
 	const int getDieIndex(const cv::Point2f candidateDieCenter, const float maxFractionFromCenter = 0.25f) {
 		const cv::Point2f rotatedPoint = rotatePointClockwise(candidateDieCenter, centerPoint, angleInRadians);
@@ -93,7 +93,7 @@ public:
 	}
 };
 
-DiceKeyGridModel calculateDiceKeyGrid(
+KeySqrGridModel calculateKeySqrGrid(
 	const cv::Mat &colorImage,
 	const FacesAndStrayUndoverlinesFound &diceAndStrayUndoverlinesFound,
 	float maxFractionOfDieFaceWithromRowOrColumnLine = 0.1f // 1 mm
@@ -194,7 +194,7 @@ DiceKeyGridModel calculateDiceKeyGrid(
 		// 	cv::Scalar(255, 0, 255, 4)
 		// );
 
-		return DiceKeyGridModel(
+		return KeySqrGridModel(
 			distanceBetweenRows,
 			distanceBetweenColumns,
 			angleInRadians,
@@ -202,7 +202,7 @@ DiceKeyGridModel calculateDiceKeyGrid(
 		);
 	}
 	// Made it to end without finding a grid.  Return invalid.
-	return DiceKeyGridModel();
+	return KeySqrGridModel();
 }
 
 DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverlines(
@@ -213,7 +213,7 @@ DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverl
 ) {
 	// First, take the dice and undoverlines we've found and try to build
 	// a model a model that describes the locations within a 5x5 grid 
-	auto grid = calculateDiceKeyGrid(colorImage, diceAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
+	auto grid = calculateKeySqrGrid(colorImage, diceAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
 	if (!grid.valid) {
 		return {};
 	}

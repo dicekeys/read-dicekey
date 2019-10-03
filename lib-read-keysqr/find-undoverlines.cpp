@@ -168,7 +168,7 @@ Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const cv::RotatedRect 
 	// looking for top and bottom borders
 
 	// Extend start and end 3% to side in case we cut off the edge
-	float fractionToExtend = 0.03;
+	float fractionToExtend = 0.03f;
 	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
 	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
 	// Okay to have points that go off graph as our sampling function
