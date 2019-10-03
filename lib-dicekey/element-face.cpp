@@ -3,13 +3,13 @@
 
 #include <limits>
 
-namespace ElementFaceErrors {
-  const ElementFaceError WorstPossible = {
-    ElementFaceErrors::Magnitude::Max,
-    ElementFaceErrors::Location::All
+namespace FaceErrors {
+  const FaceError WorstPossible = {
+    FaceErrors::Magnitude::Max,
+    FaceErrors::Location::All
   };
 
-  const ElementFaceError None = { 0, 0 };
+  const FaceError None = { 0, 0 };
 }
 
 
@@ -17,14 +17,14 @@ ElementFace::ElementFace() {
   letter = 0;
   digit = 0;
   orientationAs0to3ClockwiseTurnsFromUpright = 0;
-  error = ElementFaceErrors::WorstPossible;
+  error = FaceErrors::WorstPossible;
 }
 
 ElementFace::ElementFace(
   char _letter,
   char _digit,
   unsigned char _orientationAs0to3ClockwiseTurnsFromUpright,
-  ElementFaceError _error
+  FaceError _error
 ) {
   letter = _letter;
   digit = _digit;
@@ -78,7 +78,7 @@ std::string ElementFace::toTriple(bool useDigitsForOrientation) const {
 }
 
 bool ElementFace::isDefined() const {
-  return letter != '\0' && digit != '\0' && error.magnitude < ElementFaceErrors::Magnitude::Max;
+  return letter != '\0' && digit != '\0' && error.magnitude < FaceErrors::Magnitude::Max;
 }
 
 bool ElementFace::equals(const ElementFace &other) const {

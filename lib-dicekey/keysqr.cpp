@@ -168,7 +168,7 @@ bool KeySqr::areLettersUnique() const {
 unsigned char KeySqr::maxError() const
 {
   if (!areLettersUnique()) {
-    return ElementFaceErrors::Magnitude::Max;
+    return FaceErrors::Magnitude::Max;
   }
   unsigned char maxErrorFound = 0;
   for (int i=0; i < NumberOfFaces; i++) {
@@ -185,7 +185,7 @@ unsigned char KeySqr::maxError() const
 unsigned int KeySqr::totalError() const
 {
   if (!initialized || !areLettersUnique()) {
-    return NumberOfFaces * (unsigned int)ElementFaceErrors::Magnitude::Max;
+    return NumberOfFaces * (unsigned int)FaceErrors::Magnitude::Max;
   }
   unsigned int sumOfElementFaceErrors = 0;
   for (int i=0; i < NumberOfFaces; i++) {

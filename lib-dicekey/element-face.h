@@ -4,12 +4,12 @@
 
 #include <string>
 
-struct ElementFaceError {
+struct FaceError {
 	unsigned char magnitude;
 	unsigned char location;
 };
 
-namespace ElementFaceErrors {
+namespace FaceErrors {
   namespace Location {
     const unsigned char Underline = 1;
     const unsigned char Overline = 2;
@@ -25,8 +25,8 @@ namespace ElementFaceErrors {
     const unsigned char Max = std::numeric_limits<unsigned char>::max();
   }
 
-  extern const ElementFaceError WorstPossible;
-  extern const ElementFaceError None;
+  extern const FaceError WorstPossible;
+  extern const FaceError None;
 }
 
 class ElementFace {
@@ -34,14 +34,14 @@ class ElementFace {
     char letter;
     char digit;
     unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
-    ElementFaceError error;
+    FaceError error;
 
     ElementFace();
     ElementFace(
       char _letter,
       char _digit,
       unsigned char _orientationAs0to3ClockwiseTurnsFromUpright,
-      ElementFaceError _error = {0, 0}
+      FaceError _error = {0, 0}
     );
 
     /**

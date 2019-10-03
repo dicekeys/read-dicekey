@@ -3,7 +3,7 @@
 #include <vector>
 #include "keysqr-element-face-specification.h"
 #include "utilities/bit-operations.h"
-#include "decode-die.h"
+#include "decode-face.h"
 
 UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned int binaryCodingReadForwardOrBackward, bool isVertical) {
 	// The binary coding has 11 bits,

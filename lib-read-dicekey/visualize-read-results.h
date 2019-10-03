@@ -10,7 +10,7 @@
 #include <opencv2/highgui.hpp>
 
 #include "graphics/color.h"
-#include "read-elements.h"
+#include "read-faces.h"
 
 // Colors are in BGR format
 const Color colorNoErrorGreen(0, 192, 0);

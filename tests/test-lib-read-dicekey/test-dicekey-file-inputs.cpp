@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "../../lib-read-dicekey/read-elements.h"
+#include "../../lib-read-dicekey/read-faces.h"
 #include "../../lib-read-dicekey/validate-dice-read.h"
 //#include <experimental/filesystem>
 //#include <filesystem>
@@ -25,7 +25,7 @@ void testFile(
 
   int totalError;
   try {
-    const auto diceRead = readDice(image, true);
+    const auto diceRead = readFaces(image, true);
     //const cv::Mat dieReadOutput = visualizeReadResults(image, diceRead, true);
     //cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", dieReadOutput);
 

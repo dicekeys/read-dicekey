@@ -12,7 +12,7 @@
 #include "utilities/vfunctional.h"
 #include "graphics/geometry.h"
 #include "keysqr-element-face-specification.h"
-#include "decode-die.h"
+#include "decode-face.h"
 #include "undoverline.h"
 
 Undoverline::Undoverline(

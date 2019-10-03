@@ -19,10 +19,10 @@ TEST(KeySqr, ToHumanReadableFormandBack) {
 TEST(KeySqr, DoesMergeRemoveErrors) {
 	KeySqr first(orderedKeySqrHrf);
 	first.faces[0].error.magnitude = 3;
-	first.faces[0].error.magnitude = ElementFaceErrors::Location::Underline;
+	first.faces[0].error.magnitude = FaceErrors::Location::Underline;
 	KeySqr second(orderedKeySqrHrf);
 	second.faces[0].error.magnitude = 2;
-	second.faces[0].error.magnitude = ElementFaceErrors::Location::Overline;
+	second.faces[0].error.magnitude = FaceErrors::Location::Overline;
 	ASSERT_GT(second.totalError(), (unsigned int) 0);
 	second = second.mergePrevious(first);
 	ASSERT_EQ(second.totalError(), 0);

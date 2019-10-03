@@ -11,9 +11,9 @@
 #include "graphics/color.h"
 
 
-void writeDieCharacters(
+void writeFaceCharacters(
 	cv::Mat& imageColor,
-	cv::Point2f dieCenter,
+	cv::Point2f faceCenter,
 	float angleInRadians,
 	float pixelsPerMm,
 	char letter,

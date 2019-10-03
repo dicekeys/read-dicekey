@@ -12,9 +12,9 @@
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
 #include "keysqr.h"
-#include "read-elements.h"
+#include "read-faces.h"
 #include "visualize-read-results.h"
-#include "write-die-characters.h"
+#include "write-face-characters.h"
 
 // Colors are in BGR format
 //const Color colorNoErrorGreen(0, 192, 0);
@@ -42,7 +42,7 @@ cv::Mat visualizeReadResults(
   const int thickLineThickness = 2 * thinLineThickness;
 
   if (diceRead.success) {
-    for (const ElementRead &die: diceRead.dice) {
+    for (const FaceRead &die: diceRead.dice) {
       const auto error = die.error();
 
       // Draw a rectangle around the die if an error has been found
@@ -56,29 +56,29 @@ cv::Mat visualizeReadResults(
       }
       // Draw a rectangle arond the underline
       if (die.underline.found) {
-        bool underlineError = (error.location & ElementFaceErrors::Location::Underline);
+        bool underlineError = (error.location & FaceErrors::Location::Underline);
         drawRotatedRect(resultImage, die.underline.fromRotatedRect,
           errorMagnitudeToColor( underlineError ? error.magnitude : 0 ).scalar,
           underlineError ? thickLineThickness : thinLineThickness );
       }
       // Draw a rectangle arond the overline
       if (die.overline.found) {
-        bool overlineError = (error.location & ElementFaceErrors::Location::Overline);
+        bool overlineError = (error.location & FaceErrors::Location::Overline);
         drawRotatedRect(resultImage, die.overline.fromRotatedRect,
           errorMagnitudeToColor( overlineError ? error.magnitude : 0 ).scalar,
           overlineError ? thickLineThickness : thinLineThickness );
       }
       // Draw the characters read
-      writeDieCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerFaceEdgeWidth, die.letter(), die.digit(),
-        errorMagnitudeToColor( (error.location & ElementFaceErrors::Location::OcrLetter) ? error.magnitude : 0 ),
-        errorMagnitudeToColor( (error.location & ElementFaceErrors::Location::OcrDigit) ? error.magnitude : 0 )
+      writeFaceCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerFaceEdgeWidth, die.letter(), die.digit(),
+        errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrLetter) ? error.magnitude : 0 ),
+        errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrDigit) ? error.magnitude : 0 )
       );
     }
   }
   for (Undoverline undoverline: diceRead.strayUndoverlines) {
     drawRotatedRect(resultImage, undoverline.fromRotatedRect, colorBigErrorRed.scalar, 1);
   }
-  for (ElementRead die: diceRead.strayDice) {
+  for (FaceRead die: diceRead.strayDice) {
       drawRotatedRect(
         resultImage,
         cv::RotatedRect(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm)),

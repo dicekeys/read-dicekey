@@ -18,7 +18,7 @@
 #include "graphics/sample-point.h"
 #include "graphics/draw-rotated-rect.h"
 #include "keysqr-element-face-specification.h"
-#include "decode-die.h"
+#include "decode-face.h"
 #include "undoverline.h"
 #include "find-undoverlines.h"
 

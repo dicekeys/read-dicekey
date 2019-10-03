@@ -15,7 +15,7 @@
 #include "keysqr-element-face-specification.h"
 #include "keysqr.h"
 #include "find-undoverlines.h"
-#include "find-dice.h"
+#include "find-faces.h"
 #include "assemble-dicekey.h"
 
 
@@ -95,22 +95,22 @@ public:
 
 DiceKeyGridModel calculateDiceKeyGrid(
 	const cv::Mat &colorImage,
-	const DiceAndStrayUndoverlinesFound &diceAndStrayUndoverlinesFound,
+	const FacesAndStrayUndoverlinesFound &diceAndStrayUndoverlinesFound,
 	float maxFractionOfDieFaceWithromRowOrColumnLine = 0.1f // 1 mm
 ) {
-	const std::vector<ElementRead> &diceFound = diceAndStrayUndoverlinesFound.diceFound;
+	const std::vector<FaceRead> &facesFound = diceAndStrayUndoverlinesFound.facesFound;
 	const std::vector<Undoverline> &strayUndoverlines = diceAndStrayUndoverlinesFound.strayUndoverlines;
 	const	float maxPixelsFromRowOrColumnLine = maxFractionOfDieFaceWithromRowOrColumnLine * diceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth;
 
-	for (int i = 0; i < diceFound.size(); i++) {
+	for (int i = 0; i < facesFound.size(); i++) {
 		// We can build a model of the grid based on this die if we can
 		// find four others in the same row and four others in the same column.
-		const ElementRead &candidateIntersectionDie = diceFound[i];
+		const FaceRead &candidateIntersectionDie = facesFound[i];
 		GridProximity gridModel(candidateIntersectionDie.center, candidateIntersectionDie.inferredAngleInRadians);
 		
 		std::vector<cv::Point2f> candidatePoints, sameColumn, sameRow;
-		for (int j = 0; j < diceFound.size(); j++) {
-			if (j!=i) candidatePoints.push_back(diceFound[j].center);
+		for (int j = 0; j < facesFound.size(); j++) {
+			if (j!=i) candidatePoints.push_back(facesFound[j].center);
 		}
 		for (const Undoverline &undoverline: strayUndoverlines) {
 			candidatePoints.push_back(undoverline.inferredDieCenter);
@@ -208,7 +208,7 @@ DiceKeyGridModel calculateDiceKeyGrid(
 DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverlines(
 	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage,
-	const DiceAndStrayUndoverlinesFound& diceAndStrayUndoverlinesFound,
+	const FacesAndStrayUndoverlinesFound& diceAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine // = 1.0f // 1 mm
 ) {
 	// First, take the dice and undoverlines we've found and try to build
@@ -217,9 +217,9 @@ DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverl
 	if (!grid.valid) {
 		return {};
 	}
-	std::vector<ElementRead> orderedDice(25);
+	std::vector<FaceRead> orderedDice(25);
 	// Copy all the dice we found into the grid model
-	for (const auto &dieFound : diceAndStrayUndoverlinesFound.diceFound) {
+	for (const auto &dieFound : diceAndStrayUndoverlinesFound.facesFound) {
 		const int dieIndex = grid.getDieIndex(dieFound.center);
 		if (dieIndex >= 0) {
 			// We were able to find this die in the grid model, so copy it in

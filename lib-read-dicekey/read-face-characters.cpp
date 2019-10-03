@@ -13,7 +13,7 @@
 #include "graphics/rotate.h"
 #include "keysqr-element-face-specification.h"
 #include "simple-ocr.h"
-#include "read-die-characters.h"
+#include "read-face-characters.h"
 
 DieCharactersRead readDieCharacters(
 	const cv::Mat& imageColor,

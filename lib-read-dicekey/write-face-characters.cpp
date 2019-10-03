@@ -14,9 +14,9 @@
 #include "graphics/rotate.h"
 #include "simple-ocr.h"
 #include "font.h"
-#include "write-die-characters.h"
+#include "write-face-characters.h"
 
-void writeDieCharacters(
+void writeFaceCharacters(
 	cv::Mat& imageColor,
 	cv::Point2f dieCenter,
 	float angleInRadians,

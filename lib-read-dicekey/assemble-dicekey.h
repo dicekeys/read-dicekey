@@ -8,12 +8,12 @@
 #include <opencv2/highgui.hpp>
 
 #include "find-undoverlines.h"
-#include "find-dice.h"
-#include "read-elements.h"
+#include "find-faces.h"
+#include "read-faces.h"
 
 struct DiceOrderdWithMissingDiceInferredFromUnderlines {
 	bool valid = false;
-	std::vector<ElementRead> orderedDice = {};
+	std::vector<FaceRead> orderedDice = {};
 	// The angle of what was read on the page, without any conversion to have
 	// the top left be the corner with the earliest letter in the alphabet
 	float angleInRadiansNonCononicalForm = NAN;
@@ -23,6 +23,6 @@ struct DiceOrderdWithMissingDiceInferredFromUnderlines {
 DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverlines(
 	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage,
-	const DiceAndStrayUndoverlinesFound& diceAndStrayUndoverlinesFound,
+	const FacesAndStrayUndoverlinesFound& diceAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine = 1.0f // 1 mm
 );

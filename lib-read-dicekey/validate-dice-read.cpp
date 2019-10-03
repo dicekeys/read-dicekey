@@ -5,7 +5,7 @@
 #include <opencv2/core.hpp>
 #include "utilities/vfunctional.h"
 #include "keysqr.h"
-#include "read-elements.h"
+#include "read-faces.h"
 #include "validate-dice-read.h"
 
 /*
@@ -14,7 +14,7 @@ three-character triples of letter, digit ('0'-'6'), and orientation (as number o
 '0'-'3').
 */
 void validateDiceRead(
-	const std::vector<ElementRead> diceRead,
+	const std::vector<FaceRead> diceRead,
 	std::string diceAsString
 ) {
 	const KeySqr diceKeyNonCanonical = diceReadToKeySqr(diceRead, true);

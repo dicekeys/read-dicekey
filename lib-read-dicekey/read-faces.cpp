@@ -1,7 +1,6 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include <float.h>
-#include <ctime>
 #include <chrono>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
@@ -19,32 +18,32 @@
 #include "utilities/bit-operations.h"
 #include "graphics/geometry.h"
 #include "simple-ocr.h"
-#include "decode-die.h"
+#include "decode-face.h"
 #include "find-undoverlines.h"
-#include "find-dice.h"
+#include "find-faces.h"
 #include "assemble-dicekey.h"
-#include "read-die-characters.h"
+#include "read-face-characters.h"
 #include "visualize-read-results.h"
 
-char ElementRead::ocrLetterMostLikely() const {
+char FaceRead::ocrLetterMostLikely() const {
 	return this->ocrLetter.size() == 0 ? '\0' : ocrLetter[0].character;
 }
-char ElementRead::ocrDigitMostLikely() const {
+char FaceRead::ocrDigitMostLikely() const {
 	return ocrDigit.size() == 0 ? '\0' : ocrDigit[0].character;
 }
 
-char ElementRead::letter() const {
+char FaceRead::letter() const {
 	return majorityOfThree(
 		underline.dieFaceInferred->letter, overline.dieFaceInferred->letter, ocrLetterMostLikely()
 	);
 }
-char ElementRead::digit() const {
+char FaceRead::digit() const {
 	return majorityOfThree(
 		underline.dieFaceInferred->digit, overline.dieFaceInferred->digit, ocrDigitMostLikely()
 	);
 }
 
-std::string ElementRead::toJson() const {
+std::string FaceRead::toJson() const {
 	std::ostringstream jsonStream;
 	jsonStream <<
 		"{" <<
@@ -69,9 +68,9 @@ std::string ElementRead::toJson() const {
 // that doesn't match the OCR result.
 // If the underline and overline match but matched with the OCR's second choice of
 // letter or digit, we return 2.
-ElementFaceError ElementRead::error() const {
+FaceError FaceRead::error() const {
 		if (ocrLetter.size() == 0 || ocrDigit.size() == 0) {
-			return ElementFaceErrors::WorstPossible;
+			return FaceErrors::WorstPossible;
 		}
 		unsigned char errorLocation = 0;
 		unsigned int errorMagnitude = 0;
@@ -87,16 +86,16 @@ ElementFaceError ElementRead::error() const {
 
 			// Check for OCR errors for the letter read
 			if (undoverlineFaceInferred.letter != ocrLetter[0].character) {
-				errorLocation |= ElementFaceErrors::Location::OcrLetter;
+				errorLocation |= FaceErrors::Location::OcrLetter;
 				errorMagnitude += undoverlineFaceInferred.letter == ocrLetter[1].character ?
-					ElementFaceErrors::Magnitude::OcrCharacterWasSecondChoice :
-					ElementFaceErrors::Magnitude::OcrCharacterInvalid;
+					FaceErrors::Magnitude::OcrCharacterWasSecondChoice :
+					FaceErrors::Magnitude::OcrCharacterInvalid;
 			}
 			if (undoverlineFaceInferred.digit != ocrDigit[0].character) {
-				errorLocation |= ElementFaceErrors::Location::OcrDigit;
+				errorLocation |= FaceErrors::Location::OcrDigit;
 				errorMagnitude += undoverlineFaceInferred.digit == ocrDigit[1].character ?
-					ElementFaceErrors::Magnitude::OcrCharacterWasSecondChoice :
-					ElementFaceErrors::Magnitude::OcrCharacterInvalid;
+					FaceErrors::Magnitude::OcrCharacterWasSecondChoice :
+					FaceErrors::Magnitude::OcrCharacterInvalid;
 			}
 			return {(unsigned char) MIN(std::numeric_limits<unsigned char>::max(), errorMagnitude), errorLocation};
 		}
@@ -109,8 +108,8 @@ ElementFaceError ElementRead::error() const {
 						// The magnitude of the error is the hamming distance error in overline
 						(unsigned char)hammingDistance(underlineFaceInferred.overlineCode, overline.letterDigitEncoding) :
 						// Since the overline was not found, the magntidue is specified via a constant
-						ElementFaceErrors::Magnitude::UnderlineOrOverlineMissing,
-					ElementFaceErrors::Location::Overline
+						FaceErrors::Magnitude::UnderlineOrOverlineMissing,
+					FaceErrors::Location::Overline
 				};
 		}
 		if (overlineFaceInferred.letter == ocrLetter0 && overlineFaceInferred.digit == ocrDigit0) {
@@ -120,8 +119,8 @@ ElementFaceError ElementRead::error() const {
 					// The magnitude of the error is the hamming distance error in underline
 					(unsigned char)hammingDistance(overlineFaceInferred.underlineCode, underline.letterDigitEncoding) :				
 					// Since the underline was not found, the magntidue is specified via a constant
-					ElementFaceErrors::Magnitude::UnderlineOrOverlineMissing,
-					ElementFaceErrors::Location::Underline
+					FaceErrors::Magnitude::UnderlineOrOverlineMissing,
+					FaceErrors::Location::Underline
 			};
 		}
 		// No good matching.  Return max error
@@ -129,19 +128,19 @@ ElementFaceError ElementRead::error() const {
 	};
 
 
-ReadDiceResult readDice(
+ReadDiceResult readFaces(
 	const cv::Mat &colorImage,
 	bool outputOcrErrors
 ) {
 	cv::Mat grayscaleImage;
 
 	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
-	DiceAndStrayUndoverlinesFound diceAndStrayUndoverlinesFound = findDiceAndStrayUndoverlines(colorImage, grayscaleImage);
+	FacesAndStrayUndoverlinesFound diceAndStrayUndoverlinesFound = findFacesAndStrayUndoverlines(colorImage, grayscaleImage);
 	auto orderedDiceResult = orderDiceAndInferMissingUndoverlines(colorImage, grayscaleImage, diceAndStrayUndoverlinesFound);
 	if (!orderedDiceResult.valid) {
-		return { false, {}, 0, 0, diceAndStrayUndoverlinesFound.diceFound, diceAndStrayUndoverlinesFound.strayUndoverlines };
+		return { false, {}, 0, 0, diceAndStrayUndoverlinesFound.facesFound, diceAndStrayUndoverlinesFound.strayUndoverlines };
 	}
-	std::vector<ElementRead> orderedDice = orderedDiceResult.orderedDice;
+	std::vector<FaceRead> orderedDice = orderedDiceResult.orderedDice;
 	const float angleOfKeySqrInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
 
 	for (auto &die : orderedDice) {
@@ -179,7 +178,7 @@ ReadDiceResult readDice(
 }
 
 KeySqr diceReadToKeySqr(
-	const std::vector<ElementRead> diceRead,
+	const std::vector<FaceRead> diceRead,
 	bool reportErrsToStdErr
 ) {
 	if (diceRead.size() != 25) {
@@ -187,7 +186,7 @@ KeySqr diceReadToKeySqr(
 	}
 	std::vector<ElementFace> dieFaces;
 	for (size_t i = 0; i < diceRead.size(); i++) {
-		ElementRead dieRead = diceRead[i];
+		FaceRead dieRead = diceRead[i];
 		const ElementFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred;
 		const ElementFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred;
 		const char digitRead = dieRead.ocrDigit.size() == 0 ? '\0' : dieRead.ocrDigit[0].character;
@@ -275,39 +274,6 @@ const unsigned int maxCorrectableError = 2;
 const int millisecondsToTryToRemoveCorrectableErrors = 4000;
 
 
-const std::chrono::time_point<std::chrono::system_clock> minTimePoint =
-	std::chrono::time_point<std::chrono::system_clock>::min();
-
-/**
- * This structure is used as the second parameter to scanAndAugmentKeySqrImage,
- * and is used both to input the result of the prior call and to return results
- * from the current call.
- **/
-struct ResultOfScanAndAugmentKeySqrImage {
-	// This value is true if the result was returned from a call to readKeySqr and
-	// is false when a default result is constructed by the caller and a pointer is
-	// passed to it.
-	bool initialized = false;
-	// This value is set the first time scanAndAugmentKeySqrImage is called
-	std::chrono::time_point<std::chrono::system_clock> whenFirstRead = minTimePoint;
-	// The value is set the first time scanAndAugmentKeySqrImage is called
-	// and updated every time a scan reduces the number of errors that
-	// have the be resolved before we can return the result.
-	std::chrono::time_point<std::chrono::system_clock> whenLastImproved = minTimePoint;
-	// The value is set every time scanAndAugmentKeySqrImage is called.
-	std::chrono::time_point<std::chrono::system_clock> whenLastRead = minTimePoint;
-	// The KeySqr that has been read is stored in this field, which also
-	// keeps track of any errors that you have to be resolved during reading.
-	KeySqr diceKey = KeySqr();
-	// After each call, the image passed to scanAndAugmentKeySqrImage
-	// is augmented with the scan results and copied here. 
-	cv::Mat augmentedColorImage_BGR_CV_8UC3 = cv::Mat();
-	// This field is set to true if we've reached the termination condition
-	// for the scanning loop.  This is the same value returned as the
-	// result of the scanAndAugmentKeySqrImage function.
-	bool terminate = false;
-};
-
 /**
  * This function is the base for an augmented reality loop in which
  * we scan images from the camera repeatedly until we have successfully
@@ -337,7 +303,7 @@ bool scanAndAugmentKeySqrImage(
 	cv::Mat &sourceColorImageBGR_CV_8UC3,
 	ResultOfScanAndAugmentKeySqrImage* result
 ) {
-	const ReadDiceResult diceRead = readDice(sourceColorImageBGR_CV_8UC3, false);
+	const ReadDiceResult diceRead = readFaces(sourceColorImageBGR_CV_8UC3, false);
 
 	const KeySqr latestKeySqr = diceRead.success ? diceReadToKeySqr(diceRead.dice, false) : KeySqr();
 	

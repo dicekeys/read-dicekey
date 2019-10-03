@@ -9,11 +9,11 @@
 #include "utilities/statistics.h"
 #include "graphics/geometry.h"
 #include "find-undoverlines.h"
-#include "read-elements.h"
-#include "find-dice.h"
+#include "read-faces.h"
+#include "find-faces.h"
 #include "keysqr-element-face-specification.h"
 
-DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
+FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage
 ) {
@@ -29,7 +29,7 @@ DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
 	const float maxDistanceBetweenInferredCenters = pixelsPerFaceEdgeWidth / 4; // 2mm
 
 	std::vector<Undoverline> strayUndoverlines(0);
-	std::vector<ElementRead> diceFound;
+	std::vector<FaceRead> facesFound;
 
 	for (auto underline : underlines) {
 		// Search for overline with inferred die center near that of underline.
@@ -53,7 +53,7 @@ DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
 				if (angleInRadians > (M_PI)) {
 					angleInRadians -= float(2 * M_PI);
 				}
-				diceFound.push_back({
+				facesFound.push_back({
 					underline, overlines[i], center, angleInRadians
 				});
 				// Remove the ith element of overlines
@@ -67,5 +67,5 @@ DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
 
 	strayUndoverlines.insert(strayUndoverlines.end(), overlines.begin(), overlines.end());
 
-	return { diceFound, strayUndoverlines, pixelsPerFaceEdgeWidth };
+	return { facesFound, strayUndoverlines, pixelsPerFaceEdgeWidth };
 }

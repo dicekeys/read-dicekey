@@ -9,15 +9,15 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <vector>
-#include "read-elements.h"
+#include "read-faces.h"
 
-struct DiceAndStrayUndoverlinesFound {
-	std::vector<ElementRead> diceFound;
+struct FacesAndStrayUndoverlinesFound {
+	std::vector<FaceRead> facesFound;
 	std::vector<Undoverline> strayUndoverlines;
 	float pixelsPerFaceEdgeWidth;
 };
 
-DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
+FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage
 );
