@@ -1,30 +1,30 @@
-#include "die-face.h"
+#include "element-face.h"
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include <limits>
 
-namespace DieFaceErrors {
-  const DieFaceError WorstPossible = {
-    DieFaceErrors::Magnitude::Max,
-    DieFaceErrors::Location::All
+namespace ElementFaceErrors {
+  const ElementFaceError WorstPossible = {
+    ElementFaceErrors::Magnitude::Max,
+    ElementFaceErrors::Location::All
   };
 
-  const DieFaceError None = { 0, 0 };
+  const ElementFaceError None = { 0, 0 };
 }
 
 
-DieFace::DieFace() {
+ElementFace::ElementFace() {
   letter = 0;
   digit = 0;
   orientationAs0to3ClockwiseTurnsFromUpright = 0;
-  error = DieFaceErrors::WorstPossible;
+  error = ElementFaceErrors::WorstPossible;
 }
 
-DieFace::DieFace(
+ElementFace::ElementFace(
   char _letter,
   char _digit,
   unsigned char _orientationAs0to3ClockwiseTurnsFromUpright,
-  DieFaceError _error
+  ElementFaceError _error
 ) {
   letter = _letter;
   digit = _digit;
@@ -34,7 +34,7 @@ DieFace::DieFace(
 
 /**
  * Return the die face as a JSON object with the following interface:
- *   inteface DieFace {
+ *   inteface ElementFace {
  *     letter: (string & DieLetter) | "",
  *     digit: (string & DieDigit) | "",
  *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
@@ -44,14 +44,14 @@ DieFace::DieFace(
  *     }
  *   }
  **/
-std::string DieFace::toJson() const {
+std::string ElementFace::toJson() const {
   return "{ letter: '" + ( letter ? std::string(1, letter) : "" ) +
     "', digit: '" + ( digit ? std::string(1, digit) : "" ) +
     "', orientationAs0to3ClockwiseTurnsFromUpright: '" + std::string(1, '0' + orientationAs0to3ClockwiseTurnsFromUpright) +
     "', error: { magnitude: " + std::to_string(error.magnitude) + ", location: " + std::to_string(error.location) + " } }";
 }
 
-char DieFace::orientationChar(bool useDigitsForOrientation) const {
+char ElementFace::orientationChar(bool useDigitsForOrientation) const {
   if (orientationAs0to3ClockwiseTurnsFromUpright < 0 || orientationAs0to3ClockwiseTurnsFromUpright > 3) {
     throw "Invalid orientation";
   }
@@ -71,17 +71,17 @@ char DieFace::orientationChar(bool useDigitsForOrientation) const {
   * Return the die face as a three-character triple of
   * letter, digit, and orientation ('0' - '3') in number of turns from clockwise.
   */
-std::string DieFace::toTriple(bool useDigitsForOrientation) const {
+std::string ElementFace::toTriple(bool useDigitsForOrientation) const {
 	return (letter ? std::string(1, letter) : "") +
 		(digit ? std::string(1, digit) : "") +
 		std::string(1, orientationChar(useDigitsForOrientation));
 }
 
-bool DieFace::isDefined() const {
-  return letter != '\0' && digit != '\0' && error.magnitude < DieFaceErrors::Magnitude::Max;
+bool ElementFace::isDefined() const {
+  return letter != '\0' && digit != '\0' && error.magnitude < ElementFaceErrors::Magnitude::Max;
 }
 
-bool DieFace::equals(const DieFace &other) const {
+bool ElementFace::equals(const ElementFace &other) const {
   return (
     // Undefined faces cannot be equal
     isDefined() &&

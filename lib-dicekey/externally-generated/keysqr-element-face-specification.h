@@ -44,10 +44,10 @@ struct ElementFaceSpecification {
 
 extern const ElementFaceSpecification NullElementFaceSpecification;
 
-namespace ElemmentDimensionsMm {
+namespace ElementDimensionsMm {
 };
 
-namespace ElemmentDimensionsFractional {
+namespace ElementDimensionsFractional {
   const float size = float(1);
   const float fontSize = float(0.575);
   const float undoverlineLength = float(0.775);

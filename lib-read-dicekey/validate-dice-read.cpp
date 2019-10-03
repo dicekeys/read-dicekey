@@ -4,7 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include "utilities/vfunctional.h"
-#include "dicekey.h"
+#include "keysqr.h"
 #include "read-dice.h"
 #include "validate-dice-read.h"
 
@@ -14,11 +14,11 @@ three-character triples of letter, digit ('0'-'6'), and orientation (as number o
 '0'-'3').
 */
 void validateDiceRead(
-	const std::vector<DieRead> diceRead,
+	const std::vector<ElementRead> diceRead,
 	std::string diceAsString
 ) {
-	const DiceKey diceKeyNonCanonical = diceReadToDiceKey(diceRead, true);
-	const DiceKey diceKey = diceKeyNonCanonical.rotateToCanonicalOrientation();
+	const KeySqr diceKeyNonCanonical = diceReadToDiceKey(diceRead, true);
+	const KeySqr diceKey = diceKeyNonCanonical.rotateToCanonicalOrientation();
 	for (size_t dieIndex = 0; dieIndex < diceRead.size(); dieIndex++) {
 		const auto dieFace = diceKey.faces[dieIndex];
 		const std::string dieAsString = diceAsString.substr(dieIndex * 3, 3);

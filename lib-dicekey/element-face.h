@@ -4,12 +4,12 @@
 
 #include <string>
 
-struct DieFaceError {
+struct ElementFaceError {
 	unsigned char magnitude;
 	unsigned char location;
 };
 
-namespace DieFaceErrors {
+namespace ElementFaceErrors {
   namespace Location {
     const unsigned char Underline = 1;
     const unsigned char Overline = 2;
@@ -25,28 +25,28 @@ namespace DieFaceErrors {
     const unsigned char Max = std::numeric_limits<unsigned char>::max();
   }
 
-  extern const DieFaceError WorstPossible;
-  extern const DieFaceError None;
+  extern const ElementFaceError WorstPossible;
+  extern const ElementFaceError None;
 }
 
-class DieFace {
+class ElementFace {
   public:
     char letter;
     char digit;
     unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
-    DieFaceError error;
+    ElementFaceError error;
 
-    DieFace();
-    DieFace(
+    ElementFace();
+    ElementFace(
       char _letter,
       char _digit,
       unsigned char _orientationAs0to3ClockwiseTurnsFromUpright,
-      DieFaceError _error = {0, 0}
+      ElementFaceError _error = {0, 0}
     );
 
     /**
      * Return the die face as a JSON object with the following interface:
-     *   inteface DieFace {
+     *   inteface ElementFace {
      *     letter: (string & DieLetter) | "",
      *     digit: (string & DieDigit) | "",
      *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
@@ -68,5 +68,5 @@ class DieFace {
 
     bool isDefined() const;
 
-    bool equals(const DieFace &other) const;
+    bool equals(const ElementFace &other) const;
 };

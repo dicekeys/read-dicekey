@@ -6,10 +6,10 @@
 #include <vector>
 #include <limits>
 #include "undoverline.h"
-#include "../lib-dicekey/dicekey.h"
+#include "../lib-dicekey/keysqr.h"
 #include "simple-ocr.h"
 
-class DieRead {
+class ElementRead {
 public:
 	// Calculated purely from underline & overline.
 	Undoverline underline;
@@ -24,6 +24,24 @@ public:
 	std::vector<OcrResultEntry> ocrDigit;
 
   //
+	std::string toJson() const {
+		std::ostringstream jsonStream;
+		jsonStream <<
+			"{" <<
+				"underline: " << underline.toJson() << "," <<
+				"overline: " << overline.toJson() << "," <<
+				"center: {" <<
+					"x: " << center.x << ", " <<
+					"y: " << center.y << "" <<
+				"}, " <<
+				"angleInRadians: " << inferredAngleInRadians << "," <<
+				"orientationAs0to3ClockwiseTurnsFromUpright: " << orientationAs0to3ClockwiseTurnsFromUpright << "," <<
+				"ocrLetter: " << (ocrLetter.size > 0 ? ocrLetter[0].character : '-') << "," <<
+				"ocrDigit: " << (ocrDigit.size > 0 ? ocrDigit[0].character : '-') << "" <<
+			"}";
+		return jsonStream.str();
+	}
+
   char ocrLetterMostLikely() const;
   char ocrDigitMostLikely() const;
 
@@ -37,17 +55,17 @@ public:
   // that doesn't match the OCR result.
   // If the underline and overline match but matched with the OCR's second choice of
   // letter or digit, we return 2.
-	DieFaceError error() const;
+	ElementFaceError error() const;
 };
 
 
 struct ReadDiceResult {
 //	public:
 	bool success;
-	std::vector<DieRead> dice;
+	std::vector<ElementRead> dice;
 	float angleInRadiansNonCononicalForm;
-	float pixelsPerMm;
-	std::vector<DieRead> strayDice;
+	float pixelsPerFaceEdgeWidth;
+	std::vector<ElementRead> strayDice;
 	std::vector<Undoverline> strayUndoverlines;
 };
 
@@ -56,7 +74,7 @@ ReadDiceResult readDice(
 	bool outputOcrErrors = false
 );
 
-DiceKey diceReadToDiceKey(
-	const std::vector<DieRead> diceRead,
+KeySqr diceReadToDKeySqr(
+	const std::vector<ElementRead> diceRead,
 	bool reportErrsToStdErr = false
 );

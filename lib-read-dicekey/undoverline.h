@@ -11,7 +11,7 @@
 #include "graphics/geometry.h"
 #include "keysqr-element-face-specification.h"
 
-const float undoverlineWidthAsFractionOfLength = ElementDimensionsMm::undoverlineThickness / ElementDimensionsMm::undoverlineLength;
+const float undoverlineWidthAsFractionOfLength = ElemmentDimensionsFractional::undoverlineThickness / ElemmentDimensionsFractional::undoverlineLength;
 
 class Undoverline {
 public:
@@ -30,13 +30,7 @@ public:
     //
   }
 
-  const std::string toJson() const {
-    if (!found || !determinedIfUnderlineOrOverline) {
-      return "null";
-    }
-    // center, angle, length, letterDigitEncoding, whiteBlackThreshold
-
-  }
+  const std::string toJson() const;
 
   Undoverline(
     cv::RotatedRect _fromRotatedRect,

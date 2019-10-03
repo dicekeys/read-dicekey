@@ -12,7 +12,7 @@
 #include <iostream>
 #include <math.h>
 
-#include "dicekey.h"
+#include "keysqr.h"
 
 #include "utilities/vfunctional.h"
 #include "utilities/statistics.h"
@@ -26,34 +26,52 @@
 #include "read-die-characters.h"
 #include "visualize-read-results.h"
 
-char DieRead::ocrLetterMostLikely() const {
+char ElementRead::ocrLetterMostLikely() const {
 	return this->ocrLetter.size() == 0 ? '\0' : ocrLetter[0].character;
 }
-char DieRead::ocrDigitMostLikely() const {
+char ElementRead::ocrDigitMostLikely() const {
 	return ocrDigit.size() == 0 ? '\0' : ocrDigit[0].character;
 }
 
-char DieRead::letter() const {
+char ElementRead::letter() const {
 	return majorityOfThree(
 		underline.dieFaceInferred->letter, overline.dieFaceInferred->letter, ocrLetterMostLikely()
 	);
 }
-char DieRead::digit() const {
+char ElementRead::digit() const {
 	return majorityOfThree(
 		underline.dieFaceInferred->digit, overline.dieFaceInferred->digit, ocrDigitMostLikely()
 	);
 }
 
-// Return an estimate of the error in reading a die face.
+std::string ElementRead::toJson() const {
+	std::ostringstream jsonStream;
+	jsonStream <<
+		"{" <<
+			"underline: " << underline.toJson() << "," <<
+			"overline: " << overline.toJson() << "," <<
+			"center: {" <<
+				"x: " << center.x << ", " <<
+				"y: " << center.y << "" <<
+			"}, " <<
+			"angleInRadians: " << inferredAngleInRadians << "," <<
+			"orientationAs0to3ClockwiseTurnsFromUpright: " << orientationAs0to3ClockwiseTurnsFromUpright << "," <<
+			"ocrLetter: " << (ocrLetter.size > 0 ? ocrLetter[0].character : '-') << "," <<
+			"ocrDigit: " << (ocrDigit.size > 0 ? ocrDigit[0].character : '-') << "" <<
+		"}";
+	return jsonStream.str();
+}
+
+// Return an estimate of the error in reading an element face.
 // If the underline, overline, and OCR results match, the error is 0.
 // If the only error is a 1-3 bit error in either the underline or overline,
 // the result is the number of bits (hamming distance) in the underline or overline
 // that doesn't match the OCR result.
 // If the underline and overline match but matched with the OCR's second choice of
 // letter or digit, we return 2.
-DieFaceError DieRead::error() const {
+ElementFaceError ElementRead::error() const {
 		if (ocrLetter.size() == 0 || ocrDigit.size() == 0) {
-			return DieFaceErrors::WorstPossible;
+			return ElementFaceErrors::WorstPossible;
 		}
 		unsigned char errorLocation = 0;
 		unsigned int errorMagnitude = 0;
@@ -69,16 +87,16 @@ DieFaceError DieRead::error() const {
 
 			// Check for OCR errors for the letter read
 			if (undoverlineFaceInferred.letter != ocrLetter[0].character) {
-				errorLocation |= DieFaceErrors::Location::OcrLetter;
+				errorLocation |= ElementFaceErrors::Location::OcrLetter;
 				errorMagnitude += undoverlineFaceInferred.letter == ocrLetter[1].character ?
-					DieFaceErrors::Magnitude::OcrCharacterWasSecondChoice :
-					DieFaceErrors::Magnitude::OcrCharacterInvalid;
+					ElementFaceErrors::Magnitude::OcrCharacterWasSecondChoice :
+					ElementFaceErrors::Magnitude::OcrCharacterInvalid;
 			}
 			if (undoverlineFaceInferred.digit != ocrDigit[0].character) {
-				errorLocation |= DieFaceErrors::Location::OcrDigit;
+				errorLocation |= ElementFaceErrors::Location::OcrDigit;
 				errorMagnitude += undoverlineFaceInferred.digit == ocrDigit[1].character ?
-					DieFaceErrors::Magnitude::OcrCharacterWasSecondChoice :
-					DieFaceErrors::Magnitude::OcrCharacterInvalid;
+					ElementFaceErrors::Magnitude::OcrCharacterWasSecondChoice :
+					ElementFaceErrors::Magnitude::OcrCharacterInvalid;
 			}
 			return {(unsigned char) MIN(std::numeric_limits<unsigned char>::max(), errorMagnitude), errorLocation};
 		}
@@ -91,8 +109,8 @@ DieFaceError DieRead::error() const {
 						// The magnitude of the error is the hamming distance error in overline
 						(unsigned char)hammingDistance(underlineFaceInferred.overlineCode, overline.letterDigitEncoding) :
 						// Since the overline was not found, the magntidue is specified via a constant
-						DieFaceErrors::Magnitude::UnderlineOrOverlineMissing,
-					DieFaceErrors::Location::Overline
+						ElementFaceErrors::Magnitude::UnderlineOrOverlineMissing,
+					ElementFaceErrors::Location::Overline
 				};
 		}
 		if (overlineFaceInferred.letter == ocrLetter0 && overlineFaceInferred.digit == ocrDigit0) {
@@ -102,8 +120,8 @@ DieFaceError DieRead::error() const {
 					// The magnitude of the error is the hamming distance error in underline
 					(unsigned char)hammingDistance(overlineFaceInferred.underlineCode, underline.letterDigitEncoding) :				
 					// Since the underline was not found, the magntidue is specified via a constant
-					DieFaceErrors::Magnitude::UnderlineOrOverlineMissing,
-					DieFaceErrors::Location::Underline
+					ElementFaceErrors::Magnitude::UnderlineOrOverlineMissing,
+					ElementFaceErrors::Location::Underline
 			};
 		}
 		// No good matching.  Return max error
@@ -123,8 +141,8 @@ ReadDiceResult readDice(
 	if (!orderedDiceResult.valid) {
 		return { false, {}, 0, 0, diceAndStrayUndoverlinesFound.diceFound, diceAndStrayUndoverlinesFound.strayUndoverlines };
 	}
-	std::vector<DieRead> orderedDice = orderedDiceResult.orderedDice;
-	const float angleOfDiceKeyInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
+	std::vector<ElementRead> orderedDice = orderedDiceResult.orderedDice;
+	const float angleOfKeySqrInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
 
 	for (auto &die : orderedDice) {
 		if (!(die.underline.determinedIfUnderlineOrOverline || die.overline.determinedIfUnderlineOrOverline)) {
@@ -143,13 +161,13 @@ ReadDiceResult readDice(
 		const ElementFaceSpecification &underlineInferred = *die.underline.dieFaceInferred;
 		const ElementFaceSpecification &overlineInferred = *die.overline.dieFaceInferred;
 		const DieCharactersRead charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
-			diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
+			diceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth, whiteBlackThreshold,
 			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.letter)) + std::string(1, dashIfNull(overlineInferred.letter))) : "",
 			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.digit)) + std::string(1, dashIfNull(overlineInferred.digit))) : ""
 		);
 			
 		
-		const float orientationInRadians = die.inferredAngleInRadians - angleOfDiceKeyInRadiansNonCononicalForm;
+		const float orientationInRadians = die.inferredAngleInRadians - angleOfKeySqrInRadiansNonCononicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
 		die.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
@@ -157,19 +175,19 @@ ReadDiceResult readDice(
 		die.ocrDigit = charsRead.digitsMostLikelyFirst;
 	}
 
-	return { true, orderedDice, orderedDiceResult.angleInRadiansNonCononicalForm, orderedDiceResult.pixelsPerMm, {} };
+	return { true, orderedDice, orderedDiceResult.angleInRadiansNonCononicalForm, orderedDiceResult.pixelsPerFaceEdgeWidth, {} };
 }
 
-DiceKey diceReadToDiceKey(
-	const std::vector<DieRead> diceRead,
+KeySqr diceReadToKeySqr(
+	const std::vector<ElementRead> diceRead,
 	bool reportErrsToStdErr
 ) {
 	if (diceRead.size() != 25) {
-		throw std::string("A DiceKey must contain 25 dice but only has " + std::to_string(diceRead.size()));
+		throw std::string("A KeySqr must contain 25 dice but only has " + std::to_string(diceRead.size()));
 	}
-	std::vector<DieFace> dieFaces;
+	std::vector<ElementFace> dieFaces;
 	for (size_t i = 0; i < diceRead.size(); i++) {
-		DieRead dieRead = diceRead[i];
+		ElementRead dieRead = diceRead[i];
 		const ElementFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred;
 		const ElementFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred;
 		const char digitRead = dieRead.ocrDigit.size() == 0 ? '\0' : dieRead.ocrDigit[0].character;
@@ -237,7 +255,7 @@ DiceKey diceReadToDiceKey(
 			}
 		}
 
-		dieFaces.push_back(DieFace(
+		dieFaces.push_back(ElementFace(
 			majorityOfThree(
 				underlineInferred.letter, overlineInferred.letter, letterRead
 			),
@@ -248,7 +266,7 @@ DiceKey diceReadToDiceKey(
 			dieRead.error()
 			));
 	}
-	return DiceKey(dieFaces);
+	return KeySqr(dieFaces);
 }
 
 
@@ -261,93 +279,93 @@ const std::chrono::time_point<std::chrono::system_clock> minTimePoint =
 	std::chrono::time_point<std::chrono::system_clock>::min();
 
 /**
- * This structure is used as the second parameter to scanAndAugmentDiceKeyImage,
+ * This structure is used as the second parameter to scanAndAugmentKeySqrImage,
  * and is used both to input the result of the prior call and to return results
  * from the current call.
  **/
-struct ResultOfScanAndAugmentDiceKeyImage {
-	// This value is true if the result was returned from a call to readDiceKey and
+struct ResultOfScanAndAugmentKeySqrImage {
+	// This value is true if the result was returned from a call to readKeySqr and
 	// is false when a default result is constructed by the caller and a pointer is
 	// passed to it.
 	bool initialized = false;
-	// This value is set the first time scanAndAugmentDiceKeyImage is called
+	// This value is set the first time scanAndAugmentKeySqrImage is called
 	std::chrono::time_point<std::chrono::system_clock> whenFirstRead = minTimePoint;
-	// The value is set the first time scanAndAugmentDiceKeyImage is called
+	// The value is set the first time scanAndAugmentKeySqrImage is called
 	// and updated every time a scan reduces the number of errors that
 	// have the be resolved before we can return the result.
 	std::chrono::time_point<std::chrono::system_clock> whenLastImproved = minTimePoint;
-	// The value is set every time scanAndAugmentDiceKeyImage is called.
+	// The value is set every time scanAndAugmentKeySqrImage is called.
 	std::chrono::time_point<std::chrono::system_clock> whenLastRead = minTimePoint;
-	// The DiceKey that has been read is stored in this field, which also
+	// The KeySqr that has been read is stored in this field, which also
 	// keeps track of any errors that you have to be resolved during reading.
-	DiceKey diceKey = DiceKey();
-	// After each call, the image passed to scanAndAugmentDiceKeyImage
+	KeySqr diceKey = KeySqr();
+	// After each call, the image passed to scanAndAugmentKeySqrImage
 	// is augmented with the scan results and copied here. 
 	cv::Mat augmentedColorImage_BGR_CV_8UC3 = cv::Mat();
 	// This field is set to true if we've reached the termination condition
 	// for the scanning loop.  This is the same value returned as the
-	// result of the scanAndAugmentDiceKeyImage function.
+	// result of the scanAndAugmentKeySqrImage function.
 	bool terminate = false;
 };
 
 /**
  * This function is the base for an augmented reality loop in which
  * we scan images from the camera repeatedly until we have successfully
- * scanned a DiceKey.
+ * scanned a KeySqr.
  * 
  * The first parameter should be the last frame from the camera,
  * as an OpenCV Mat (image) in 8-bit unsigned BGR (blue, green, red)
  * format.
  * 
- * Your event loop should allocate a ResultOfScanAndAugmentDiceKeyImage
+ * Your event loop should allocate a ResultOfScanAndAugmentKeySqrImage
  * struct and pass it to every call.  This function will consume your
  * previous result to compare it with the new scan, then write the
  * new result over the old one.
  * 
- * The function will return when there is a DiceKey to return to
+ * The function will return when there is a KeySqr to return to
  * the caller and false if scanning should continue.
  * 
  * If generating an API for callers that can consume the
- * ResultOfScanAndAugmentDiceKeyImage struct directly, simply
+ * ResultOfScanAndAugmentKeySqrImage struct directly, simply
  * return that struct on terminating. 
  * For APIs that cannot consume the struct directly, call the toJson()
  * method of the diceKey field (result.diceKey.toJson()) to get a
  * std::string in JSON format that can be returned back to any
  * consumer that can parse JSON format.
  **/
-bool scanAndAugmentDiceKeyImage(
+bool scanAndAugmentKeySqrImage(
 	cv::Mat &sourceColorImageBGR_CV_8UC3,
-	ResultOfScanAndAugmentDiceKeyImage* result
+	ResultOfScanAndAugmentKeySqrImage* result
 ) {
 	const ReadDiceResult diceRead = readDice(sourceColorImageBGR_CV_8UC3, false);
 
-	const DiceKey latestDiceKey = diceRead.success ? diceReadToDiceKey(diceRead.dice) : DiceKey();
+	const KeySqr latestKeySqr = diceRead.success ? diceReadToKeySqr(diceRead.dice, false) : KeySqr();
 	
-	const DiceKey mergedDiceKey = (!result->initialized) ? latestDiceKey :
-		latestDiceKey.initialized ?
-			latestDiceKey.mergePrevious(result->diceKey) :
-			latestDiceKey;
+	const KeySqr mergedKeySqr = (!result->initialized) ? latestKeySqr :
+		latestKeySqr.initialized ?
+			latestKeySqr.mergePrevious(result->diceKey) :
+			latestKeySqr;
 
 	result->whenLastRead = std::chrono::system_clock::now();
 	result->whenFirstRead = (result->initialized) ? result->whenFirstRead : result->whenLastRead;
 	result->whenLastImproved =
-		(!result->initialized || result->diceKey.totalError() > mergedDiceKey.totalError()) ?
+		(!result->initialized || result->diceKey.totalError() > mergedKeySqr.totalError()) ?
 			result->whenLastRead : result->whenLastImproved;
 
 	// We're done when we either have an error-free scan, or no die that can't be improved after
 	const bool terminate = (
 			// We have an error free scan, or...
-			mergedDiceKey.totalError() == 0
+			mergedKeySqr.totalError() == 0
 		) || (
 			// We have only correctable errors, and we've our budget of time hoping more
 			// scanning will remove those errors.
-			mergedDiceKey.maxError() <= maxCorrectableError &&
+			mergedKeySqr.maxError() <= maxCorrectableError &&
 			std::chrono::duration_cast<std::chrono::milliseconds>(result->whenLastRead - result->whenLastImproved).count() >
 				millisecondsToTryToRemoveCorrectableErrors
 		);
 	// auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(foo - now).count;
 
-	result->diceKey = mergedDiceKey;
+	result->diceKey = mergedKeySqr;
 	result->augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(sourceColorImageBGR_CV_8UC3, diceRead, false);
 	return terminate;
 }

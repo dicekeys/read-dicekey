@@ -13,11 +13,11 @@
 
 struct DiceOrderdWithMissingDiceInferredFromUnderlines {
 	bool valid = false;
-	std::vector<DieRead> orderedDice = {};
+	std::vector<ElementRead> orderedDice = {};
 	// The angle of what was read on the page, without any conversion to have
 	// the top left be the corner with the earliest letter in the alphabet
 	float angleInRadiansNonCononicalForm = NAN;
-	float pixelsPerMm;
+	float pixelsPerFaceEdgeWidth;
 };
 
 DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverlines(

@@ -67,11 +67,11 @@ Undoverline::Undoverline(
 
 	// pixels per mm the length of the overline in pixels of it's length in mm,
 	// or, undoverlineLength / mmDieUndoverlineLength;
-	double mmToPixels = double(undoverlineLength) / ElementDimensionsMm::undoverlineLength;
+	double pixelsPerElementEdgeLength = double(undoverlineLength) / ElemmentDimensionsFractional::undoverlineLength;
 
 	float pixelsFromCenterOfUndoverlineToCenterOfDie = float(
-		ElementDimensionsMm::centerOfUndoverlineToCenterOfDie *
-		mmToPixels
+		ElemmentDimensionsFractional::centerOfUndoverlineToCenterOfFace *
+		pixelsPerElementEdgeLength
 	);
 	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfDie;
 
@@ -91,6 +91,27 @@ Undoverline::Undoverline(
 		fromRotatedRect.angle
 	);
 }
+
+const std::string Undoverline::toJson() const {
+	if (!found || !determinedIfUnderlineOrOverline) {
+		return "null";
+	}
+	const cv::Point2f center = midpointOfLine(line);
+	std::ostringstream jsonStream;
+	jsonStream <<
+	"{" <<
+		"center: {" <<
+			"x: " << center.x << ", " <<
+			"y: " << center.y << "" <<
+		"}, " <<
+		"angleInRadians: " << angleOfLineInSignedRadians2f(line) << "," <<
+		"lengthInPixels: " << lineLength(line) << "," <<
+		"letterDigitEncoding: " << letterDigitEncoding << "," <<
+		"whiteBlackThreshold: " << whiteBlackThreshold << "" <<
+	"}";
+	return jsonStream.str();
+}
+
 
 const cv::RotatedRect Undoverline::rederiveBoundaryRect() const {
 	const cv::Point2f center = midpointOfLine(line);

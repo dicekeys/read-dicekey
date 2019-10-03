@@ -3,31 +3,31 @@
 #pragma once
 
 #include <vector>
-#include "die-face.h"
+#include "element-face.h"
 
 const int NumberOfFaces = 25;
 
 /**
- * This class represents a DiceKey that has been read by scanning one or more images.
+ * This class represents a KeySqr that has been read by scanning one or more images.
  */
-class DiceKey {
+class KeySqr {
   public:
   
   bool initialized;
-  DieFace faces[NumberOfFaces];
+  ElementFace faces[NumberOfFaces];
 
-  DiceKey();
+  KeySqr();
 
-  DiceKey(const std::string humanReadableFormat);
+  KeySqr(const std::string humanReadableFormat);
 
-  DiceKey(std::vector<DieFace> _faces);
+  KeySqr(std::vector<ElementFace> _faces);
 
   /**
-   * Return the DiceKey as a JSON array of 25 faces, or an empty array
-   * if the DiceKey was not initialized
+   * Return the KeySqr as a JSON array of 25 faces, or an empty array
+   * if the KeySqr was not initialized
    * 
-   * Each face follows the JSON format for DieFaces:
-   *   inteface DieFace {
+   * Each face follows the JSON format for ElementFaces:
+   *   inteface ElementFace {
    *     letter: (string & DieLetter) | "",
    *     digit: (string & DieDigit) | "",
    *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
@@ -41,13 +41,13 @@ class DiceKey {
   std::string toJson() const;
 
   /**
-   * Convert a DiceKey to a human-readable format with 3 characters representing
+   * Convert a KeySqr to a human-readable format with 3 characters representing
    * each die face as a letter, digit, and orientation.
    */
   std::string toHumanReadableForm(bool useDigitsForOrientation = false) const;
 
   /**
-   * Test to determine if every die face in the DiceKey has a different (unique)
+   * Test to determine if every die face in the KeySqr has a different (unique)
    * letter from all others.  If a letter were to appear twice, indicating the
    * same die appeared twice, we would conclude the key to be invalid.
    */
@@ -66,24 +66,24 @@ class DiceKey {
   unsigned int totalError() const;
 
   /**
-   * Return a copy of this DiceKey that has been rotated by the specified
+   * Return a copy of this KeySqr that has been rotated by the specified
    * number of clockwise turns.
    */
-  const DiceKey rotate(int clockwiseTurns) const;
+  const KeySqr rotate(int clockwiseTurns) const;
 
   /**
-   * Return a copy of this DiceKey rotated into the canonical orientation
+   * Return a copy of this KeySqr rotated into the canonical orientation
    * where the corner with the earliest character in the alphabet is at the
    * top left of the 5x5 square.
    */
-  const DiceKey rotateToCanonicalOrientation() const;
+  const KeySqr rotateToCanonicalOrientation() const;
 
-  bool isPotentialMatch(const DiceKey &other) const;
+  bool isPotentialMatch(const KeySqr &other) const;
 
   /**
-   * Merge an earlier-scanned DiceKey into this one if possible, so that we can
+   * Merge an earlier-scanned KeySqr into this one if possible, so that we can
    * remove any errors that appear in the previous or current scan but appear to
    * be scanned without error in one of the two scans.
    **/
-  const DiceKey mergePrevious(const DiceKey &previous) const;
+  const KeySqr mergePrevious(const KeySqr &previous) const;
 };

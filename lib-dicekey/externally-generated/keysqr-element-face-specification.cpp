@@ -13,7 +13,7 @@ const std::string ElementDigits = "123456";
 
 const ElementFaceSpecification NullElementFaceSpecification = {'\0', '\0', 0, 0};
 
-namespace ElemmentDimensionsFractional {
+namespace ElementDimensionsFractional {
   const std::vector<float> dotCentersAsFractionOfUndoverline = {
     float(0.0967741935483871),
     float(0.1774193548387097),

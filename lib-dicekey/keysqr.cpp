@@ -4,7 +4,7 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
-#include "dicekey.h"
+#include "keysqr.h"
 #include "keysqr-element-face-specification.h"
 
 
@@ -40,13 +40,13 @@ const std::vector<std::vector<unsigned char>> rotationIndexes = {
  };
 
 /**
- * This class represents a DiceKey that has been read by scanning one or more images.
+ * This class represents a KeySqr that has been read by scanning one or more images.
  */
-DiceKey::DiceKey() {
+KeySqr::KeySqr() {
   initialized = false;
 }
 
-DiceKey::DiceKey(const std::string humanReadableFormat) {
+KeySqr::KeySqr(const std::string humanReadableFormat) {
   if (humanReadableFormat.length() != 3 * NumberOfFaces) {
     throw "Invalid format";
   }
@@ -83,13 +83,13 @@ DiceKey::DiceKey(const std::string humanReadableFormat) {
         default:
           throw "Invalid orientation at die " + std::to_string(dieIndex);
     }
-    faces[dieIndex] = DieFace(letter, digit, orientationAs0to3ClockwiseTurnsFromUpright);
+    faces[dieIndex] = ElementFace(letter, digit, orientationAs0to3ClockwiseTurnsFromUpright);
   }
 }
 
-DiceKey::DiceKey(std::vector<DieFace> _faces) {
+KeySqr::KeySqr(std::vector<ElementFace> _faces) {
   if (_faces.size() != NumberOfFaces) {
-    throw std::string("A DiceKey must have " + std::to_string(NumberOfFaces) + " faces");
+    throw std::string("A KeySqr must have " + std::to_string(NumberOfFaces) + " faces");
   }
   initialized = true;
   for (int i=0; i < NumberOfFaces; i++) {
@@ -98,11 +98,11 @@ DiceKey::DiceKey(std::vector<DieFace> _faces) {
 }
 
 /**
- * Return the DiceKey as a JSON array of 25 faces, or an empty array
- * if the DiceKey was not initialized
+ * Return the KeySqr as a JSON array of 25 faces, or an empty array
+ * if the KeySqr was not initialized
  * 
- * Each face follows the JSON format for DieFaces:
- *   inteface DieFace {
+ * Each face follows the JSON format for ElementFaces:
+ *   inteface ElementFace {
  *     letter: (string & DieLetter) | "",
  *     digit: (string & DieDigit) | "",
  *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
@@ -113,7 +113,7 @@ DiceKey::DiceKey(std::vector<DieFace> _faces) {
  *   }
  * 
  */
-std::string DiceKey::toJson() const {
+std::string KeySqr::toJson() const {
   if (!initialized) {
     return "[]";
   }
@@ -126,10 +126,10 @@ std::string DiceKey::toJson() const {
 };
 
 /**
- * Convert a DiceKey to a human-readable format with 3 characters representing
+ * Convert a KeySqr to a human-readable format with 3 characters representing
  * each die face as a letter, digit, and orientation.
  */
-std::string DiceKey::toHumanReadableForm(bool useDigitsForOrientation) const {
+std::string KeySqr::toHumanReadableForm(bool useDigitsForOrientation) const {
   if (!initialized) {
     return "";
   }
@@ -141,11 +141,11 @@ std::string DiceKey::toHumanReadableForm(bool useDigitsForOrientation) const {
 };
 
 /**
- * Test to determine if every die face in the DiceKey has a different (unique)
+ * Test to determine if every die face in the KeySqr has a different (unique)
  * letter from all others.  If a letter were to appear twice, indicating the
  * same die appeared twice, we would conclude the key to be invalid.
  */
-bool DiceKey::areLettersUnique() const {
+bool KeySqr::areLettersUnique() const {
   if (!initialized) return false;
   std::vector<char> letters;
   for (int i = 0; i < NumberOfFaces; i++) {
@@ -165,10 +165,10 @@ bool DiceKey::areLettersUnique() const {
  * (or return max error if two die faces have the same letter, indicating
  *  on of them must have a fatal read error because all die should be unique)
  **/
-unsigned char DiceKey::maxError() const
+unsigned char KeySqr::maxError() const
 {
   if (!areLettersUnique()) {
-    return DieFaceErrors::Magnitude::Max;
+    return ElementFaceErrors::Magnitude::Max;
   }
   unsigned char maxErrorFound = 0;
   for (int i=0; i < NumberOfFaces; i++) {
@@ -182,61 +182,61 @@ unsigned char DiceKey::maxError() const
 /**
  * Calculate the sum of the errors over all dice.
  */
-unsigned int DiceKey::totalError() const
+unsigned int KeySqr::totalError() const
 {
   if (!initialized || !areLettersUnique()) {
-    return NumberOfFaces * (unsigned int)DieFaceErrors::Magnitude::Max;
+    return NumberOfFaces * (unsigned int)ElementFaceErrors::Magnitude::Max;
   }
-  unsigned int sumOfDieFaceErrors = 0;
+  unsigned int sumOfElementFaceErrors = 0;
   for (int i=0; i < NumberOfFaces; i++) {
-    sumOfDieFaceErrors += (unsigned int) faces[i].error.magnitude;
+    sumOfElementFaceErrors += (unsigned int) faces[i].error.magnitude;
   }
-  return sumOfDieFaceErrors;
+  return sumOfElementFaceErrors;
 }
 
 /**
- * Return a copy of this DiceKey that has been rotated by the specified
+ * Return a copy of this KeySqr that has been rotated by the specified
  * number of clockwise turns.
  */
-const DiceKey DiceKey::rotate(int clockwiseTurns) const
+const KeySqr KeySqr::rotate(int clockwiseTurns) const
 {
   if (!initialized) return *this;
   if (clockwiseTurns < 0) {
     clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
   }
   const unsigned clockwiseTurns0to3 = clockwiseTurns % 4;
-  const std::vector<unsigned char> &indexToMoveDieFaceFrom = rotationIndexes[clockwiseTurns0to3];
-  std::vector<DieFace> rotatedFaces;
+  const std::vector<unsigned char> &indexToMoveElementFaceFrom = rotationIndexes[clockwiseTurns0to3];
+  std::vector<ElementFace> rotatedFaces;
   for (size_t i = 0; i < NumberOfFaces; i++) {
-    DieFace dieFace = faces[indexToMoveDieFaceFrom[i]];
+    ElementFace dieFace = faces[indexToMoveElementFaceFrom[i]];
     dieFace.orientationAs0to3ClockwiseTurnsFromUpright = (dieFace.orientationAs0to3ClockwiseTurnsFromUpright + clockwiseTurns) % 4;
     rotatedFaces.push_back(dieFace);
   }
-  return DiceKey(rotatedFaces);
+  return KeySqr(rotatedFaces);
 }
 
 /**
- * Return a copy of this DiceKey rotated into the canonical orientation
+ * Return a copy of this KeySqr rotated into the canonical orientation
  * where the corner with the earliest character in the alphabet is at the
  * top left of the 5x5 square.
  */
-const DiceKey DiceKey::rotateToCanonicalOrientation() const
+const KeySqr KeySqr::rotateToCanonicalOrientation() const
 {
   if (!initialized) return *this;
-  DiceKey canonicalDiceKey = *this;
-  std::string canonicalKeysHumanReadableForm = canonicalDiceKey.toHumanReadableForm();
+  KeySqr canonicalKeySqr = *this;
+  std::string canonicalKeysHumanReadableForm = canonicalKeySqr.toHumanReadableForm();
   for (int clockwise90DegreeTurns = 1; clockwise90DegreeTurns < 4; clockwise90DegreeTurns++) {
-    DiceKey candidate = this->rotate(clockwise90DegreeTurns);
+    KeySqr candidate = this->rotate(clockwise90DegreeTurns);
     std::string candidateHumanReadableForm = candidate.toHumanReadableForm();
     if (candidateHumanReadableForm < canonicalKeysHumanReadableForm) {
-      canonicalDiceKey = candidate;
+      canonicalKeySqr = candidate;
       canonicalKeysHumanReadableForm = candidateHumanReadableForm;
     }
   }
-  return canonicalDiceKey;
+  return canonicalKeySqr;
 }
 
-bool DiceKey::isPotentialMatch(const DiceKey &other) const {
+bool KeySqr::isPotentialMatch(const KeySqr &other) const {
   if (!initialized || !other.initialized) return false;
   int numMatchingDice = 0;
   for (int i=0; i < NumberOfFaces; i++) {
@@ -257,23 +257,23 @@ bool DiceKey::isPotentialMatch(const DiceKey &other) const {
 };
 
 /**
- * Merge an earlier-scanned DiceKey into this one if possible, so that we can
+ * Merge an earlier-scanned KeySqr into this one if possible, so that we can
  * remove any errors that appear in the previous or current scan but appear to
  * be scanned without error in one of the two scans.
  **/
-const DiceKey DiceKey::mergePrevious(const DiceKey &previous) const {
+const KeySqr KeySqr::mergePrevious(const KeySqr &previous) const {
   if (!initialized) return previous;
   if (isPotentialMatch(previous)) {
-    std::vector<DieFace> newFaces;
-    // There are enough matching dice in the previously-scanned DiceKey,
+    std::vector<ElementFace> newFaces;
+    // There are enough matching dice in the previously-scanned KeySqr,
     // and no clear conflicts, so we can merge faces from the previous
-    // DiceKey in cases where the face was scanned with fewer errors in the
+    // KeySqr in cases where the face was scanned with fewer errors in the
     // past.
     for (int i=0; i < NumberOfFaces; i++) {
       // The face in this, the more-recent scan
-      const DieFace &face = faces[i];
+      const ElementFace &face = faces[i];
       // The face from the previous scan
-      const DieFace &previousFace = previous.faces[i];
+      const ElementFace &previousFace = previous.faces[i];
 
       // If we're merging, we know that either the faces match, or one
       // of them was not defined.
@@ -315,13 +315,13 @@ const DiceKey DiceKey::mergePrevious(const DiceKey &previous) const {
         // Otherwise, we take the better (lower) error magnitude from the two scans.
         unsigned char errorMagnitude = (errorLocationIntersection == 0) ? 0 :
           std::min(previousFace.error.magnitude, face.error.magnitude);
-        newFaces.push_back(DieFace(
+        newFaces.push_back(ElementFace(
           face.letter, face.digit, face.orientationAs0to3ClockwiseTurnsFromUpright,
           { errorMagnitude, errorLocationIntersection } )
         );
       }
     }
-    return DiceKey(newFaces);
+    return KeySqr(newFaces);
   } else {
     // isPotentialMatch failed, so the previous scan was incompatable with the die faces
     // from the current scan.  Perhaps the previous scan was at a different frame of
@@ -330,7 +330,7 @@ const DiceKey DiceKey::mergePrevious(const DiceKey &previous) const {
       // Since this rotation wasn't a potential match, try the 3 other potential
       // rotations and recurse a single time only if one is a match.
       // (where it will enter the above clause)
-      DiceKey rotatedKey = previous.rotate(clockwiseTurns);
+      KeySqr rotatedKey = previous.rotate(clockwiseTurns);
       if (isPotentialMatch(rotatedKey)) {
         return mergePrevious(rotatedKey);
       }

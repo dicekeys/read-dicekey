@@ -24,12 +24,12 @@ DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
 
 	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
 		[](const Undoverline *underline) { return lineLength(underline->line); });
-	const float medianUnderlineLength = medianInPlace(underlineLengths);
-	const float pixelsPerMm = medianUnderlineLength / ElementDimensionsMm::undoverlineLength;
-	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
+	const float medianUnderlineLengthInPixels = medianInPlace(underlineLengths);
+	const float pixelsPerFaceEdgeWidth =  ElementDimensionsFractional::undoverlineLength / medianUnderlineLengthInPixels;
+	const float maxDistanceBetweenInferredCenters = pixelsPerFaceEdgeWidth / 4; // 2mm
 
 	std::vector<Undoverline> strayUndoverlines(0);
-	std::vector<DieRead> diceFound;
+	std::vector<ElementRead> diceFound;
 
 	for (auto underline : underlines) {
 		// Search for overline with inferred die center near that of underline.
@@ -67,5 +67,5 @@ DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
 
 	strayUndoverlines.insert(strayUndoverlines.end(), overlines.begin(), overlines.end());
 
-	return { diceFound, strayUndoverlines, pixelsPerMm };
+	return { diceFound, strayUndoverlines, pixelsPerFaceEdgeWidth };
 }

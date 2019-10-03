@@ -20,19 +20,19 @@ void writeDieCharacters(
 	cv::Mat& imageColor,
 	cv::Point2f dieCenter,
 	float angleInRadians,
-	float pixelsPerMm,
+	float pixelsPerFaceEdgeWidth,
 	char letter,
 	char digit,
 	Color letterColor,
 	Color digitColor
 ) {
 	const OcrFont font = getFont();
-	const float textHeightDestinationPixels = ElementDimensionsMm::textRegionHeight * pixelsPerMm;
-	const float textWidthDestinationPixels = ElementDimensionsMm::textRegionWidth * pixelsPerMm;
-	const float destinationPixelsBetweenLetterAndDigit = ElementDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm;
+	const float textHeightDestinationPixels = ElementDimensionsFractional::textRegionHeight * pixelsPerFaceEdgeWidth;
+	const float textWidthDestinationPixels = ElementDimensionsFractional::textRegionWidth * pixelsPerFaceEdgeWidth;
+	const float destinationPixelsBetweenLetterAndDigit = ElementDimensionsFractional::spaceBetweenLetterAndDigit * pixelsPerFaceEdgeWidth;
 	float charWidthDestinationPixels = (textWidthDestinationPixels - destinationPixelsBetweenLetterAndDigit) / 2;
 
-	const float centerSpaceInOriginPixels = ElementDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm *
+	const float centerSpaceInOriginPixels = ElementDimensionsFractional::spaceBetweenLetterAndDigit * pixelsPerFaceEdgeWidth *
 		font.outlineCharWidthInPixels / charWidthDestinationPixels;
 	const float textTopInOriginPixels = -float(font.outlineCharHeightInPixels) / 2;
 	const float letterLeftInOriginPixels = -(font.outlineCharWidthInPixels + centerSpaceInOriginPixels/2);

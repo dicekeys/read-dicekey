@@ -20,16 +20,16 @@ DieCharactersRead readDieCharacters(
 	const cv::Mat& grayscaleImage,
 	cv::Point2f dieCenter,
 	float angleRadians,
-	float mmToPixels,
+	float pixelsPerFaceEdgeWidth,
 	unsigned char whiteBlackThreshold,
 	std::string writeErrorUnlessThisLetterIsRead,
 	std::string writeErrorUnlessThisDigitIsRead
 ) {
 	// Rotate to remove the angle of the die
 	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
-	const int textHeightPixels = int(ceil(ElementDimensionsMm::textRegionHeight * mmToPixels));
+	const int textHeightPixels = int(ceil(ElementDimensionsFractional::textRegionHeight * pixelsPerFaceEdgeWidth));
 	// FIXME -- constant in next line is a hack
-	int textWidthPixels = int(ceil(ElementDimensionsMm::textRegionWidth * mmToPixels));
+	int textWidthPixels = int(ceil(ElementDimensionsFractional::textRegionWidth * pixelsPerFaceEdgeWidth));
 	// Use an even text region width so we can even split it in two at the center;
 	if ((textWidthPixels % 2) == 1) {
 		textWidthPixels += 1;
@@ -48,7 +48,7 @@ DieCharactersRead readDieCharacters(
 	cv::threshold(textImage, textEdges, whiteBlackThreshold, valueRepresentingBlack, cv::THRESH_BINARY);
 
 	// Setup a rectangle to define your region of interest
-	int charWidth = int((textRegionSize.width - round(ElementDimensionsMm::spaceBetweenLetterAndDigit * mmToPixels)) / 2);
+	int charWidth = int((textRegionSize.width - round(ElementDimensionsFractional::spaceBetweenLetterAndDigit * pixelsPerFaceEdgeWidth)) / 2);
 	const cv::Rect letterRect(0, 0, charWidth, textRegionSize.height);
 	const cv::Rect digitRect(textRegionSize.width - charWidth, 0, charWidth, textRegionSize.height);
 	auto letterImage = textEdges(letterRect);

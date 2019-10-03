@@ -15,6 +15,6 @@ three-character triples of letter, digit ('0'-'6'), and orientation (as number o
 '0'-'3').
 */
 void validateDiceRead(
-	const std::vector<DieRead> diceRead,
+	const std::vector<ElementRead> diceRead,
 	std::string diceAsString
 );

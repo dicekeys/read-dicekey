@@ -12,9 +12,9 @@
 #include "read-dice.h"
 
 struct DiceAndStrayUndoverlinesFound {
-	std::vector<DieRead> diceFound;
+	std::vector<ElementRead> diceFound;
 	std::vector<Undoverline> strayUndoverlines;
-	float pixelsPerMm;
+	float pixelsPerFaceEdgeWidth;
 };
 
 DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(

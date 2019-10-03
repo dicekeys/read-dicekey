@@ -13,7 +13,7 @@
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
 #include "keysqr-element-face-specification.h"
-#include "dicekey.h"
+#include "keysqr.h"
 #include "find-undoverlines.h"
 #include "find-dice.h"
 #include "assemble-dicekey.h"
@@ -96,16 +96,16 @@ public:
 DiceKeyGridModel calculateDiceKeyGrid(
 	const cv::Mat &colorImage,
 	const DiceAndStrayUndoverlinesFound &diceAndStrayUndoverlinesFound,
-	float maxMmFromRowOrColumnLine = 1.0f // 1 mm
+	float maxFractionOfDieFaceWithromRowOrColumnLine = 0.1f // 1 mm
 ) {
-	const std::vector<DieRead> &diceFound = diceAndStrayUndoverlinesFound.diceFound;
+	const std::vector<ElementRead> &diceFound = diceAndStrayUndoverlinesFound.diceFound;
 	const std::vector<Undoverline> &strayUndoverlines = diceAndStrayUndoverlinesFound.strayUndoverlines;
-	const	float maxPixelsFromRowOrColumnLine = maxMmFromRowOrColumnLine * diceAndStrayUndoverlinesFound.pixelsPerMm;
+	const	float maxPixelsFromRowOrColumnLine = maxFractionOfDieFaceWithromRowOrColumnLine * diceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth;
 
 	for (int i = 0; i < diceFound.size(); i++) {
 		// We can build a model of the grid based on this die if we can
 		// find four others in the same row and four others in the same column.
-		const DieRead &candidateIntersectionDie = diceFound[i];
+		const ElementRead &candidateIntersectionDie = diceFound[i];
 		GridProximity gridModel(candidateIntersectionDie.center, candidateIntersectionDie.inferredAngleInRadians);
 		
 		std::vector<cv::Point2f> candidatePoints, sameColumn, sameRow;
@@ -217,7 +217,7 @@ DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverl
 	if (!grid.valid) {
 		return {};
 	}
-	std::vector<DieRead> orderedDice(25);
+	std::vector<ElementRead> orderedDice(25);
 	// Copy all the dice we found into the grid model
 	for (const auto &dieFound : diceAndStrayUndoverlinesFound.diceFound) {
 		const int dieIndex = grid.getDieIndex(dieFound.center);
@@ -257,5 +257,5 @@ DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverl
 		}
 	}
 
-	return { true, orderedDice, grid.angleInRadians, diceAndStrayUndoverlinesFound.pixelsPerMm };
+	return { true, orderedDice, grid.angleInRadians, diceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth };
 }
