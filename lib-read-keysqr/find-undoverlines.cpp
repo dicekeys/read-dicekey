@@ -249,8 +249,8 @@ UnderlinesAndOverlines findReadableUndoverlines(
 	}
 
 	// Sort underlines and overlines on y axis
-	std::sort( underlines.begin(), underlines.end(), [](Undoverline a, Undoverline b) {return a.inferredDieCenter.y < b.inferredDieCenter.y; } );
-	std::sort( overlines.begin(), overlines.end(), [](Undoverline a, Undoverline b) {return a.inferredDieCenter.y < b.inferredDieCenter.y; } );
+	std::sort( underlines.begin(), underlines.end(), [](Undoverline a, Undoverline b) {return a.inferredCenterOfFace.y < b.inferredCenterOfFace.y; } );
+	std::sort( overlines.begin(), overlines.end(), [](Undoverline a, Undoverline b) {return a.inferredCenterOfFace.y < b.inferredCenterOfFace.y; } );
 
 	return {underlines, overlines};
 }

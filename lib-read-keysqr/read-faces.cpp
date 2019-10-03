@@ -34,12 +34,12 @@ char FaceRead::ocrDigitMostLikely() const {
 
 char FaceRead::letter() const {
 	return majorityOfThree(
-		underline.dieFaceInferred->letter, overline.dieFaceInferred->letter, ocrLetterMostLikely()
+		underline.faceInferred->letter, overline.faceInferred->letter, ocrLetterMostLikely()
 	);
 }
 char FaceRead::digit() const {
 	return majorityOfThree(
-		underline.dieFaceInferred->digit, overline.dieFaceInferred->digit, ocrDigitMostLikely()
+		underline.faceInferred->digit, overline.faceInferred->digit, ocrDigitMostLikely()
 	);
 }
 
@@ -76,13 +76,13 @@ FaceError FaceRead::error() const {
 		unsigned int errorMagnitude = 0;
 		const char ocrLetter0 = ocrLetter[0].character;
 		const char ocrDigit0 = ocrDigit[0].character;
-		const ElementFaceSpecification* pUnderlineFaceInferred = underline.dieFaceInferred;
-		const ElementFaceSpecification* pOverlineFaceInferred = overline.dieFaceInferred;
+		const ElementFaceSpecification* pUnderlineFaceInferred = underline.faceInferred;
+		const ElementFaceSpecification* pOverlineFaceInferred = overline.faceInferred;
 
 		// Test hypothesis of no error
 		if (pUnderlineFaceInferred == pOverlineFaceInferred) {
-			// The underline and overline map to the same die face
-			const ElementFaceSpecification& undoverlineFaceInferred = *(underline.dieFaceInferred);
+			// The underline and overline map to the same face face
+			const ElementFaceSpecification& undoverlineFaceInferred = *(underline.faceInferred);
 
 			// Check for OCR errors for the letter read
 			if (undoverlineFaceInferred.letter != ocrLetter[0].character) {
@@ -128,90 +128,90 @@ FaceError FaceRead::error() const {
 	};
 
 
-ReadDiceResult readFaces(
+ReadFaceResult readFaces(
 	const cv::Mat &colorImage,
 	bool outputOcrErrors
 ) {
 	cv::Mat grayscaleImage;
 
 	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
-	FacesAndStrayUndoverlinesFound diceAndStrayUndoverlinesFound = findFacesAndStrayUndoverlines(colorImage, grayscaleImage);
-	auto orderedDiceResult = orderDiceAndInferMissingUndoverlines(colorImage, grayscaleImage, diceAndStrayUndoverlinesFound);
-	if (!orderedDiceResult.valid) {
-		return { false, {}, 0, 0, diceAndStrayUndoverlinesFound.facesFound, diceAndStrayUndoverlinesFound.strayUndoverlines };
+	FacesAndStrayUndoverlinesFound facesAndStrayUndoverlinesFound = findFacesAndStrayUndoverlines(colorImage, grayscaleImage);
+	auto orderedFacesResult = orderFacesAndInferMissingUndoverlines(colorImage, grayscaleImage, facesAndStrayUndoverlinesFound);
+	if (!orderedFacesResult.valid) {
+		return { false, {}, 0, 0, facesAndStrayUndoverlinesFound.facesFound, facesAndStrayUndoverlinesFound.strayUndoverlines };
 	}
-	std::vector<FaceRead> orderedDice = orderedDiceResult.orderedDice;
-	const float angleOfKeySqrInRadiansNonCononicalForm = orderedDiceResult.angleInRadiansNonCononicalForm;
+	std::vector<FaceRead> ordeeredFaces = orderedFacesResult.orderedFaces;
+	const float angleOfKeySqrInRadiansNonCononicalForm = orderedFacesResult.angleInRadiansNonCononicalForm;
 
-	for (auto &die : orderedDice) {
-		if (!(die.underline.determinedIfUnderlineOrOverline || die.overline.determinedIfUnderlineOrOverline)) {
+	for (auto &face : ordeeredFaces) {
+		if (!(face.underline.determinedIfUnderlineOrOverline || face.overline.determinedIfUnderlineOrOverline)) {
 			continue;
-			// Without an overline or underline to orient the die, we can't read it.
+			// Without an overline or underline to orient the face, we can't read it.
 		}
 		// The threshold between black pixels and white pixels is calculated as the average (mean)
 		// of the threshold used for the underline and for the overline, but if the underline or overline
 		// is absent, we use the threshold from the line that is present.
 		const uchar whiteBlackThreshold =
-			(die.underline.found && die.overline.found) ?
-				uchar((uint(die.underline.whiteBlackThreshold) + uint(die.overline.whiteBlackThreshold)) / 2) :
-			die.underline.found ?
-				die.underline.whiteBlackThreshold :
-				die.overline.whiteBlackThreshold;
-		const ElementFaceSpecification &underlineInferred = *die.underline.dieFaceInferred;
-		const ElementFaceSpecification &overlineInferred = *die.overline.dieFaceInferred;
-		const DieCharactersRead charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
-			diceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth, whiteBlackThreshold,
+			(face.underline.found && face.overline.found) ?
+				uchar((uint(face.underline.whiteBlackThreshold) + uint(face.overline.whiteBlackThreshold)) / 2) :
+			face.underline.found ?
+				face.underline.whiteBlackThreshold :
+				face.overline.whiteBlackThreshold;
+		const ElementFaceSpecification &underlineInferred = *face.underline.faceInferred;
+		const ElementFaceSpecification &overlineInferred = *face.overline.faceInferred;
+		const CharactersReadFromFaces charsRead = readCharactersOnFace(colorImage, grayscaleImage, face.center, face.inferredAngleInRadians,
+			facesAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth, whiteBlackThreshold,
 			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.letter)) + std::string(1, dashIfNull(overlineInferred.letter))) : "",
 			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.digit)) + std::string(1, dashIfNull(overlineInferred.digit))) : ""
 		);
 			
 		
-		const float orientationInRadians = die.inferredAngleInRadians - angleOfKeySqrInRadiansNonCononicalForm;
+		const float orientationInRadians = face.inferredAngleInRadians - angleOfKeySqrInRadiansNonCononicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
-		die.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
-		die.ocrLetter = charsRead.lettersMostLikelyFirst;
-		die.ocrDigit = charsRead.digitsMostLikelyFirst;
+		face.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
+		face.ocrLetter = charsRead.lettersMostLikelyFirst;
+		face.ocrDigit = charsRead.digitsMostLikelyFirst;
 	}
 
-	return { true, orderedDice, orderedDiceResult.angleInRadiansNonCononicalForm, orderedDiceResult.pixelsPerFaceEdgeWidth, {} };
+	return { true, ordeeredFaces, orderedFacesResult.angleInRadiansNonCononicalForm, orderedFacesResult.pixelsPerFaceEdgeWidth, {} };
 }
 
-KeySqr diceReadToKeySqr(
-	const std::vector<FaceRead> diceRead,
+KeySqr facesReadToKeySqr(
+	const std::vector<FaceRead> facesRead,
 	bool reportErrsToStdErr
 ) {
-	if (diceRead.size() != 25) {
-		throw std::string("A KeySqr must contain 25 dice but only has " + std::to_string(diceRead.size()));
+	if (facesRead.size() != 25) {
+		throw std::string("A KeySqr must contain 25 faces but only has " + std::to_string(facesRead.size()));
 	}
-	std::vector<ElementFace> dieFaces;
-	for (size_t i = 0; i < diceRead.size(); i++) {
-		FaceRead dieRead = diceRead[i];
-		const ElementFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred;
-		const ElementFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred;
-		const char digitRead = dieRead.ocrDigit.size() == 0 ? '\0' : dieRead.ocrDigit[0].character;
-		const char letterRead = dieRead.ocrLetter.size() == 0 ? '\0' :  dieRead.ocrLetter[0].character;
-		if (!dieRead.underline.found) {
+	std::vector<ElementFace> faces;
+	for (size_t i = 0; i < facesRead.size(); i++) {
+		FaceRead faceRead = facesRead[i];
+		const ElementFaceSpecification &underlineInferred = *faceRead.underline.faceInferred;
+		const ElementFaceSpecification &overlineInferred = *faceRead.overline.faceInferred;
+		const char digitRead = faceRead.ocrDigit.size() == 0 ? '\0' : faceRead.ocrDigit[0].character;
+		const char letterRead = faceRead.ocrLetter.size() == 0 ? '\0' :  faceRead.ocrLetter[0].character;
+		if (!faceRead.underline.found) {
 			if (reportErrsToStdErr) {
-				std::cerr << "Underline for die " << i << " not found\n";
+				std::cerr << "Underline for face " << i << " not found\n";
 			}
 		}
-		if (!dieRead.overline.found) {
+		if (!faceRead.overline.found) {
 			if (reportErrsToStdErr) {
-				std::cerr << "Overline for die " << i << " not found\n";
+				std::cerr << "Overline for face " << i << " not found\n";
 			}
 		}
-		if ((dieRead.underline.found && dieRead.overline.found) &&
+		if ((faceRead.underline.found && faceRead.overline.found) &&
 			(
 				underlineInferred.letter != overlineInferred.letter ||
 				underlineInferred.digit != overlineInferred.digit) 
 			) {
-			const int bitErrorsIfUnderlineCorrect = hammingDistance(underlineInferred.overlineCode, dieRead.overline.letterDigitEncoding);
-			const int bitErrorsIfOverlineCorrect = hammingDistance(overlineInferred.underlineCode, dieRead.underline.letterDigitEncoding);
+			const int bitErrorsIfUnderlineCorrect = hammingDistance(underlineInferred.overlineCode, faceRead.overline.letterDigitEncoding);
+			const int bitErrorsIfOverlineCorrect = hammingDistance(overlineInferred.underlineCode, faceRead.underline.letterDigitEncoding);
 			const int minBitErrors = std::min(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
 			// report error mismatch between undoverline and overline
 			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch at die " << i << " between underline and overline: " <<
+				std::cerr << "Mismatch at face " << i << " between underline and overline: " <<
 					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
 					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) <<
 					" best explained by "  << minBitErrors <<
@@ -221,51 +221,51 @@ KeySqr diceReadToKeySqr(
 					"\n";
 			}
 		}
-		if (letterRead == 0 && (dieRead.underline.found || dieRead.overline.found)) {
+		if (letterRead == 0 && (faceRead.underline.found || faceRead.overline.found)) {
 			if (reportErrsToStdErr) {
-				std::cerr << "Letter at die " << i << " could not be read " <<
+				std::cerr << "Letter at face " << i << " could not be read " <<
 				"(underline=>'" << dashIfNull(underlineInferred.letter) <<
 				"', overline=>'" << dashIfNull(overlineInferred.letter) << "')\n";
 			}
 		}
-		if (digitRead == 0 && (dieRead.underline.found || dieRead.overline.found)) {
+		if (digitRead == 0 && (faceRead.underline.found || faceRead.overline.found)) {
 			if (reportErrsToStdErr) {
-				std::cerr << "Digit at die " << i << " could not be read " <<
+				std::cerr << "Digit at face " << i << " could not be read " <<
 				"(underline=>'" << dashIfNull(underlineInferred.digit) <<
 				"', overline=>'" << dashIfNull(overlineInferred.digit) << "')\n";
 			}
 		}
-		if (letterRead && (dieRead.underline.found || dieRead.overline.found) &&
+		if (letterRead && (faceRead.underline.found || faceRead.overline.found) &&
 			letterRead != underlineInferred.letter && letterRead != overlineInferred.letter) {
 			// report OCR error on letter
 			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch at die " << i << " between ocr letter, '" << letterRead <<
+				std::cerr << "Mismatch at face " << i << " between ocr letter, '" << letterRead <<
 				"', the underline ('" << dashIfNull(underlineInferred.letter) <<
 				"'), and overline ('" << dashIfNull(overlineInferred.letter) << "')\n";
 			}
 		}
-		if (digitRead && (dieRead.underline.found || dieRead.overline.found) &&
+		if (digitRead && (faceRead.underline.found || faceRead.overline.found) &&
 			digitRead != underlineInferred.digit && digitRead != overlineInferred.digit) {
 			// report OCR error on digit
 			if (reportErrsToStdErr) {
-				std::cerr << "Mismatch at die " << i << " between ocr digit, '" << digitRead <<
+				std::cerr << "Mismatch at face " << i << " between ocr digit, '" << digitRead <<
 				"', the underline ('" << dashIfNull(underlineInferred.digit) <<
 				"'), and overline ('" << dashIfNull(overlineInferred.digit) << ")'\n";
 			}
 		}
 
-		dieFaces.push_back(ElementFace(
+		faces.push_back(ElementFace(
 			majorityOfThree(
 				underlineInferred.letter, overlineInferred.letter, letterRead
 			),
 			majorityOfThree(
 				underlineInferred.digit, overlineInferred.digit, digitRead
 			),
-			dieRead.orientationAs0to3ClockwiseTurnsFromUpright,
-			dieRead.error()
+			faceRead.orientationAs0to3ClockwiseTurnsFromUpright,
+			faceRead.error()
 			));
 	}
-	return KeySqr(dieFaces);
+	return KeySqr(faces);
 }
 
 
@@ -303,9 +303,9 @@ bool scanAndAugmentKeySqrImage(
 	cv::Mat &sourceColorImageBGR_CV_8UC3,
 	ResultOfScanAndAugmentKeySqrImage* result
 ) {
-	const ReadDiceResult diceRead = readFaces(sourceColorImageBGR_CV_8UC3, false);
+	const ReadFaceResult facesRead = readFaces(sourceColorImageBGR_CV_8UC3, false);
 
-	const KeySqr latestKeySqr = diceRead.success ? diceReadToKeySqr(diceRead.dice, false) : KeySqr();
+	const KeySqr latestKeySqr = facesRead.success ? facesReadToKeySqr(facesRead.faces, false) : KeySqr();
 	
 	const KeySqr mergedKeySqr = (!result->initialized) ? latestKeySqr :
 		latestKeySqr.initialized ?
@@ -318,7 +318,7 @@ bool scanAndAugmentKeySqrImage(
 		(!result->initialized || result->keySqr.totalError() > mergedKeySqr.totalError()) ?
 			result->whenLastRead : result->whenLastImproved;
 
-	// We're done when we either have an error-free scan, or no die that can't be improved after
+	// We're done when we either have an error-free scan, or no face that can't be improved after
 	const bool terminate = (
 			// We have an error free scan, or...
 			mergedKeySqr.totalError() == 0
@@ -332,6 +332,6 @@ bool scanAndAugmentKeySqrImage(
 	// auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(foo - now).count;
 
 	result->keySqr = mergedKeySqr;
-	result->augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(sourceColorImageBGR_CV_8UC3, diceRead, false);
+	result->augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(sourceColorImageBGR_CV_8UC3, facesRead, false);
 	return terminate;
 }

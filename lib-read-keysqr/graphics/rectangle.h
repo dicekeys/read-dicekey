@@ -97,7 +97,7 @@ public:
 	// Default constructor creates point of size 0 at origin.
 	RectangleDetected() : RectangleDetected(cv::Point2f(0,0), cv::Size2f(), 0, 0, -1) {}
 
-	// The deviation between this rectangle and square representing the face of a die
+	// The deviation between this rectangle and square representing the face
 	float deviationFromNorm(float targetArea, float targetAngle, float targetShortToLongSideRatio = 1) {
 		// The penalty for deviating from a squareness is based on the ratio of the two lengths
 		float deviationFromSideRatio = (shorterSideLength / longerSideLength) / targetShortToLongSideRatio;

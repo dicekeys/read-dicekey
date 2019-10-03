@@ -21,6 +21,6 @@ Color errorMagnitudeToColor(unsigned errorMagnitude);
 
 cv::Mat visualizeReadResults(
   cv::Mat &colorImage,
-  const ReadDiceResult &diceRead,
+  const ReadFaceResult &facesRead,
   bool writeInPlace = false
 );

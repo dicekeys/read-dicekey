@@ -11,17 +11,17 @@
 #include "simple-ocr.h"
 #include "graphics/color.h"
 
-struct DieCharactersRead {
+struct CharactersReadFromFaces {
 	const OcrResult lettersMostLikelyFirst;
 	const OcrResult digitsMostLikelyFirst;
 };
 
-DieCharactersRead readDieCharacters(
+CharactersReadFromFaces readCharactersOnFace(
 	const cv::Mat& imageColor,
 	const cv::Mat& grayscaleImage,
-	cv::Point2f dieCenter,
+	cv::Point2f faceCenter,
 	float angleRadians,
-	float mmToPixels,
+	float pixelsPerFaceEdgeWidth,
 	unsigned char whiteBlackThreshold,
 	std::string writeErrorUnlessThisLetterIsRead = "",
 	std::string writeErrorUnlessThisDigitIsRead = ""

@@ -49,36 +49,35 @@ Undoverline::Undoverline(
 	isOverline = decoded.isOverline;
 	letterDigitEncoding = decoded.letterDigitEncoding;
 
-	// If the die was up-side down, the underline would appear at the top of the die,
+	// If the face was up-side down, the underline would appear at the top of the face,
 	// and when we scanned it from image left to right we read the bits in reverse order.
-	// To determine the actual direction of the die, we will need to reverse it in situations
+	// To determine the actual direction of the face, we will need to reverse it in situations
 	// where the orientation bits reveal that we read it in reverse order.
-	// This yields a line directed from the side of the die that would be on the left if it were
-	// not rotated (the side on which the letter appears) to the right side of the die if it were
+	// This yields a line directed from the side of the face that would be on the left if it were
+	// not rotated (the side on which the letter appears) to the right side of the face if it were
 	// not rotated (the side on which the digit appears)
 	line = decoded.wasReadInReverseOrder ?
 		reverseLineDirection(undoverlineStartingAtImageLeft) :
 		undoverlineStartingAtImageLeft;
 
-	dieFaceInferred = decodeUndoverlineByte(isOverline, letterDigitEncoding);
+	faceInferred = decodeUndoverlineByte(isOverline, letterDigitEncoding);
 
 	float upAngleInRadians = angleOfLineInSignedRadians2f(line) +
 		(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
 
-	// pixels per mm the length of the overline in pixels of it's length in mm,
-	// or, undoverlineLength / mmDieUndoverlineLength;
+	// calculate the number of pixels that a face is long/wide (same since square)
 	double pixelsPerElementEdgeLength = double(undoverlineLength) / ElementDimensionsFractional::undoverlineLength;
 
-	float pixelsFromCenterOfUndoverlineToCenterOfDie = float(
+	float pixelsFromCenterOfUndoverlineToCenterOfFace = float(
 		ElementDimensionsFractional::centerOfUndoverlineToCenterOfFace *
 		pixelsPerElementEdgeLength
 	);
-	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfDie;
+	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfFace;
 
 	const cv::Point2f lineCenter = midpointOfLine(undoverlineStartingAtImageLeft);
-	const auto x = lineCenter.x + pixelsFromCenterOfUndoverlineToCenterOfDie * cos(upAngleInRadians);
-	const auto y = lineCenter.y + pixelsFromCenterOfUndoverlineToCenterOfDie * sin(upAngleInRadians);
-	inferredDieCenter = cv::Point2f(x, y);
+	const auto x = lineCenter.x + pixelsFromCenterOfUndoverlineToCenterOfFace * cos(upAngleInRadians);
+	const auto y = lineCenter.y + pixelsFromCenterOfUndoverlineToCenterOfFace * sin(upAngleInRadians);
+	inferredCenterOfFace = cv::Point2f(x, y);
 
 	cv::Point2f inferredOpposingUnderlineCenter(
 		fromRotatedRect.center.x + pixelsBetweenCentersOfUndoverlines * cos(upAngleInRadians),

@@ -48,24 +48,24 @@ public:
 		);
 	}
 
-	const cv::Point2f getDieCenterPoint(int column, int row) {
-		const cv::Point2f dieCenterRotatedClockwise = cv::Point2f(
+	const cv::Point2f getExpectedCenterOfFace(int column, int row) {
+		const cv::Point2f faceCenterRotatedClockwise = cv::Point2f(
 			topLeftPointRotatedClockwise.x + column * distanceBetweenColumns,
 			topLeftPointRotatedClockwise.y + row * distanceBetweenRows
 		);
-		const cv::Point2f dieCenter = rotatePointCounterclockwise(dieCenterRotatedClockwise, centerPoint, angleInRadians);
-		return dieCenter;
+		const cv::Point2f faceCenter = rotatePointCounterclockwise(faceCenterRotatedClockwise, centerPoint, angleInRadians);
+		return faceCenter;
 	}
-	const cv::Point2f getDieCenterPoint(int dieIndex) {
-		return getDieCenterPoint( dieIndex % 5, dieIndex / 5);
+	const cv::Point2f getExpectedCenterOfFace(int faceIndex) {
+		return getExpectedCenterOfFace( faceIndex % 5, faceIndex / 5);
 	}
 
 	/*
-		Returns the index [0, 24] for a die center point, or -1 if the point provided
+		Returns the index [0, 24] for a face center point, or -1 if the point provided
 	 	Is not sufficiently close to a center of the grid in the KeySqr model
 	*/
-	const int getDieIndex(const cv::Point2f candidateDieCenter, const float maxFractionFromCenter = 0.25f) {
-		const cv::Point2f rotatedPoint = rotatePointClockwise(candidateDieCenter, centerPoint, angleInRadians);
+	const int inferFaceIndexFromCenterPoint(const cv::Point2f candidateFaceCenter, const float maxFractionFromCenter = 0.25f) {
+		const cv::Point2f rotatedPoint = rotatePointClockwise(candidateFaceCenter, centerPoint, angleInRadians);
 		const float xDistanceFromLeft = rotatedPoint.x - topLeftPointRotatedClockwise.x;
 		const float yDistanceFromTop = rotatedPoint.y - topLeftPointRotatedClockwise.y;
 		const float approxColumn = xDistanceFromLeft / distanceBetweenColumns;
@@ -82,38 +82,38 @@ public:
 			distanceInModCircularRangeFromNegativeNToN(0.0f, approxColumn, 0.5f) > maxFractionFromCenter ||
 			distanceInModCircularRangeFromNegativeNToN(0.0f, approxRow, 0.5f) > maxFractionFromCenter
 		) {
-			// The approximate column/row is within grid, but not close enough to a die center
+			// The approximate column/row is within grid, but not close enough to a face center
 			// (e.g. column 1.4 does not approximate column 1 well enough)
 			return -1;
 		}
 		const int column = (int) round(approxColumn);
 		const int row = (int) round(approxRow);
-		const int dieIndex = (row * 5) + column;
-		return dieIndex;
+		const int faceIndex = (row * 5) + column;
+		return faceIndex;
 	}
 };
 
 KeySqrGridModel calculateKeySqrGrid(
 	const cv::Mat &colorImage,
-	const FacesAndStrayUndoverlinesFound &diceAndStrayUndoverlinesFound,
-	float maxFractionOfDieFaceWithromRowOrColumnLine = 0.1f // 1 mm
+	const FacesAndStrayUndoverlinesFound &facesAndStrayUndoverlinesFound,
+	float maxFractionOffaceWithromRowOrColumnLine = 0.1f // 1 mm
 ) {
-	const std::vector<FaceRead> &facesFound = diceAndStrayUndoverlinesFound.facesFound;
-	const std::vector<Undoverline> &strayUndoverlines = diceAndStrayUndoverlinesFound.strayUndoverlines;
-	const	float maxPixelsFromRowOrColumnLine = maxFractionOfDieFaceWithromRowOrColumnLine * diceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth;
+	const std::vector<FaceRead> &facesFound = facesAndStrayUndoverlinesFound.facesFound;
+	const std::vector<Undoverline> &strayUndoverlines = facesAndStrayUndoverlinesFound.strayUndoverlines;
+	const	float maxPixelsFromRowOrColumnLine = maxFractionOffaceWithromRowOrColumnLine * facesAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth;
 
 	for (int i = 0; i < facesFound.size(); i++) {
-		// We can build a model of the grid based on this die if we can
+		// We can build a model of the grid based on this face if we can
 		// find four others in the same row and four others in the same column.
-		const FaceRead &candidateIntersectionDie = facesFound[i];
-		GridProximity gridModel(candidateIntersectionDie.center, candidateIntersectionDie.inferredAngleInRadians);
+		const FaceRead &candidateIntersectionFace = facesFound[i];
+		GridProximity gridModel(candidateIntersectionFace.center, candidateIntersectionFace.inferredAngleInRadians);
 		
 		std::vector<cv::Point2f> candidatePoints, sameColumn, sameRow;
 		for (int j = 0; j < facesFound.size(); j++) {
 			if (j!=i) candidatePoints.push_back(facesFound[j].center);
 		}
 		for (const Undoverline &undoverline: strayUndoverlines) {
-			candidatePoints.push_back(undoverline.inferredDieCenter);
+			candidatePoints.push_back(undoverline.inferredCenterOfFace);
 		}
 		for (const cv::Point2f &point: candidatePoints) {
 			const float distanceFromColumn = gridModel.pixelDistanceFromColumn(point);
@@ -128,8 +128,8 @@ KeySqrGridModel calculateKeySqrGrid(
 			continue;
 		}
 		// Add this undoverline to both the row and the colum so we have all 5 of each
-		sameRow.push_back(candidateIntersectionDie.center);
-		sameColumn.push_back(candidateIntersectionDie.center);
+		sameRow.push_back(candidateIntersectionFace.center);
+		sameColumn.push_back(candidateIntersectionFace.center);
 
 		// Sort the elements in rows by x and in columns by y
 		std::sort(sameRow.begin(), sameRow.end(), [](cv::Point2f a, cv::Point2f b) { return a.x < b.x; });
@@ -162,29 +162,29 @@ KeySqrGridModel calculateKeySqrGrid(
 			// let's not for now.
 		}
 		
-		// Figure out the row and column of the intersection die.
+		// Figure out the row and column of the intersection face.
 		// Since the arrayys of row Y values and column X values are sorted, we can do a linear serach.
-		int rowOfIntersectionDie = 0, columnOfIntersectionDie = 0;
-		while (rowOfIntersectionDie < yValuesOfRowsWithinColumn.size() && candidateIntersectionDie.center.y > yValuesOfRowsWithinColumn[rowOfIntersectionDie]) {
-			rowOfIntersectionDie++;
+		int rowOfIntersectionFace = 0, columnOfIntersectionFace = 0;
+		while (rowOfIntersectionFace < yValuesOfRowsWithinColumn.size() && candidateIntersectionFace.center.y > yValuesOfRowsWithinColumn[rowOfIntersectionFace]) {
+			rowOfIntersectionFace++;
 		}
-		while (columnOfIntersectionDie < xValuesOfColumnsWithinRow.size() && candidateIntersectionDie.center.x > xValuesOfColumnsWithinRow[columnOfIntersectionDie]) {
-			columnOfIntersectionDie++;
+		while (columnOfIntersectionFace < xValuesOfColumnsWithinRow.size() && candidateIntersectionFace.center.x > xValuesOfColumnsWithinRow[columnOfIntersectionFace]) {
+			columnOfIntersectionFace++;
 		}
 		
-		// Find the center die's center point by moving to the third row
+		// Find the center face's center point by moving to the third row
 		// (row 2 with 0-based indexing) and third column (col 2).
-		float centerX = candidateIntersectionDie.center.x
-			+ (( 2 - rowOfIntersectionDie) * meanXDistanceBetweenRows)
-			+ (( 2 - columnOfIntersectionDie) * meanXDistanceBetweenColumns);
-		float centerY = candidateIntersectionDie.center.y
-			+ (( 2 - rowOfIntersectionDie) * meanYDistanceBetweenRows)
-			+ (( 2 - columnOfIntersectionDie) * meanYDistanceBetweenColumns);
+		float centerX = candidateIntersectionFace.center.x
+			+ (( 2 - rowOfIntersectionFace) * meanXDistanceBetweenRows)
+			+ (( 2 - columnOfIntersectionFace) * meanXDistanceBetweenColumns);
+		float centerY = candidateIntersectionFace.center.y
+			+ (( 2 - rowOfIntersectionFace) * meanYDistanceBetweenRows)
+			+ (( 2 - columnOfIntersectionFace) * meanYDistanceBetweenColumns);
 
-		// Get the angle of the dice box as the angle of the row to which
-		// the intersectio die belonged.
+		// Get the angle of the faces box as the angle of the row to which
+		// the intersection face belonged.
 		const float angleInRadians = angleOfLineInSignedRadians2f({0, 0}, {meanXDistanceBetweenColumns, meanYDistanceBetweenColumns});
-		// Average the distance between the dice in rows and columsn to get the mean distanc
+		// Average the distance between the faces in rows and columsn to get the mean distanc
 		const float distanceBetweenRows = distance2f(meanXDistanceBetweenColumns, meanYDistanceBetweenColumns);
 		const float distanceBetweenColumns = distance2f(meanXDistanceBetweenRows, meanYDistanceBetweenRows);
 		const cv::Point2f center(centerX, centerY);
@@ -205,57 +205,57 @@ KeySqrGridModel calculateKeySqrGrid(
 	return KeySqrGridModel();
 }
 
-DiceOrderdWithMissingDiceInferredFromUnderlines orderDiceAndInferMissingUndoverlines(
+FacesOrderdWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndoverlines(
 	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage,
-	const FacesAndStrayUndoverlinesFound& diceAndStrayUndoverlinesFound,
+	const FacesAndStrayUndoverlinesFound& facesAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine // = 1.0f // 1 mm
 ) {
-	// First, take the dice and undoverlines we've found and try to build
+	// First, take the faces and undoverlines we've found and try to build
 	// a model a model that describes the locations within a 5x5 grid 
-	auto grid = calculateKeySqrGrid(colorImage, diceAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
+	auto grid = calculateKeySqrGrid(colorImage, facesAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
 	if (!grid.valid) {
 		return {};
 	}
-	std::vector<FaceRead> orderedDice(25);
-	// Copy all the dice we found into the grid model
-	for (const auto &dieFound : diceAndStrayUndoverlinesFound.facesFound) {
-		const int dieIndex = grid.getDieIndex(dieFound.center);
-		if (dieIndex >= 0) {
-			// We were able to find this die in the grid model, so copy it in
-			orderedDice[dieIndex] = dieFound;
+	std::vector<FaceRead> orderedFaces(25);
+	// Copy all the faces we found into the grid model
+	for (const auto &faceFound : facesAndStrayUndoverlinesFound.facesFound) {
+		const int faceIndex = grid.inferFaceIndexFromCenterPoint(faceFound.center);
+		if (faceIndex >= 0) {
+			// We were able to find this face in the grid model, so copy it in
+			orderedFaces[faceIndex] = faceFound;
 		}
 	}
 	// Copy all the stray undoverlines we found into the grid model
-	for (const auto &undoverline : diceAndStrayUndoverlinesFound.strayUndoverlines) {
-		const int dieIndex = grid.getDieIndex(undoverline.inferredDieCenter);
-		if (dieIndex >= 0) {
-			// We were able to find this undoverline's die in the grid model, so copy it in
+	for (const auto &undoverline : facesAndStrayUndoverlinesFound.strayUndoverlines) {
+		const int faceIndex = grid.inferFaceIndexFromCenterPoint(undoverline.inferredCenterOfFace);
+		if (faceIndex >= 0) {
+			// We found this undoverline's face in the grid model, so copy it in
 			if (undoverline.isOverline) {
-				orderedDice[dieIndex].overline = undoverline;
-				if (!orderedDice[dieIndex].underline.found) {
-					orderedDice[dieIndex].underline = readUndoverline(colorImage, grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
+				orderedFaces[faceIndex].overline = undoverline;
+				if (!orderedFaces[faceIndex].underline.found) {
+					orderedFaces[faceIndex].underline = readUndoverline(colorImage, grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
 				}
 			}
 			else {
-				orderedDice[dieIndex].underline = undoverline;
-				if (!orderedDice[dieIndex].overline.found) {
-					orderedDice[dieIndex].overline = readUndoverline(colorImage, grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
+				orderedFaces[faceIndex].underline = undoverline;
+				if (!orderedFaces[faceIndex].overline.found) {
+					orderedFaces[faceIndex].overline = readUndoverline(colorImage, grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
 				}
 			}
-			orderedDice[dieIndex].inferredAngleInRadians = angleOfLineInSignedRadians2f(undoverline.line);
-			orderedDice[dieIndex].center = undoverline.inferredDieCenter;
+			orderedFaces[faceIndex].inferredAngleInRadians = angleOfLineInSignedRadians2f(undoverline.line);
+			orderedFaces[faceIndex].center = undoverline.inferredCenterOfFace;
 		}
 	}
-	// Provide a center point for dice we know should be there, but for which we could find an overline
+	// Provide a center point for faces we know should be there, but for which we could find an overline
 	// or underline.  We can use that center point for drawing a box around what we couldn't read.
 	for (int i=0; i < 25; i++) {
 		// Uncomment when debugging grid
-		// circle(colorImage, grid.getDieCenterPoint(i), 6, cv::Scalar(255, 0, 255), 3);
-		if (!orderedDice[i].underline.found && !orderedDice[i].overline.found) {
-			orderedDice[i].center = grid.getDieCenterPoint(i);
+		// circle(colorImage, grid.getExpectedCenterOfFace(i), 6, cv::Scalar(255, 0, 255), 3);
+		if (!orderedFaces[i].underline.found && !orderedFaces[i].overline.found) {
+			orderedFaces[i].center = grid.getExpectedCenterOfFace(i);
 		}
 	}
 
-	return { true, orderedDice, grid.angleInRadians, diceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth };
+	return { true, orderedFaces, grid.angleInRadians, facesAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth };
 }

@@ -15,18 +15,18 @@
 #include "simple-ocr.h"
 #include "read-face-characters.h"
 
-DieCharactersRead readDieCharacters(
+CharactersReadFromFaces readCharactersOnFace(
 	const cv::Mat& imageColor,
 	const cv::Mat& grayscaleImage,
-	cv::Point2f dieCenter,
+	cv::Point2f faceCenter,
 	float angleRadians,
 	float pixelsPerFaceEdgeWidth,
 	unsigned char whiteBlackThreshold,
 	std::string writeErrorUnlessThisLetterIsRead,
 	std::string writeErrorUnlessThisDigitIsRead
 ) {
-	// Rotate to remove the angle of the die
-	const float degreesToRotateToRemoveAngleOfDie = radiansToDegrees(angleRadians);
+	// Rotate to remove the angle of the face
+	const float degreesToRotateToRemoveAngleOfFace = radiansToDegrees(angleRadians);
 	const int textHeightPixels = int(ceil(ElementDimensionsFractional::textRegionHeight * pixelsPerFaceEdgeWidth));
 	// FIXME -- constant in next line is a hack
 	int textWidthPixels = int(ceil(ElementDimensionsFractional::textRegionWidth * pixelsPerFaceEdgeWidth));
@@ -38,9 +38,9 @@ DieCharactersRead readDieCharacters(
 	cv::Mat textEdges;
 	const uchar valueRepresentingBlack = 255;
 
-	const auto textImage = copyRotatedRectangle(grayscaleImage, dieCenter, degreesToRotateToRemoveAngleOfDie, textRegionSize);
+	const auto textImage = copyRotatedRectangle(grayscaleImage, faceCenter, degreesToRotateToRemoveAngleOfFace, textRegionSize);
 	// Previously, we blurred image before thresholding.  It may make sense to do that
-	// again when we get back images from real dice, so leaving this code here.
+	// again when we get back images from real faces, so leaving this code here.
 	// cv::Mat textBlurred
 	// cv::medianBlur(textImage, textBlurred, 3);
 	// cv::threshold(textBlurred, textEdges, whiteBlackThreshold, valueRepresentingBlack, cv::THRESH_BINARY);

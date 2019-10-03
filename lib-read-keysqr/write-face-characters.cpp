@@ -18,7 +18,7 @@
 
 void writeFaceCharacters(
 	cv::Mat& imageColor,
-	cv::Point2f dieCenter,
+	cv::Point2f faceCenter,
 	float angleInRadians,
 	float pixelsPerFaceEdgeWidth,
 	char letter,
@@ -46,16 +46,16 @@ void writeFaceCharacters(
 	const float deltaYFromSourceChangeInX = deltaXFraction * cos(float(-angleInRadians + M_PI / 2));
 	const float deltaYFromSourceChangeInY = deltaYFraction * sin(float(-angleInRadians + M_PI / 2));
 
-	const float letterTopLeftX = dieCenter.x +
+	const float letterTopLeftX = faceCenter.x +
 		letterLeftInOriginPixels * deltaXFromSourceChangeInX +
 		textTopInOriginPixels * deltaXFromSourceChangeInY;
-	const float letterTopLeftY = dieCenter.y +
+	const float letterTopLeftY = faceCenter.y +
 		letterLeftInOriginPixels * deltaYFromSourceChangeInX +
 		textTopInOriginPixels * deltaYFromSourceChangeInY;
-	const float digitTopLeftX = dieCenter.x +
+	const float digitTopLeftX = faceCenter.x +
 		digitLeftInOriginPixels * deltaXFromSourceChangeInX +
 		textTopInOriginPixels * deltaXFromSourceChangeInY;
-	const float digitTopLeftY = dieCenter.y +
+	const float digitTopLeftY = faceCenter.y +
 		digitLeftInOriginPixels * deltaYFromSourceChangeInX +
 		textTopInOriginPixels * deltaYFromSourceChangeInY;
 

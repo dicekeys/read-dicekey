@@ -1,9 +1,6 @@
 #include "gtest/gtest.h"
 #include "../../lib-read-keysqr/read-faces.h"
-#include "../../lib-read-keysqr/validate-dice-read.h"
-//#include <experimental/filesystem>
-//#include <filesystem>
-//#include <cstdlib>
+#include "../../lib-read-keysqr/validate-faces-read.h"
 
 void testFile(
   std::string filePath = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".jpg",
@@ -25,16 +22,16 @@ void testFile(
 
   int totalError;
   try {
-    const auto diceRead = readFaces(image, true);
-    //const cv::Mat dieReadOutput = visualizeReadResults(image, diceRead, true);
-    //cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", dieReadOutput);
+    const auto facesRead = readFaces(image, true);
+    //const cv::Mat faceReadOutput = visualizeReadResults(image, facesRead, true);
+    //cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", faceReadOutput);
 
     if (validate) {
-      validateDiceRead(diceRead.dice, filename.substr(0, 75));
+      validateFacesRead(facesRead.faces, filename.substr(0, 75));
       // std::cerr << "Validated " << filename << "\n";
     }
 
-    const KeySqr keySqrNonCanonical = diceReadToKeySqr(diceRead.dice, true);
+    const KeySqr keySqrNonCanonical = facesReadToKeySqr(facesRead.faces, true);
   	const KeySqr keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
     totalError = keySqr.totalError();
   } catch (std::string errStr) {

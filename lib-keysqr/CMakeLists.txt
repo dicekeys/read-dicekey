@@ -1,4 +1,4 @@
-file(GLOB LIB_DICE_KEY_SRCS
+file(GLOB LIB_KEYSQR_SRCS
     "*.h"
     "*/*.h"
     "*.cpp"
@@ -7,7 +7,7 @@ file(GLOB LIB_DICE_KEY_SRCS
 
 add_library(lib-keysqr
     STATIC
-    ${LIB_DICE_KEY_SRCS}
+    ${LIB_KEYSQR_SRCS}
 )
 
 # Use C++ 17

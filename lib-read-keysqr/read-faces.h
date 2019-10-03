@@ -19,7 +19,7 @@ public:
 	cv::Point2f center = cv::Point2f{ 0, 0 };
 	float inferredAngleInRadians = 0;
 
-	// Calculated after die location and angle are derived from
+	// Calculated after face location and angle are derived from
 	// the underline and/or overline (both if possible)
 	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
 	std::vector<OcrResultEntry> ocrLetter;
@@ -34,7 +34,7 @@ public:
   char letter() const;
   char digit() const;
 
-  // Return an estimate of the error in reading a die face.
+  // Return an estimate of the error in reading a face.
   // If the underline, overline, and OCR results match, the error is 0.
   // If the only error is a 1-3 bit error in either the underline or overline,
   // the result is the number of bits (hamming distance) in the underline or overline
@@ -45,23 +45,23 @@ public:
 };
 
 
-struct ReadDiceResult {
+struct ReadFaceResult {
 //	public:
 	bool success;
-	std::vector<FaceRead> dice;
+	std::vector<FaceRead> faces;
 	float angleInRadiansNonCononicalForm;
 	float pixelsPerFaceEdgeWidth;
-	std::vector<FaceRead> strayDice;
+	std::vector<FaceRead> strayFaces;
 	std::vector<Undoverline> strayUndoverlines;
 };
 
-ReadDiceResult readFaces(
+ReadFaceResult readFaces(
 	const cv::Mat &colorImage,
 	bool outputOcrErrors = false
 );
 
-KeySqr diceReadToKeySqr(
-	const std::vector<FaceRead> diceRead,
+KeySqr facesReadToKeySqr(
+	const std::vector<FaceRead> facesRead,
 	bool reportErrsToStdErr = false
 );
 

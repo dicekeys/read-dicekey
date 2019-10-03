@@ -32,20 +32,20 @@ FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	std::vector<FaceRead> facesFound;
 
 	for (auto underline : underlines) {
-		// Search for overline with inferred die center near that of underline.
+		// Search for overline with inferred face center near that of underline.
 		bool found = false;
 		for (size_t i = 0; i < overlines.size() && !found; i++) {
-			if (distance2f(underline.inferredDieCenter, overlines[i].inferredDieCenter) <= maxDistanceBetweenInferredCenters) {
+			if (distance2f(underline.inferredCenterOfFace, overlines[i].inferredCenterOfFace) <= maxDistanceBetweenInferredCenters) {
 				// We have a match
 				found = true;
-				// Re-infer the center of the die and its angle by drawing a line from
+				// Re-infer the center of the face and its angle by drawing a line from
 				// the center of the to the center of the overline.
 				const Line lineFromUnderlineCenterToOverlineCenter = {
 					midpointOfLine(underline.line), midpointOfLine(overlines[i].line)
 				};
-				// The center of the die is the midpoint of that line.
+				// The center of the face is the midpoint of that line.
 				const cv::Point2f center = midpointOfLine(lineFromUnderlineCenterToOverlineCenter);
-				// The angle of the die is the angle of that line, plus 90 degrees clockwise
+				// The angle of the face is the angle of that line, plus 90 degrees clockwise
 				const float angleOfLineFromUnderlineToOverlineCenterInRadians =
 					angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter);
 				float angleInRadians = angleOfLineFromUnderlineToOverlineCenterInRadians +

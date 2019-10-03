@@ -31,57 +31,57 @@ Color errorMagnitudeToColor(unsigned errorMagnitude) {
 
 cv::Mat visualizeReadResults(
 	cv::Mat &colorImage,
-	const ReadDiceResult &diceRead,
+	const ReadFaceResult &facesRead,
 	bool writeInPlace
 ) {
   cv::Mat resultImage = (writeInPlace ? colorImage : colorImage.clone());
-  // Derive the length of each side of the die in pixels by dividing the
+  // Derive the length of each side of the face in pixels by dividing the
   // legnth off and 
-  const float dieSizeInPixels = ElementDimensionsFractional::size * diceRead.pixelsPerFaceEdgeWidth;
-  const int thinLineThickness = 1 + int(dieSizeInPixels / 70);
+  const float faceSizeInPixels = ElementDimensionsFractional::size * facesRead.pixelsPerFaceEdgeWidth;
+  const int thinLineThickness = 1 + int(faceSizeInPixels / 70);
   const int thickLineThickness = 2 * thinLineThickness;
 
-  if (diceRead.success) {
-    for (const FaceRead &die: diceRead.dice) {
-      const auto error = die.error();
+  if (facesRead.success) {
+    for (const FaceRead &face: facesRead.faces) {
+      const auto error = face.error();
 
-      // Draw a rectangle around the die if an error has been found
+      // Draw a rectangle around the face if an error has been found
       if (error.magnitude > 0) {
         drawRotatedRect(
           resultImage,
-          cv::RotatedRect(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm)),
+          cv::RotatedRect(face.center, cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCononicalForm)),
           errorMagnitudeToColor(error.magnitude).scalar,
           error.magnitude == 0 ? thinLineThickness : thickLineThickness
         );
       }
       // Draw a rectangle arond the underline
-      if (die.underline.found) {
+      if (face.underline.found) {
         bool underlineError = (error.location & FaceErrors::Location::Underline);
-        drawRotatedRect(resultImage, die.underline.fromRotatedRect,
+        drawRotatedRect(resultImage, face.underline.fromRotatedRect,
           errorMagnitudeToColor( underlineError ? error.magnitude : 0 ).scalar,
           underlineError ? thickLineThickness : thinLineThickness );
       }
       // Draw a rectangle arond the overline
-      if (die.overline.found) {
+      if (face.overline.found) {
         bool overlineError = (error.location & FaceErrors::Location::Overline);
-        drawRotatedRect(resultImage, die.overline.fromRotatedRect,
+        drawRotatedRect(resultImage, face.overline.fromRotatedRect,
           errorMagnitudeToColor( overlineError ? error.magnitude : 0 ).scalar,
           overlineError ? thickLineThickness : thinLineThickness );
       }
       // Draw the characters read
-      writeFaceCharacters(resultImage, die.center, die.inferredAngleInRadians, diceRead.pixelsPerFaceEdgeWidth, die.letter(), die.digit(),
+      writeFaceCharacters(resultImage, face.center, face.inferredAngleInRadians, facesRead.pixelsPerFaceEdgeWidth, face.letter(), face.digit(),
         errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrLetter) ? error.magnitude : 0 ),
         errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrDigit) ? error.magnitude : 0 )
       );
     }
   }
-  for (Undoverline undoverline: diceRead.strayUndoverlines) {
+  for (Undoverline undoverline: facesRead.strayUndoverlines) {
     drawRotatedRect(resultImage, undoverline.fromRotatedRect, colorBigErrorRed.scalar, 1);
   }
-  for (FaceRead die: diceRead.strayDice) {
+  for (FaceRead face: facesRead.strayFaces) {
       drawRotatedRect(
         resultImage,
-        cv::RotatedRect(die.center, cv::Size2d(dieSizeInPixels, dieSizeInPixels), radiansToDegrees(diceRead.angleInRadiansNonCononicalForm)),
+        cv::RotatedRect(face.center, cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCononicalForm)),
         colorBigErrorRed.scalar, 1
       );
   }

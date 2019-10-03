@@ -28,8 +28,8 @@ class KeySqr {
    * 
    * Each face follows the JSON format for ElementFaces:
    *   inteface ElementFace {
-   *     letter: (string & DieLetter) | "",
-   *     digit: (string & DieDigit) | "",
+   *     letter: Letter | "",
+   *     digit: Digit | "",
    *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
    *     error {
    *       magnitude: number,
@@ -42,26 +42,26 @@ class KeySqr {
 
   /**
    * Convert a KeySqr to a human-readable format with 3 characters representing
-   * each die face as a letter, digit, and orientation.
+   * each face as a letter, digit, and orientation.
    */
   std::string toHumanReadableForm(bool useDigitsForOrientation = false) const;
 
   /**
-   * Test to determine if every die face in the KeySqr has a different (unique)
+   * Test to determine if every face in the KeySqr has a different (unique)
    * letter from all others.  If a letter were to appear twice, indicating the
-   * same die appeared twice, we would conclude the key to be invalid.
+   * same element (die or chip) appeared twice, we would conclude the key to be invalid.
    */
   bool areLettersUnique() const;
 
   /**
-   * Find the maximum error at any individual die face
-   * (or return max error if two die faces have the same letter, indicating
-   *  on of them must have a fatal read error because all die should be unique)
+   * Find the maximum error at any individual face
+   * (or return max error if two faces have the same letter, indicating
+   *  on of them must have a fatal read error because all elements should be unique)
    **/
   unsigned char maxError() const;
   
   /**
-   * Calculate the sum of the errors over all dice.
+   * Calculate the sum of the errors over all faces.
    */
   unsigned int totalError() const;
 

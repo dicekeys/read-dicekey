@@ -51,15 +51,15 @@ KeySqr::KeySqr(const std::string humanReadableFormat) {
     throw "Invalid format";
   }
 	initialized = true;
-	for (int dieIndex=0; dieIndex < NumberOfFaces; dieIndex++) {
-    const size_t charIndex = size_t(dieIndex) * 3;
+	for (int faceIndex=0; faceIndex < NumberOfFaces; faceIndex++) {
+    const size_t charIndex = size_t(faceIndex) * 3;
     const char letter = humanReadableFormat[charIndex];
     if (ElementLetters.find(letter) == std::string::npos) {
-      throw "Invalid letter at die " + std::to_string(dieIndex);
+      throw "Invalid letter at face " + std::to_string(faceIndex);
     }
     const char digit = humanReadableFormat[charIndex + 1];
     if (ElementDigits.find(digit) == std::string::npos) {
-      throw "Invalid digit at die " + std::to_string(dieIndex);
+      throw "Invalid digit at face " + std::to_string(faceIndex);
     }
     const char orientationChar = humanReadableFormat[charIndex + 2];
     unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
@@ -81,9 +81,9 @@ KeySqr::KeySqr(const std::string humanReadableFormat) {
         orientationAs0to3ClockwiseTurnsFromUpright = 3;
         break;
         default:
-          throw "Invalid orientation at die " + std::to_string(dieIndex);
+          throw "Invalid orientation at face " + std::to_string(faceIndex);
     }
-    faces[dieIndex] = ElementFace(letter, digit, orientationAs0to3ClockwiseTurnsFromUpright);
+    faces[faceIndex] = ElementFace(letter, digit, orientationAs0to3ClockwiseTurnsFromUpright);
   }
 }
 
@@ -103,8 +103,8 @@ KeySqr::KeySqr(std::vector<ElementFace> _faces) {
  * 
  * Each face follows the JSON format for ElementFaces:
  *   inteface ElementFace {
- *     letter: (string & DieLetter) | "",
- *     digit: (string & DieDigit) | "",
+ *     letter: Letter | "",
+ *     digit: Digit | "",
  *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
  *     error {
  *       magnitude: number,
@@ -127,7 +127,7 @@ std::string KeySqr::toJson() const {
 
 /**
  * Convert a KeySqr to a human-readable format with 3 characters representing
- * each die face as a letter, digit, and orientation.
+ * each face as a letter, digit, and orientation.
  */
 std::string KeySqr::toHumanReadableForm(bool useDigitsForOrientation) const {
   if (!initialized) {
@@ -141,9 +141,9 @@ std::string KeySqr::toHumanReadableForm(bool useDigitsForOrientation) const {
 };
 
 /**
- * Test to determine if every die face in the KeySqr has a different (unique)
+ * Test to determine if every face in the KeySqr has a different (unique)
  * letter from all others.  If a letter were to appear twice, indicating the
- * same die appeared twice, we would conclude the key to be invalid.
+ * same element appeared twice, we would conclude the key to be invalid.
  */
 bool KeySqr::areLettersUnique() const {
   if (!initialized) return false;
@@ -160,11 +160,6 @@ bool KeySqr::areLettersUnique() const {
   return true;
 };
 
-/**
- * Find the maximum error at any individual die face
- * (or return max error if two die faces have the same letter, indicating
- *  on of them must have a fatal read error because all die should be unique)
- **/
 unsigned char KeySqr::maxError() const
 {
   if (!areLettersUnique()) {
@@ -180,7 +175,7 @@ unsigned char KeySqr::maxError() const
 }
 
 /**
- * Calculate the sum of the errors over all dice.
+ * Calculate the sum of the errors over all faces.
  */
 unsigned int KeySqr::totalError() const
 {
@@ -208,9 +203,9 @@ const KeySqr KeySqr::rotate(int clockwiseTurns) const
   const std::vector<unsigned char> &indexToMoveElementFaceFrom = rotationIndexes[clockwiseTurns0to3];
   std::vector<ElementFace> rotatedFaces;
   for (size_t i = 0; i < NumberOfFaces; i++) {
-    ElementFace dieFace = faces[indexToMoveElementFaceFrom[i]];
-    dieFace.orientationAs0to3ClockwiseTurnsFromUpright = (dieFace.orientationAs0to3ClockwiseTurnsFromUpright + clockwiseTurns) % 4;
-    rotatedFaces.push_back(dieFace);
+    ElementFace face = faces[indexToMoveElementFaceFrom[i]];
+    face.orientationAs0to3ClockwiseTurnsFromUpright = (face.orientationAs0to3ClockwiseTurnsFromUpright + clockwiseTurns) % 4;
+    rotatedFaces.push_back(face);
   }
   return KeySqr(rotatedFaces);
 }
@@ -238,22 +233,22 @@ const KeySqr KeySqr::rotateToCanonicalOrientation() const
 
 bool KeySqr::isPotentialMatch(const KeySqr &other) const {
   if (!initialized || !other.initialized) return false;
-  int numMatchingDice = 0;
+  int numMatchingFaces = 0;
   for (int i=0; i < NumberOfFaces; i++) {
     if (faces[i].equals(other.faces[i])) {
-      numMatchingDice++;
+      numMatchingFaces++;
     } else {
       // faces don't match
       if (other.faces[i].error.magnitude == 0 && faces[i].error.magnitude == 0) {
         // The faces are different, but neither is supposed to be in error.
         // This means the entire grid must be different.  Either we're now
-        // looking at another set of dice, the orientation rotated, or there
-        // was an undetected die face read error.
+        // looking at another set of faces, the orientation rotated, or there
+        // was an undetected face read error.
         return false;
       }
     }
   }
-  return numMatchingDice > 9;
+  return numMatchingFaces > 9;
 };
 
 /**
@@ -265,7 +260,7 @@ const KeySqr KeySqr::mergePrevious(const KeySqr &previous) const {
   if (!initialized) return previous;
   if (isPotentialMatch(previous)) {
     std::vector<ElementFace> newFaces;
-    // There are enough matching dice in the previously-scanned KeySqr,
+    // There are enough matching faces in the previously-scanned KeySqr,
     // and no clear conflicts, so we can merge faces from the previous
     // KeySqr in cases where the face was scanned with fewer errors in the
     // past.
@@ -295,10 +290,10 @@ const KeySqr KeySqr::mergePrevious(const KeySqr &previous) const {
       } else {
         // Both faces are defined, and must agree (otherwise isPotentialMatch would have returned false).
         //
-        // There are three encodings of a die face: underline, overline, and the letter & digit between them.
+        // There are three encodings of a face: underline, overline, and the letter & digit between them.
         // We report errors in one of the encodings when the other two encodings agree.
         //
-        // When two scans of a die face agree, but have errors in different locations, we may
+        // When two scans of a face agree, but have errors in different locations, we may
         // (and below will) conclude that these were scanning errors, that the face is correct,
         // and so remove the individual scanning errors that were present in only one of the two scans.
         // 
@@ -323,7 +318,7 @@ const KeySqr KeySqr::mergePrevious(const KeySqr &previous) const {
     }
     return KeySqr(newFaces);
   } else {
-    // isPotentialMatch failed, so the previous scan was incompatable with the die faces
+    // isPotentialMatch failed, so the previous scan was incompatable with the faces
     // from the current scan.  Perhaps the previous scan was at a different frame of
     // reference and the grid was rotated.
     for (int clockwiseTurns = 1; clockwiseTurns < 4; clockwiseTurns++) {

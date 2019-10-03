@@ -45,10 +45,10 @@ class ElementFace {
     );
 
     /**
-     * Return the die face as a JSON object with the following interface:
+     * Return the face as a JSON object with the following interface:
      *   inteface ElementFace {
-     *     letter: (string & DieLetter) | "",
-     *     digit: (string & DieDigit) | "",
+     *     letter: Letter | "",
+     *     digit: Digit | "",
      *     orientationAs0to3ClockwiseTurnsFromUpright: '0' | '1' | '2' | '3',
      *     error {
      *       magnitude: number,
@@ -61,7 +61,7 @@ class ElementFace {
     char orientationChar(bool useDigitsForOrientation = false) const;
 
     /*
-     * Return the die face as a three-character triple of
+     * Return the face as a three-character triple of
      * letter, digit, and orientation ('0' - '3') in number of turns from clockwise.
      */
     std::string toTriple(bool useDigitsForOrientation = false) const;
