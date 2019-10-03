@@ -56,8 +56,8 @@ std::string ElementRead::toJson() const {
 			"}, " <<
 			"angleInRadians: " << inferredAngleInRadians << "," <<
 			"orientationAs0to3ClockwiseTurnsFromUpright: " << orientationAs0to3ClockwiseTurnsFromUpright << "," <<
-			"ocrLetter: " << (ocrLetter.size > 0 ? ocrLetter[0].character : '-') << "," <<
-			"ocrDigit: " << (ocrDigit.size > 0 ? ocrDigit[0].character : '-') << "" <<
+			"ocrLetter: " << (ocrLetter.size() > 0 ? ocrLetter[0].character : '-') << "," <<
+			"ocrDigit: " << (ocrDigit.size() > 0 ? ocrDigit[0].character : '-') << "" <<
 		"}";
 	return jsonStream.str();
 }

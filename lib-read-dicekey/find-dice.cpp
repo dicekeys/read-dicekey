@@ -9,7 +9,7 @@
 #include "utilities/statistics.h"
 #include "graphics/geometry.h"
 #include "find-undoverlines.h"
-#include "read-dice.h"
+#include "read-elements.h"
 #include "find-dice.h"
 #include "keysqr-element-face-specification.h"
 
@@ -25,7 +25,7 @@ DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
 	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
 		[](const Undoverline *underline) { return lineLength(underline->line); });
 	const float medianUnderlineLengthInPixels = medianInPlace(underlineLengths);
-	const float pixelsPerFaceEdgeWidth =  ElementDimensionsFractional::undoverlineLength / medianUnderlineLengthInPixels;
+	const float pixelsPerFaceEdgeWidth = medianUnderlineLengthInPixels / ElementDimensionsFractional::undoverlineLength;
 	const float maxDistanceBetweenInferredCenters = pixelsPerFaceEdgeWidth / 4; // 2mm
 
 	std::vector<Undoverline> strayUndoverlines(0);

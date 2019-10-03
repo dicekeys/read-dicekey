@@ -67,10 +67,10 @@ Undoverline::Undoverline(
 
 	// pixels per mm the length of the overline in pixels of it's length in mm,
 	// or, undoverlineLength / mmDieUndoverlineLength;
-	double pixelsPerElementEdgeLength = double(undoverlineLength) / ElemmentDimensionsFractional::undoverlineLength;
+	double pixelsPerElementEdgeLength = double(undoverlineLength) / ElementDimensionsFractional::undoverlineLength;
 
 	float pixelsFromCenterOfUndoverlineToCenterOfDie = float(
-		ElemmentDimensionsFractional::centerOfUndoverlineToCenterOfFace *
+		ElementDimensionsFractional::centerOfUndoverlineToCenterOfFace *
 		pixelsPerElementEdgeLength
 	);
 	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfDie;

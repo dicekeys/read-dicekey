@@ -167,8 +167,8 @@ Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const cv::RotatedRect 
 	// Angle is angle between 10% and 90% point.
 	// looking for top and bottom borders
 
-	// Extend start and end .15mm to side in case we cut off the edge
-	float fractionToExtend = 0.15f / ElementDimensionsMm::undoverlineLength;
+	// Extend start and end 3% to side in case we cut off the edge
+	float fractionToExtend = 0.03;
 	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
 	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
 	// Okay to have points that go off graph as our sampling function

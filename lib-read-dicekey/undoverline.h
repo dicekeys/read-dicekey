@@ -11,7 +11,7 @@
 #include "graphics/geometry.h"
 #include "keysqr-element-face-specification.h"
 
-const float undoverlineWidthAsFractionOfLength = ElemmentDimensionsFractional::undoverlineThickness / ElemmentDimensionsFractional::undoverlineLength;
+const float undoverlineWidthAsFractionOfLength = ElementDimensionsFractional::undoverlineThickness / ElementDimensionsFractional::undoverlineLength;
 
 class Undoverline {
 public:

@@ -9,7 +9,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <vector>
-#include "read-dice.h"
+#include "read-elements.h"
 
 struct DiceAndStrayUndoverlinesFound {
 	std::vector<ElementRead> diceFound;

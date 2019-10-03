@@ -24,23 +24,7 @@ public:
 	std::vector<OcrResultEntry> ocrDigit;
 
   //
-	std::string toJson() const {
-		std::ostringstream jsonStream;
-		jsonStream <<
-			"{" <<
-				"underline: " << underline.toJson() << "," <<
-				"overline: " << overline.toJson() << "," <<
-				"center: {" <<
-					"x: " << center.x << ", " <<
-					"y: " << center.y << "" <<
-				"}, " <<
-				"angleInRadians: " << inferredAngleInRadians << "," <<
-				"orientationAs0to3ClockwiseTurnsFromUpright: " << orientationAs0to3ClockwiseTurnsFromUpright << "," <<
-				"ocrLetter: " << (ocrLetter.size > 0 ? ocrLetter[0].character : '-') << "," <<
-				"ocrDigit: " << (ocrDigit.size > 0 ? ocrDigit[0].character : '-') << "" <<
-			"}";
-		return jsonStream.str();
-	}
+	std::string toJson() const;
 
   char ocrLetterMostLikely() const;
   char ocrDigitMostLikely() const;
@@ -74,7 +58,7 @@ ReadDiceResult readDice(
 	bool outputOcrErrors = false
 );
 
-KeySqr diceReadToDKeySqr(
+KeySqr diceReadToKeySqr(
 	const std::vector<ElementRead> diceRead,
 	bool reportErrsToStdErr = false
 );

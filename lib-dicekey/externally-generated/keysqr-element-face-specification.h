@@ -36,45 +36,42 @@ const int MinNumberOfWhiteDotsInUndoverline = 4;
 
 
 struct ElementFaceSpecification {
-  char letter;
-  char digit;
-  unsigned char underlineCode;
-  unsigned char overlineCode;
+	char letter;
+	char digit;
+	unsigned char underlineCode;
+	unsigned char overlineCode;
 };
 
 extern const ElementFaceSpecification NullElementFaceSpecification;
 
-namespace ElementDimensionsMm {
-};
-
 namespace ElementDimensionsFractional {
-  const float size = float(1);
-  const float fontSize = float(0.575);
-  const float undoverlineLength = float(0.775);
-  const float undoverlineThickness = float(0.1375);
-  const float overlineTop = float(0.1125);
-  const float undoverlineMarginAtLineStartAndEnd = float(0.04375);
-  const float undoverlineMarginAlongLength = float(0.0375);
-  const float textBaselineY = float(0.675);
-  const float textRegionWidth = float(0.925);
-  const float textRegionHeight = float(0.37835);
-  const float spaceBetweenLetterAndDigit = float(0.35);
-  const float underlineTop = float(0.75);
-  const float center = float(0.5);
-  const float undoverlineLeftEdge = float(0.1125);
-  const float undoverlineFirstDotLeftEdge = float(0.15625);
-  const float undoverlineDotWidth = float(0.0625);
-  const float undoverlineDotHeight = float(0.0625);
-  const float centerOfUndoverlineToCenterOfFace = float(0.31875);
-  const float overlineDotTop = float(0.15);
-  const float underlineDotTop = float(0.7875);
-  extern const std::vector<float> dotCentersAsFractionOfUndoverline;
+	const float size = float(1);
+	const float fontSize = float(0.575);
+	const float undoverlineLength = float(0.775);
+	const float undoverlineThickness = float(0.1375);
+	const float overlineTop = float(0.1125);
+	const float undoverlineMarginAtLineStartAndEnd = float(0.04375);
+	const float undoverlineMarginAlongLength = float(0.0375);
+	const float textBaselineY = float(0.675);
+	const float textRegionWidth = float(0.61875);
+	const float textRegionHeight = float(0.37835);
+	const float spaceBetweenLetterAndDigit = float(0.04375);
+	const float underlineTop = float(0.75);
+	const float center = float(0.5);
+	const float undoverlineLeftEdge = float(0.1125);
+	const float undoverlineFirstDotLeftEdge = float(0.15625);
+	const float undoverlineDotWidth = float(0.0625);
+	const float undoverlineDotHeight = float(0.0625);
+	const float centerOfUndoverlineToCenterOfFace = float(0.31875);
+	const float overlineDotTop = float(0.15);
+	const float underlineDotTop = float(0.7875);
+	extern const std::vector<float> dotCentersAsFractionOfUndoverline;
 };
 
 
 extern const ElementFaceSpecification letterIndexTimesSixPlusDigitIndexToElementFaceSpecification[150];
-extern const ElementFaceSpecification *underlineCodeToElementFaceSpecification[256];
-extern const ElementFaceSpecification *overlineCodeToElementFaceSpecification[256];
+extern const ElementFaceSpecification* underlineCodeToElementFaceSpecification[256];
+extern const ElementFaceSpecification* overlineCodeToElementFaceSpecification[256];
 
 /**
  * Get a pointer to a ElementFaceSpecification for from the eight-bit letter digit encoding

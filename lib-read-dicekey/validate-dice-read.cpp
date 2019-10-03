@@ -5,7 +5,7 @@
 #include <opencv2/core.hpp>
 #include "utilities/vfunctional.h"
 #include "keysqr.h"
-#include "read-dice.h"
+#include "read-elements.h"
 #include "validate-dice-read.h"
 
 /*
@@ -17,7 +17,7 @@ void validateDiceRead(
 	const std::vector<ElementRead> diceRead,
 	std::string diceAsString
 ) {
-	const KeySqr diceKeyNonCanonical = diceReadToDiceKey(diceRead, true);
+	const KeySqr diceKeyNonCanonical = diceReadToKeySqr(diceRead, true);
 	const KeySqr diceKey = diceKeyNonCanonical.rotateToCanonicalOrientation();
 	for (size_t dieIndex = 0; dieIndex < diceRead.size(); dieIndex++) {
 		const auto dieFace = diceKey.faces[dieIndex];

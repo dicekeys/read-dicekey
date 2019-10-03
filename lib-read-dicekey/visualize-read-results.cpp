@@ -12,7 +12,7 @@
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
 #include "keysqr.h"
-#include "read-dice.h"
+#include "read-elements.h"
 #include "visualize-read-results.h"
 #include "write-die-characters.h"
 
