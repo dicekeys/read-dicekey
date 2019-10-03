@@ -17,7 +17,7 @@
 #include "graphics/rotate.h"
 #include "graphics/sample-point.h"
 #include "graphics/draw-rotated-rect.h"
-#include "die-face-specification.h"
+#include "keysqr-element-face-specification.h"
 #include "decode-die.h"
 #include "undoverline.h"
 #include "find-undoverlines.h"
@@ -168,7 +168,7 @@ Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const cv::RotatedRect 
 	// looking for top and bottom borders
 
 	// Extend start and end .15mm to side in case we cut off the edge
-	float fractionToExtend = 0.15f / DieDimensionsMm::undoverlineLength;
+	float fractionToExtend = 0.15f / ElementDimensionsMm::undoverlineLength;
 	float fractionToExtendH = (end.x - start.x) * fractionToExtend;
 	float fractionToExtendV = (end.y - start.y) * fractionToExtend;
 	// Okay to have points that go off graph as our sampling function
@@ -215,7 +215,7 @@ Undoverline readUndoverline(
 
 	const std::vector<uchar> medianPixelValues = samplePointsAlongLine(
 		grayscaleImage, undoverlineStartingAtImageLeft.start, undoverlineStartingAtImageLeft.end,
-		DieDimensionsFractional::dotCentersAsFractionOfUndoverline
+		ElementDimensionsFractional::dotCentersAsFractionOfUndoverline
 	);
 
 	// In finding a white/black threshold, the sampling should ensure

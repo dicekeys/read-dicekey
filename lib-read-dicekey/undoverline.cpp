@@ -11,7 +11,7 @@
 #include <math.h>
 #include "utilities/vfunctional.h"
 #include "graphics/geometry.h"
-#include "die-face-specification.h"
+#include "keysqr-element-face-specification.h"
 #include "decode-die.h"
 #include "undoverline.h"
 
@@ -67,10 +67,10 @@ Undoverline::Undoverline(
 
 	// pixels per mm the length of the overline in pixels of it's length in mm,
 	// or, undoverlineLength / mmDieUndoverlineLength;
-	double mmToPixels = double(undoverlineLength) / DieDimensionsMm::undoverlineLength;
+	double mmToPixels = double(undoverlineLength) / ElementDimensionsMm::undoverlineLength;
 
 	float pixelsFromCenterOfUndoverlineToCenterOfDie = float(
-		DieDimensionsMm::centerOfUndoverlineToCenterOfDie *
+		ElementDimensionsMm::centerOfUndoverlineToCenterOfDie *
 		mmToPixels
 	);
 	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfDie;

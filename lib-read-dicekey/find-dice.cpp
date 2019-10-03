@@ -11,7 +11,7 @@
 #include "find-undoverlines.h"
 #include "read-dice.h"
 #include "find-dice.h"
-#include "die-face-specification.h"
+#include "keysqr-element-face-specification.h"
 
 DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
 	const cv::Mat &colorImage,
@@ -25,7 +25,7 @@ DiceAndStrayUndoverlinesFound findDiceAndStrayUndoverlines(
 	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
 		[](const Undoverline *underline) { return lineLength(underline->line); });
 	const float medianUnderlineLength = medianInPlace(underlineLengths);
-	const float pixelsPerMm = medianUnderlineLength / DieDimensionsMm::undoverlineLength;
+	const float pixelsPerMm = medianUnderlineLength / ElementDimensionsMm::undoverlineLength;
 	const float maxDistanceBetweenInferredCenters = 2 * pixelsPerMm; // 2mm
 
 	std::vector<Undoverline> strayUndoverlines(0);

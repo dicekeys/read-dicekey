@@ -10,7 +10,7 @@
 //#include <iostream>
 #include "utilities/statistics.h"
 #include "graphics/geometry.h"
-#include "die-face-specification.h"
+#include "keysqr-element-face-specification.h"
 #include "graphics/rotate.h"
 #include "simple-ocr.h"
 #include "font.h"
@@ -27,12 +27,12 @@ void writeDieCharacters(
 	Color digitColor
 ) {
 	const OcrFont font = getFont();
-	const float textHeightDestinationPixels = DieDimensionsMm::textRegionHeight * pixelsPerMm;
-	const float textWidthDestinationPixels = DieDimensionsMm::textRegionWidth * pixelsPerMm;
-	const float destinationPixelsBetweenLetterAndDigit = DieDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm;
+	const float textHeightDestinationPixels = ElementDimensionsMm::textRegionHeight * pixelsPerMm;
+	const float textWidthDestinationPixels = ElementDimensionsMm::textRegionWidth * pixelsPerMm;
+	const float destinationPixelsBetweenLetterAndDigit = ElementDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm;
 	float charWidthDestinationPixels = (textWidthDestinationPixels - destinationPixelsBetweenLetterAndDigit) / 2;
 
-	const float centerSpaceInOriginPixels = DieDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm *
+	const float centerSpaceInOriginPixels = ElementDimensionsMm::spaceBetweenLetterAndDigit * pixelsPerMm *
 		font.outlineCharWidthInPixels / charWidthDestinationPixels;
 	const float textTopInOriginPixels = -float(font.outlineCharHeightInPixels) / 2;
 	const float letterLeftInOriginPixels = -(font.outlineCharWidthInPixels + centerSpaceInOriginPixels/2);

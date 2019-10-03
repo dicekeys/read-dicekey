@@ -9,9 +9,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include "graphics/geometry.h"
-#include "die-face-specification.h"
+#include "keysqr-element-face-specification.h"
 
-const float undoverlineWidthAsFractionOfLength = DieDimensionsMm::undoverlineThickness / DieDimensionsMm::undoverlineLength;
+const float undoverlineWidthAsFractionOfLength = ElementDimensionsMm::undoverlineThickness / ElementDimensionsMm::undoverlineLength;
 
 class Undoverline {
 public:
@@ -23,7 +23,7 @@ public:
 	unsigned char letterDigitEncoding = 0;
 	unsigned char whiteBlackThreshold = 0;
 	cv::Point2f inferredDieCenter = {0, 0};
-  const DieFaceSpecification *dieFaceInferred = &NullDieFaceSpecification;
+  const ElementFaceSpecification *dieFaceInferred = &NullElementFaceSpecification;
 	cv::RotatedRect inferredOpposingUndoverlineRotatedRect = cv::RotatedRect();
 
   Undoverline() {

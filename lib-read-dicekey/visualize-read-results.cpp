@@ -37,7 +37,7 @@ cv::Mat visualizeReadResults(
   cv::Mat resultImage = (writeInPlace ? colorImage : colorImage.clone());
   // Derive the length of each side of the die in pixels by dividing the
   // legnth off and 
-  const float dieSizeInPixels = DieDimensionsMm::size * diceRead.pixelsPerMm;
+  const float dieSizeInPixels = ElementDimensionsMm::size * diceRead.pixelsPerMm;
   const int thinLineThickness = 1 + int(dieSizeInPixels / 70);
   const int thickLineThickness = 2 * thinLineThickness;
 

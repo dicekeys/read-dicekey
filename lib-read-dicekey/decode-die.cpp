@@ -1,7 +1,7 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 #include <string>
 #include <vector>
-#include "die-face-specification.h"
+#include "keysqr-element-face-specification.h"
 #include "utilities/bit-operations.h"
 #include "decode-die.h"
 

@@ -5,7 +5,7 @@
 #include <limits>
 #include <algorithm>
 #include "dicekey.h"
-#include "die-face-specification.h"
+#include "keysqr-element-face-specification.h"
 
 
 const std::vector<std::vector<unsigned char>> rotationIndexes = {
@@ -54,11 +54,11 @@ DiceKey::DiceKey(const std::string humanReadableFormat) {
 	for (int dieIndex=0; dieIndex < NumberOfFaces; dieIndex++) {
     const size_t charIndex = size_t(dieIndex) * 3;
     const char letter = humanReadableFormat[charIndex];
-    if (DieLetters.find(letter) == std::string::npos) {
+    if (ElementLetters.find(letter) == std::string::npos) {
       throw "Invalid letter at die " + std::to_string(dieIndex);
     }
     const char digit = humanReadableFormat[charIndex + 1];
-    if (DieDigits.find(digit) == std::string::npos) {
+    if (ElementDigits.find(digit) == std::string::npos) {
       throw "Invalid digit at die " + std::to_string(dieIndex);
     }
     const char orientationChar = humanReadableFormat[charIndex + 2];
@@ -153,7 +153,7 @@ bool DiceKey::areLettersUnique() const {
   }
   std::sort(letters.begin(), letters.end(), [](char a, char b) { return a < b; });
   for (int i = 0; i < NumberOfFaces; i++) {
-    if (letters[i] != DieLetters[i]) {
+    if (letters[i] != ElementLetters[i]) {
       return false;
     }
   }

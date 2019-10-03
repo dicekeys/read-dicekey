@@ -59,13 +59,13 @@ DieFaceError DieRead::error() const {
 		unsigned int errorMagnitude = 0;
 		const char ocrLetter0 = ocrLetter[0].character;
 		const char ocrDigit0 = ocrDigit[0].character;
-		const DieFaceSpecification* pUnderlineFaceInferred = underline.dieFaceInferred;
-		const DieFaceSpecification* pOverlineFaceInferred = overline.dieFaceInferred;
+		const ElementFaceSpecification* pUnderlineFaceInferred = underline.dieFaceInferred;
+		const ElementFaceSpecification* pOverlineFaceInferred = overline.dieFaceInferred;
 
 		// Test hypothesis of no error
 		if (pUnderlineFaceInferred == pOverlineFaceInferred) {
 			// The underline and overline map to the same die face
-			const DieFaceSpecification& undoverlineFaceInferred = *(underline.dieFaceInferred);
+			const ElementFaceSpecification& undoverlineFaceInferred = *(underline.dieFaceInferred);
 
 			// Check for OCR errors for the letter read
 			if (undoverlineFaceInferred.letter != ocrLetter[0].character) {
@@ -82,8 +82,8 @@ DieFaceError DieRead::error() const {
 			}
 			return {(unsigned char) MIN(std::numeric_limits<unsigned char>::max(), errorMagnitude), errorLocation};
 		}
-		const DieFaceSpecification& underlineFaceInferred = *pUnderlineFaceInferred;
-		const DieFaceSpecification& overlineFaceInferred = *pOverlineFaceInferred;
+		const ElementFaceSpecification& underlineFaceInferred = *pUnderlineFaceInferred;
+		const ElementFaceSpecification& overlineFaceInferred = *pOverlineFaceInferred;
 		if (underlineFaceInferred.letter == ocrLetter0 && underlineFaceInferred.digit == ocrDigit0) {
 			// The underline matches the OCR result, so the error is in the overline
 			return {
@@ -140,8 +140,8 @@ ReadDiceResult readDice(
 			die.underline.found ?
 				die.underline.whiteBlackThreshold :
 				die.overline.whiteBlackThreshold;
-		const DieFaceSpecification &underlineInferred = *die.underline.dieFaceInferred;
-		const DieFaceSpecification &overlineInferred = *die.overline.dieFaceInferred;
+		const ElementFaceSpecification &underlineInferred = *die.underline.dieFaceInferred;
+		const ElementFaceSpecification &overlineInferred = *die.overline.dieFaceInferred;
 		const DieCharactersRead charsRead = readDieCharacters(colorImage, grayscaleImage, die.center, die.inferredAngleInRadians,
 			diceAndStrayUndoverlinesFound.pixelsPerMm, whiteBlackThreshold,
 			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.letter)) + std::string(1, dashIfNull(overlineInferred.letter))) : "",
@@ -170,8 +170,8 @@ DiceKey diceReadToDiceKey(
 	std::vector<DieFace> dieFaces;
 	for (size_t i = 0; i < diceRead.size(); i++) {
 		DieRead dieRead = diceRead[i];
-		const DieFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred;
-		const DieFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred;
+		const ElementFaceSpecification &underlineInferred = *dieRead.underline.dieFaceInferred;
+		const ElementFaceSpecification &overlineInferred = *dieRead.overline.dieFaceInferred;
 		const char digitRead = dieRead.ocrDigit.size() == 0 ? '\0' : dieRead.ocrDigit[0].character;
 		const char letterRead = dieRead.ocrLetter.size() == 0 ? '\0' :  dieRead.ocrLetter[0].character;
 		if (!dieRead.underline.found) {

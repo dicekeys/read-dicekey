@@ -12,7 +12,7 @@
 #include "utilities/statistics.h"
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
-#include "die-face-specification.h"
+#include "keysqr-element-face-specification.h"
 #include "dicekey.h"
 #include "find-undoverlines.h"
 #include "find-dice.h"
