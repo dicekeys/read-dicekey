@@ -8,7 +8,7 @@
 #include <chrono>
 
 #include "../lib-keysqr/keysqr.h"
-#include "simple-ocr.h"
+#include "read-faces.h"
 
 KeySqr facesReadToKeySqr(
 	const std::vector<FaceRead> facesRead,

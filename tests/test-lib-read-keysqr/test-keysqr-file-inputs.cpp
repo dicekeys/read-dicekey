@@ -1,5 +1,4 @@
 #include "gtest/gtest.h"
-#include "../../lib-read-keysqr/read-faces.h"
 #include "../../lib-read-keysqr/read-keysqr.h"
 #include "../../lib-read-keysqr/validate-faces-read.h"
 
