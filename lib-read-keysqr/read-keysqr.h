@@ -27,8 +27,8 @@ std::string readKeySqrJson(
 std::string readKeySqrJson (
 	int width,
 	int height,
-	void* data,
-	size_t bytesPerRow = cv::Mat::AUTO_STEP
+	size_t bytesPerRow,
+	void* data
 );
 
 static const std::chrono::time_point<std::chrono::system_clock> minTimePoint =

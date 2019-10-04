@@ -138,8 +138,8 @@ std::string readKeySqrJson(
 std::string readKeySqrJson (
 	int width,
 	int height,
-	void* data,
-	size_t bytesPerRow
+	size_t bytesPerRow,
+	void* data
 ) {
   const cv::Mat grayscaleImage(cv::Size(width, height), CV_8UC1, data, bytesPerRow);
   KeySqr keySqr = readKeySqr(grayscaleImage, false);

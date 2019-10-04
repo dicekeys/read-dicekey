@@ -7,10 +7,10 @@
 //     jint width,
 //     jint height,
 //     jint bytesPerRow,
-//     jbyteArray jByteArrayForGrayscaleChannel)
+//     jobject byteBufferForGrayscaleChannel)
 // {
 // 	const std::string jsonResult;
-// 	jbyte* pointerToByteArrayForGrayscaleChannel = env->GetByteArrayElements(jByteArrayForGrayscaleChannel, 0);
+//  jbyte pointerToByteArrayForGrayscaleChannel = env->GetDirectBufferAddress(env, byteBufferForGrayscaleChannel);
 // 	if (pointerToByteArrayForGrayscaleChannel != null) {
 // 		try {
 // 			jsonResult = readKeySqrJson(width, height, pointerToByteArrayForGrayscaleChannel, bytesPerRow)
@@ -18,7 +18,6 @@
 // 			jsonResult = "null";
 // 		}
 // 	}
-// 	env->ReleaseByteArrayElements(p_data, pointerToByteArrayForGrayscaleChannel, 0);
 // 	return jsonResult;
 // }
 
