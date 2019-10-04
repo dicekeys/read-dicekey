@@ -1,6 +1,14 @@
 
 
-fun readKeySqrFromImageReaderJson(image: ImageReader) {
+fun readKeySqrFromImageReaderJson(imageReader: ImageReader) {
+  val image = imageReader.acquireLatestImage();
+  return readKeySqrFromImageJson(image);
+}
+
+fun readKeySqrFromImageJson(image: Image) {
+  if (image == null) {
+    return "null";
+  }
   val width: int = image.getWidth();
   val height: int = image.getHeight();
   val grayscalePlane: Image.Plane = image.getPlanes()[0];
