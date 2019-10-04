@@ -7,7 +7,6 @@
 #include <limits>
 #include <chrono>
 
-#include "undoverline.h"
 #include "../lib-keysqr/keysqr.h"
 #include "simple-ocr.h"
 
