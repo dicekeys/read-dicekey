@@ -13,12 +13,18 @@ brew install opencv
 ```
 vcpck install opencv
 ```
-Install cmake from https://cmake.org/download/
+Install cmake from the installer downloadable from https://cmake.org/download/.
 
-# Install
+## Install
+
+Since we include GoogleTest as a submodule, you will need to clone this repository using the ``--recursive`` directory so that the submodule will be downloaded. (If you forgot, use ``git submodule update --init --recursive``.)
+
+
 ```
 git clone --recursive https://github.com/UppaJung/read-keysqr.git
+cd read-keysqr
 cmake .
 make
 ctest
 ```
+
