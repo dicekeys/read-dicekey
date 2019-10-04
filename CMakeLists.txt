@@ -58,6 +58,7 @@ message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT
 
 # Outputs
 set(BIN_DIR ${PROJECT_DIR}/bin)
+set(LIB_DIR ${PROJECT_DIR}/lib)
 
 ################# CMake Project ############################
 # The main options of project                              #
