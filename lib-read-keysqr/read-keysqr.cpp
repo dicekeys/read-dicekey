@@ -135,6 +135,17 @@ std::string readKeySqrJson(
 }
 
 
+std::string readKeySqrJson (
+	int width,
+	int height,
+	void* data,
+	size_t bytesPerRow = cv::Mat::AUTO_STEP
+) {
+  cv::Mat grayscaleImage(cv::Size(width, height), CV_8UC1, data, bytesPerRow);
+  KeySqr keySqr = readKeySqr(grayscaleImage, false);
+  return keySqr.toJson();
+}
+
 const unsigned int maxCorrectableError = 2;
 const int millisecondsToTryToRemoveCorrectableErrors = 4000;
 
