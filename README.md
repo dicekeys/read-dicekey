@@ -2,13 +2,23 @@
  
 # KeySqr scanning algorithm
 
-## MacOS install
+## Before installing on MacOS/unix
 ```
+brew install cmake
 brew install opencv
 ```
 
-## Windows install
+## Before installing on Windows
+
 ```
 vcpck install opencv
 ```
+Install cmake from https://cmake.org/download/
 
+# Install
+```
+git clone --recursive https://github.com/UppaJung/read-keysqr.git
+cmake .
+make
+ctest
+```
