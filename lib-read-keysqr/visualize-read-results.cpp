@@ -30,11 +30,11 @@ Color errorMagnitudeToColor(unsigned errorMagnitude) {
 }
 
 cv::Mat visualizeReadResults(
-	cv::Mat &colorImage,
+	cv::Mat &colorImage_BGR_CV_8UC3,
 	const ReadFaceResult &facesRead,
 	bool writeInPlace
 ) {
-  cv::Mat resultImage = (writeInPlace ? colorImage : colorImage.clone());
+  cv::Mat resultImage = (writeInPlace ? colorImage_BGR_CV_8UC3 : colorImage_BGR_CV_8UC3.clone());
   // Derive the length of each side of the face in pixels by dividing the
   // legnth off and 
   const float faceSizeInPixels = ElementDimensionsFractional::size * facesRead.pixelsPerFaceEdgeWidth;

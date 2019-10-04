@@ -18,6 +18,5 @@ struct FacesAndStrayUndoverlinesFound {
 };
 
 FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
-	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage
 );

@@ -21,7 +21,6 @@ struct FacesOrderdWithMissingFacesInferredFromUnderlines {
 };
 
 FacesOrderdWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndoverlines(
-	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage,
 	const FacesAndStrayUndoverlinesFound& facesAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine = 1.0f // 1 mm

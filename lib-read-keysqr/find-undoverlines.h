@@ -17,12 +17,10 @@ struct UnderlinesAndOverlines {
 };
 
 UnderlinesAndOverlines findReadableUndoverlines(
-	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage
 );
 
 Undoverline readUndoverline(
-	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage,
 	const cv::RotatedRect &rectEncompassingLine
 );

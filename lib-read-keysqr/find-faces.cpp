@@ -14,10 +14,9 @@
 #include "keysqr-element-face-specification.h"
 
 FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
-	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage
 ) {
-	const auto undoverlines = findReadableUndoverlines(colorImage, grayscaleImage);
+	const auto undoverlines = findReadableUndoverlines(grayscaleImage);
 
 	std::vector<Undoverline> underlines(undoverlines.underlines);
 	std::vector<Undoverline> overlines(undoverlines.overlines);

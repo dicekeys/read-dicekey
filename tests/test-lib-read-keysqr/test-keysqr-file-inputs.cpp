@@ -14,15 +14,18 @@ void testFile(
 //  std::cerr << "Using base path" << basePath;
 //	const std::string currentPath = std::string(std::filesystem::current_path().u8string());
 //  std::cerr << "In working directory" << currentPath;
-  cv::Mat image = cv::imread("tests/test-lib-read-keysqr/img/" + filePath, cv::IMREAD_COLOR);
-  ASSERT_FALSE(image.empty()) << "No such file at " << filePath;
+  cv::Mat colorImage = cv::imread("tests/test-lib-read-keysqr/img/" + filePath, cv::IMREAD_COLOR);
+  ASSERT_FALSE(colorImage.empty()) << "No such file at " << filePath;
+	cv::Mat grayscaleImage;
+	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
+
   
   const size_t indexOfLastSlash = filePath.find_last_of("/") + 1;
   const std::string filename = filePath.substr(indexOfLastSlash);
 
   int totalError;
   try {
-    const auto facesRead = readFaces(image, true);
+    const auto facesRead = readFaces(grayscaleImage, true);
     //const cv::Mat faceReadOutput = visualizeReadResults(image, facesRead, true);
     //cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", faceReadOutput);
 

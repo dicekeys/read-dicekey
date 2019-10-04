@@ -16,7 +16,6 @@
 #include "read-face-characters.h"
 
 CharactersReadFromFaces readCharactersOnFace(
-	const cv::Mat& imageColor,
 	const cv::Mat& grayscaleImage,
 	cv::Point2f faceCenter,
 	float angleRadians,

@@ -59,7 +59,7 @@ float findTighestModalAreaOfRects(const std::vector<RectangleDetected> &rects, i
 
 
 // returns sequence of squares detected on the image.
-std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& colorImage, const cv::Mat& grayscaleImage, int N = 13)
+std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& grayscaleImage, int N = 13)
 {
 	std::vector<RectangleDetected> candidateUndoverlines = vfilter<RectangleDetected>(
 		findRectangles(grayscaleImage, N), isRectangleShapedLikeUndoverline);
@@ -207,7 +207,6 @@ Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const cv::RotatedRect 
 }
 
 Undoverline readUndoverline(
-	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage,
 	const cv::RotatedRect &rectEncompassingLine
 ) {
@@ -227,17 +226,16 @@ Undoverline readUndoverline(
 }
 
 UnderlinesAndOverlines findReadableUndoverlines(
-	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage
 ) {
 	const std::vector<RectangleDetected> candidateUndoverlineRects =
-		findCandidateUndoverlines(colorImage, grayscaleImage);
+		findCandidateUndoverlines(grayscaleImage);
 
 	std::vector<Undoverline> underlines;
 	std::vector<Undoverline> overlines;
 
 	for (const RectangleDetected &rectEncompassingLine: candidateUndoverlineRects) {
-		const Undoverline undoverline = readUndoverline(colorImage, grayscaleImage, rectEncompassingLine.rotatedRect);
+		const Undoverline undoverline = readUndoverline(grayscaleImage, rectEncompassingLine.rotatedRect);
 
 		if (undoverline.found && undoverline.determinedIfUnderlineOrOverline) {
 			if (undoverline.isOverline) {

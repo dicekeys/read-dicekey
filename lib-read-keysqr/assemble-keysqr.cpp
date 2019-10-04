@@ -94,7 +94,6 @@ public:
 };
 
 KeySqrGridModel calculateKeySqrGrid(
-	const cv::Mat &colorImage,
 	const FacesAndStrayUndoverlinesFound &facesAndStrayUndoverlinesFound,
 	float maxFractionOffaceWithromRowOrColumnLine = 0.1f // 1 mm
 ) {
@@ -206,14 +205,13 @@ KeySqrGridModel calculateKeySqrGrid(
 }
 
 FacesOrderdWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndoverlines(
-	const cv::Mat &colorImage,
 	const cv::Mat &grayscaleImage,
 	const FacesAndStrayUndoverlinesFound& facesAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine // = 1.0f // 1 mm
 ) {
 	// First, take the faces and undoverlines we've found and try to build
 	// a model a model that describes the locations within a 5x5 grid 
-	auto grid = calculateKeySqrGrid(colorImage, facesAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
+	auto grid = calculateKeySqrGrid(facesAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
 	if (!grid.valid) {
 		return {};
 	}
@@ -234,13 +232,13 @@ FacesOrderdWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndov
 			if (undoverline.isOverline) {
 				orderedFaces[faceIndex].overline = undoverline;
 				if (!orderedFaces[faceIndex].underline.found) {
-					orderedFaces[faceIndex].underline = readUndoverline(colorImage, grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
+					orderedFaces[faceIndex].underline = readUndoverline(grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
 				}
 			}
 			else {
 				orderedFaces[faceIndex].underline = undoverline;
 				if (!orderedFaces[faceIndex].overline.found) {
-					orderedFaces[faceIndex].overline = readUndoverline(colorImage, grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
+					orderedFaces[faceIndex].overline = readUndoverline(grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
 				}
 			}
 			orderedFaces[faceIndex].inferredAngleInRadians = angleOfLineInSignedRadians2f(undoverline.line);
