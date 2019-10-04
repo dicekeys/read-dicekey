@@ -139,9 +139,9 @@ std::string readKeySqrJson (
 	int width,
 	int height,
 	void* data,
-	size_t bytesPerRow = cv::Mat::AUTO_STEP
+	size_t bytesPerRow
 ) {
-  cv::Mat grayscaleImage(cv::Size(width, height), CV_8UC1, data, bytesPerRow);
+  const cv::Mat grayscaleImage(cv::Size(width, height), CV_8UC1, data, bytesPerRow);
   KeySqr keySqr = readKeySqr(grayscaleImage, false);
   return keySqr.toJson();
 }
