@@ -11,6 +11,20 @@
 #include "../lib-keysqr/keysqr.h"
 #include "simple-ocr.h"
 
+KeySqr facesReadToKeySqr(
+	const std::vector<FaceRead> facesRead,
+	bool reportErrsToStdErr = false
+);
+
+KeySqr readKeySqr(
+	const cv::Mat &grayscaleImage,
+	bool outputErrors = false
+);
+
+std::string readKeySqrJson(
+	const cv::Mat &grayscaleImage
+);
+
 
 static const std::chrono::time_point<std::chrono::system_clock> minTimePoint =
 	std::chrono::time_point<std::chrono::system_clock>::min();

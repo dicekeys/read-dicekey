@@ -11,10 +11,129 @@
 #include <iostream>
 #include <math.h>
 
+#include "utilities/bit-operations.h"
+
 #include "keysqr.h"
 #include "read-faces.h"
 #include "read-keysqr.h"
 #include "visualize-read-results.h"
+
+
+
+KeySqr facesReadToKeySqr(
+	const std::vector<FaceRead> facesRead,
+	bool reportErrsToStdErr
+) {
+	if (facesRead.size() != 25) {
+		throw std::string("A KeySqr must contain 25 faces but only has " + std::to_string(facesRead.size()));
+	}
+	std::vector<ElementFace> faces;
+	for (size_t i = 0; i < facesRead.size(); i++) {
+		FaceRead faceRead = facesRead[i];
+		const ElementFaceSpecification &underlineInferred = *faceRead.underline.faceInferred;
+		const ElementFaceSpecification &overlineInferred = *faceRead.overline.faceInferred;
+		const char digitRead = faceRead.ocrDigit.size() == 0 ? '\0' : faceRead.ocrDigit[0].character;
+		const char letterRead = faceRead.ocrLetter.size() == 0 ? '\0' :  faceRead.ocrLetter[0].character;
+		if (!faceRead.underline.found) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Underline for face " << i << " not found\n";
+			}
+		}
+		if (!faceRead.overline.found) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Overline for face " << i << " not found\n";
+			}
+		}
+		if ((faceRead.underline.found && faceRead.overline.found) &&
+			(
+				underlineInferred.letter != overlineInferred.letter ||
+				underlineInferred.digit != overlineInferred.digit) 
+			) {
+			const int bitErrorsIfUnderlineCorrect = hammingDistance(underlineInferred.overlineCode, faceRead.overline.letterDigitEncoding);
+			const int bitErrorsIfOverlineCorrect = hammingDistance(overlineInferred.underlineCode, faceRead.underline.letterDigitEncoding);
+			const int minBitErrors = std::min(bitErrorsIfUnderlineCorrect, bitErrorsIfOverlineCorrect);
+			// report error mismatch between undoverline and overline
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch at face " << i << " between underline and overline: " <<
+					dashIfNull(underlineInferred.letter) << dashIfNull(underlineInferred.digit) << " != " <<
+					dashIfNull(overlineInferred.letter) << dashIfNull(overlineInferred.digit) <<
+					" best explained by "  << minBitErrors <<
+					" bit error in " << 
+						(bitErrorsIfUnderlineCorrect < bitErrorsIfOverlineCorrect ? "overline" : "underline") <<
+					" (ocr returned " << dashIfNull(letterRead) << dashIfNull(digitRead) << ")" <<
+					"\n";
+			}
+		}
+		if (letterRead == 0 && (faceRead.underline.found || faceRead.overline.found)) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Letter at face " << i << " could not be read " <<
+				"(underline=>'" << dashIfNull(underlineInferred.letter) <<
+				"', overline=>'" << dashIfNull(overlineInferred.letter) << "')\n";
+			}
+		}
+		if (digitRead == 0 && (faceRead.underline.found || faceRead.overline.found)) {
+			if (reportErrsToStdErr) {
+				std::cerr << "Digit at face " << i << " could not be read " <<
+				"(underline=>'" << dashIfNull(underlineInferred.digit) <<
+				"', overline=>'" << dashIfNull(overlineInferred.digit) << "')\n";
+			}
+		}
+		if (letterRead && (faceRead.underline.found || faceRead.overline.found) &&
+			letterRead != underlineInferred.letter && letterRead != overlineInferred.letter) {
+			// report OCR error on letter
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch at face " << i << " between ocr letter, '" << letterRead <<
+				"', the underline ('" << dashIfNull(underlineInferred.letter) <<
+				"'), and overline ('" << dashIfNull(overlineInferred.letter) << "')\n";
+			}
+		}
+		if (digitRead && (faceRead.underline.found || faceRead.overline.found) &&
+			digitRead != underlineInferred.digit && digitRead != overlineInferred.digit) {
+			// report OCR error on digit
+			if (reportErrsToStdErr) {
+				std::cerr << "Mismatch at face " << i << " between ocr digit, '" << digitRead <<
+				"', the underline ('" << dashIfNull(underlineInferred.digit) <<
+				"'), and overline ('" << dashIfNull(overlineInferred.digit) << ")'\n";
+			}
+		}
+
+		faces.push_back(ElementFace(
+			majorityOfThree(
+				underlineInferred.letter, overlineInferred.letter, letterRead
+			),
+			majorityOfThree(
+				underlineInferred.digit, overlineInferred.digit, digitRead
+			),
+			faceRead.orientationAs0to3ClockwiseTurnsFromUpright,
+			faceRead.error()
+			));
+	}
+	return KeySqr(faces);
+}
+
+
+KeySqr readKeySqr(
+	const cv::Mat &grayscaleImage,
+	bool outputErrors
+) {
+  const ReadFaceResult facesRead = readFaces(grayscaleImage, outputErrors);
+  if (!facesRead.success) {
+    return KeySqr();
+  }
+  try {
+    return facesReadToKeySqr(facesRead.faces, outputErrors);
+  } catch (...) {
+    return KeySqr();
+  }
+}
+
+std::string readKeySqrJson(
+	const cv::Mat &grayscaleImage
+) {
+  KeySqr keySqr = readKeySqr(grayscaleImage, false);
+  return keySqr.toJson();
+}
+
 
 const unsigned int maxCorrectableError = 2;
 const int millisecondsToTryToRemoveCorrectableErrors = 4000;

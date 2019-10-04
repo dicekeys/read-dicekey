@@ -59,8 +59,3 @@ ReadFaceResult readFaces(
 	const cv::Mat &grayscaleImage,
 	bool outputOcrErrors = false
 );
-
-KeySqr facesReadToKeySqr(
-	const std::vector<FaceRead> facesRead,
-	bool reportErrsToStdErr = false
-);
