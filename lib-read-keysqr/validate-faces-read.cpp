@@ -6,6 +6,7 @@
 #include "utilities/vfunctional.h"
 #include "keysqr.h"
 #include "read-faces.h"
+#include "read-keysqr.h"
 #include "validate-faces-read.h"
 
 /*
