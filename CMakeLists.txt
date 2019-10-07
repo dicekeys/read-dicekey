@@ -41,36 +41,64 @@ else()
     cmake_policy(VERSION 3.15)
 endif()
 
-##################### Variables ############################
-# Change if you want modify path or other values           #
-############################################################
 
-# Project
+################# CMake Project ############################
+# The main options of project                              #
+############################################################
 set(PROJECT_NAME lib-read-keysqr)
 project(${PROJECT_NAME}
     VERSION 0.10
     DESCRIPTION "Libraries for working with KeySqrs and scanning images of them."
     LANGUAGES CXX
 )
-get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
-message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
-message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
-
-# Outputs
-set(BIN_DIR ${PROJECT_DIR}/bin)
-set(LIB_DIR ${PROJECT_DIR}/lib)
-
-################# CMake Project ############################
-# The main options of project                              #
-############################################################
-
-project(${PROJECT_NAME} CXX)
-
 # Define Release by default.
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
   message(STATUS "Build type not specified: Use Release by default.")
 endif(NOT CMAKE_BUILD_TYPE)
+get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
+
+
+# Paths
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+#set(CMAKE_PROJECT_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+#set(CMAKE_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+#set(CMAKE_LIBRARY_DIR "${PROJECT_DIR}/build/lib" CACHE PATH FORCE)
+#set(CMAKE_CURRENT_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+#set(CMAKE_CURRENT_LIBRARY_DIR "${PROJECT_DIR}/build/lib" CACHE PATH FORCE)
+#set(BIN_DIR ${PROJECT_DIR}/bin)
+#set(LIB_DIR ${PROJECT_DIR}/lib)
+
+message("${PROJECT_NAME}: MAIN PROJECT CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message("${PROJECT_NAME}: MAIN PROJECT CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
+message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
+
+
+####################################################
+# External libraries to build
+#
+####################################################
+# OpenCV
+
+# Turn off features we don't need ...
+set(BUILD_EXAMPLES OFF CACHE BOOL "")
+set(BUILD_PERF_TESTS OFF CACHE BOOL "")
+set(BUILD_TESTS OFF CACHE BOOL "")
+set(BUILD_DOCS OFF CACHE BOOL "")
+set(WITH_OPENMP OFF CACHE BOOL "")
+set(WITH_TBB OFF CACHE BOOL "")
+set(WITH_MKL OFF CACHE BOOL "")
+set(MKL_WITH_TBB OFF CACHE BOOL "")
+set(MKL_WITH_OPENMP OFF CACHE BOOL "")
+
+set(OPENCV_SRC_DIR "${PROJECT_DIR}/extern/opencv")
+set(OPENCV_BIN_DIR "${PROJECT_DIR}/extern/opencv/build")
+message("OpenCV SrcDir: ${OPENCV_SRC_DIR} BinDIr: ${OPENCV_BIN_DIR}")
+add_subdirectory("${PROJECT_DIR}/extern/opencv")
 
 ####################################################
 # Libraries to build
@@ -95,13 +123,13 @@ endif()
 
 
 # Ensure OpenCV is installed
-find_package( OpenCV REQUIRED )
+# find_package( OpenCV REQUIRED )
 
 # Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
 # (public)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-    ${OpenCV_LIBS}
+    ${OpenCV_LIBS} #FIXME
     lib-keysqr
 )
 
