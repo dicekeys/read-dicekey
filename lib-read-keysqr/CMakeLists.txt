@@ -27,8 +27,9 @@ target_include_directories(
         PUBLIC
         "../lib-keysqr"
         # Removed ${OpenCV_INCLUDE_DIRS} 
-        ${PROJECT_DIR}/extern/opencv/include
-
+        ${PROJECT_DIR}/extern/opencv/modules/core/include
+        ${PROJECT_DIR}/extern/opencv/modules/imgproc/include
+        ${PROJECT_DIR}/extern/opencv/modules/imgcodecs/include
 )
 
 # Use C++ 17
