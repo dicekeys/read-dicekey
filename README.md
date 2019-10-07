@@ -29,7 +29,8 @@ Since we include GoogleTest as a submodule, you will need to clone this reposito
 ```
 git clone --recursive https://github.com/UppaJung/read-keysqr.git
 cd read-keysqr
-cmake .
+cmake -B build
+cd build
 make
 ctest
 ```
