@@ -1,12 +1,7 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 #pragma once
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-
+#include "graphics/cv.h"
 #include "find-undoverlines.h"
 #include "find-faces.h"
 #include "read-faces.h"

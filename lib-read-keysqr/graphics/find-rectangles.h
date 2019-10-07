@@ -3,13 +3,7 @@
 #pragma once
 
 #include <float.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-
-#include <iostream>
+#include "cv.h"
 #include "rectangle.h"
 
 std::vector<RectangleDetected> removeOverlappingRectangles(

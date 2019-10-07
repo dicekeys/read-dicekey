@@ -1,9 +1,8 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 #include <string>
 #include <iostream>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
 #include "utilities/vfunctional.h"
+#include "graphics/cv.h"
 #include "keysqr.h"
 #include "read-faces.h"
 #include "read-keysqr.h"

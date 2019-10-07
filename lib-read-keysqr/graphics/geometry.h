@@ -3,13 +3,8 @@
 #pragma once
 
 #include <float.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-
 #include "../utilities/statistics.h"
+#include "cv.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

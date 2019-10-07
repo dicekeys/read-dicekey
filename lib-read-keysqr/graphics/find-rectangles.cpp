@@ -1,14 +1,9 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
 #include <float.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-
 #include <iostream>
 #include "../utilities/vfunctional.h"
+#include "cv.h"
 #include "rectangle.h"
 #include "find-rectangles.h"
 
@@ -94,7 +89,7 @@ std::vector<RectangleDetected> findRectangles(
 
 		// find contours and store them all as a list
 		std::vector<std::vector<cv::Point>> contours;
-		findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+		cv::findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
 		contours = vfilter<std::vector<cv::Point>>(contours, [minPerimeter](const std::vector<cv::Point> *contour) -> bool {
 			return cv::arcLength(*contour, false) >= minPerimeter;

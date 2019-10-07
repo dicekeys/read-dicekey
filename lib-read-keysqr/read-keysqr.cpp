@@ -2,17 +2,11 @@
 
 #include <float.h>
 #include <chrono>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-
 #include <iostream>
 #include <math.h>
 
 #include "utilities/bit-operations.h"
-
+#include "graphics/cv.h"
 #include "keysqr.h"
 #include "read-faces.h"
 #include "read-keysqr.h"
