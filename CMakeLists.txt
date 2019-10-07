@@ -1,14 +1,13 @@
 #######################################################################
 # IMPORTANT SHORTCOMINGS OF THIS CMAKE CONFIG FOR VISUAL STUDIO USERS
 #
-# CMake fails to configure the working directory for running
-# tests in Visual Studio using Google Test.
-# Before running, got to Visual Studio's debug menu,
-# choose the "options" item, and then go to the
-# "TestAdapterForGoogleTest" tab.
-# Set "Working Directory" to "$(SolutionDir)"
-# (note, those are parens around SolutionDir, and not braces
-#  as one might become accustomed to seeing in CMake).
+# Visual Studio unfortunatly defaults to overriding the working directory
+# for Google Test set by CMAKE.
+# To fix this
+#    go to Visual Studio's debug menu or tool menu,
+#    choose the "options" item, and then
+#    go to the "Test Adapter For GoogleTest" tab.
+#    Clear the "Working Directory" field to an empty string.
 #
 #######################################################################
 message("

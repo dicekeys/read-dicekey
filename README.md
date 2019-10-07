@@ -15,11 +15,9 @@ vcpck install opencv
 ```
 Install cmake from the installer downloadable from https://cmake.org/download/.
 
-**Important**: Visual studio will not be able to read the test images from the right
-directory if the preferences for the Google Test directory have been set within
-Visual Studio.  You will need to clear that setting. Go t
-Test Adapter for Google Test -> Test Exectuion -> Working Directory
-Clear the "Working Directory" Field.
+**Important**: Visual Studio unfortunatly defaults to overriding the working directory for Google Test set by CMAKE.  To fix this go to Visual Studio's debug menu or tool menu, choose the "options" item, and then go to the "Test Adapter For GoogleTest" tab.
+Clear the "Working Directory" field to an empty string
+
 
 ## Install
 
