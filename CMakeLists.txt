@@ -83,11 +83,17 @@ message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT
 ####################################################
 # OpenCV
 
+set(BUILD_LIST "core,imgcodecs,imgproc" CACHE STRING "BUild list for OpenCV")
 # Turn off features we don't need ...
 set(BUILD_EXAMPLES OFF CACHE BOOL "")
 set(BUILD_PERF_TESTS OFF CACHE BOOL "")
 set(BUILD_TESTS OFF CACHE BOOL "")
 set(BUILD_DOCS OFF CACHE BOOL "")
+set(BUILD_PYTHON OFF CACHE BOOL "")
+
+set(WITH_TIFF OFF CACHE BOOL "")
+
+set(WITH_OPENCL OFF CACHE BOOL "")
 set(WITH_OPENMP OFF CACHE BOOL "")
 set(WITH_TBB OFF CACHE BOOL "")
 set(WITH_MKL OFF CACHE BOOL "")
