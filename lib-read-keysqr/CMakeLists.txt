@@ -18,6 +18,7 @@ file(GLOB ALL_SRC_FILES
 #source_group("Sources" FILES ${SRC_FILES})
 #source_group("Headers" FILES ${HEADERS_FILES})
 
+
 add_library(${PROJECT_NAME}
     STATIC
    ${ALL_SRC_FILES})
@@ -26,22 +27,15 @@ target_include_directories(
     ${PROJECT_NAME} 
         PUBLIC
         "../lib-keysqr"
-        # Removed ${OpenCV_INCLUDE_DIRS} 
-        ${PROJECT_DIR}/extern/opencv/modules/core/include
-        ${PROJECT_DIR}/extern/opencv/modules/imgproc/include
-        ${PROJECT_DIR}/extern/opencv/modules/imgcodecs/include
-        ${CMAKE_BINARY_DIR}
+        ${OpenCV_INCLUDE_DIRS}
 )
 
-message("OpenCV Lib locations: ${CMAKE_BINARY_DIR}/opencv_cored.pdb, "
-    "${CMAKE_BINARY_DIR}/opencv_imgproc.pdb"
-)
+message("OpenCV Lib locations: ${OpenCV_LIBS}")
 # Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
 # (public)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-    "${CMAKE_BINARY_DIR}/opencv_cored.pdb"
-    "${CMAKE_BINARY_DIR}/opencv_imgproc.pdb"
+    ${OpenCV_LIBS}
     lib-keysqr
 )
 

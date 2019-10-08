@@ -63,47 +63,51 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-#set(CMAKE_PROJECT_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-#set(CMAKE_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-#set(CMAKE_LIBRARY_DIR "${PROJECT_DIR}/build/lib" CACHE PATH FORCE)
-#set(CMAKE_CURRENT_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-#set(CMAKE_CURRENT_LIBRARY_DIR "${PROJECT_DIR}/build/lib" CACHE PATH FORCE)
-#set(BIN_DIR ${PROJECT_DIR}/bin)
-#set(LIB_DIR ${PROJECT_DIR}/lib)
+    #set(CMAKE_PROJECT_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+    #set(CMAKE_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+    #set(CMAKE_LIBRARY_DIR "${PROJECT_DIR}/build/lib" CACHE PATH FORCE)
+    #set(CMAKE_CURRENT_BINARY_DIR "${PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+    #set(CMAKE_CURRENT_LIBRARY_DIR "${PROJECT_DIR}/build/lib" CACHE PATH FORCE)
+    #set(BIN_DIR ${PROJECT_DIR}/bin)
+    #set(LIB_DIR ${PROJECT_DIR}/lib)
 
-message("${PROJECT_NAME}: MAIN PROJECT CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
-message("${PROJECT_NAME}: MAIN PROJECT CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
-message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
+    message("${PROJECT_NAME}: MAIN PROJECT CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+    message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+    message("${PROJECT_NAME}: MAIN PROJECT CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
+    message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 
 
-####################################################
-# External libraries to build
-#
-####################################################
-# OpenCV
+    ####################################################
+    # External libraries to build
+    #
+    ####################################################
+    # Ensure OpenCV is installed
+    find_package( OpenCV REQUIRED )
 
-set(BUILD_LIST "core,imgcodecs,imgproc" CACHE STRING "Build list for OpenCV")
-# Turn off features we don't need ...
-set(BUILD_EXAMPLES OFF CACHE BOOL "")
-set(BUILD_PERF_TESTS OFF CACHE BOOL "")
-set(BUILD_TESTS OFF CACHE BOOL "")
-set(BUILD_DOCS OFF CACHE BOOL "")
-set(BUILD_PYTHON OFF CACHE BOOL "")
 
-set(WITH_TIFF OFF CACHE BOOL "")
+    # OpenCV
 
-set(WITH_OPENCL OFF CACHE BOOL "")
-set(WITH_OPENMP OFF CACHE BOOL "")
-set(WITH_TBB OFF CACHE BOOL "")
-set(WITH_MKL OFF CACHE BOOL "")
-set(MKL_WITH_TBB OFF CACHE BOOL "")
-set(MKL_WITH_OPENMP OFF CACHE BOOL "")
+    set(BUILD_LIST "core,imgcodecs,imgproc" CACHE STRING "Build list for OpenCV")
+    # Turn off features we don't need ...
+#    set(BUILD_EXAMPLES OFF CACHE BOOL "")
+#    set(BUILD_PERF_TESTS OFF CACHE BOOL "")
+#    set(BUILD_TESTS OFF CACHE BOOL "")
+#    set(BUILD_DOCS OFF CACHE BOOL "")
+#    set(BUILD_PYTHON OFF CACHE BOOL "")
 
-set(OPENCV_SRC_DIR "${PROJECT_DIR}/extern/opencv")
-set(OPENCV_BIN_DIR "${PROJECT_DIR}/extern/opencv/build")
-message("OpenCV SrcDir: ${OPENCV_SRC_DIR} BinDIr: ${OPENCV_BIN_DIR}")
-add_subdirectory("${PROJECT_DIR}/extern/opencv")
+#    set(WITH_TIFF OFF CACHE BOOL "")
+
+#    set(WITH_OPENCL OFF CACHE BOOL "")
+#    set(WITH_OPENMP OFF CACHE BOOL "")
+#    set(WITH_TBB OFF CACHE BOOL "")
+#    set(WITH_MKL OFF CACHE BOOL "")
+#    set(MKL_WITH_TBB OFF CACHE BOOL "")
+#    set(MKL_WITH_OPENMP OFF CACHE BOOL "")
+
+#    set(OPENCV_SRC_DIR "${PROJECT_DIR}/extern/opencv")
+#    set(OPENCV_BIN_DIR "${PROJECT_DIR}/extern/opencv/build")
+#    message("OpenCV SrcDir: ${OPENCV_SRC_DIR} BinDIr: ${OPENCV_BIN_DIR}")
+#    add_subdirectory("${PROJECT_DIR}/extern/opencv")
 
 ####################################################
 # Libraries to build
@@ -125,10 +129,6 @@ if(PACKAGE_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
-
-
-# Ensure OpenCV is installed
-# find_package( OpenCV REQUIRED )
 
 
 ######################### Flags ############################
