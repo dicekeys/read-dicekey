@@ -26,6 +26,8 @@ add_library(${PROJECT_NAME}
 #  -DCMAKE_INSTALL_PREFIX="$myRepo"/install/"$RepoSource" "$myRepo/$RepoSource"
 #        -DCMAKE_TOOLCHAIN_FILE=<path to the OpenCV source directory>/platforms/linux/arm-gnueabi.toolchain.cmake
 
+# See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
+
 #add_custom_command(TARGET ${PROJECT_NAME}
 #    PRE_BUILD
 #    COMMAND cmake \
