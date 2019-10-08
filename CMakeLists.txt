@@ -83,7 +83,7 @@ message("${PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT
 ####################################################
 # OpenCV
 
-set(BUILD_LIST "core,imgcodecs,imgproc" CACHE STRING "BUild list for OpenCV")
+set(BUILD_LIST "core,imgcodecs,imgproc" CACHE STRING "Build list for OpenCV")
 # Turn off features we don't need ...
 set(BUILD_EXAMPLES OFF CACHE BOOL "")
 set(BUILD_PERF_TESTS OFF CACHE BOOL "")
@@ -134,7 +134,8 @@ endif()
 # (public)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-    ${OpenCV_LIBS} #FIXME
+    "${CMAKE_PROJECT_BINARY_DIR}/opencv_core411d.pdb"
+    "${CMAKE_PROJECT_BINARY_DIR}/opencv_imgproc.pdb"
     lib-keysqr
 )
 
