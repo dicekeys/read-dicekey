@@ -9,7 +9,6 @@
 
 #include "undoverline.h"
 #include "../lib-keysqr/keysqr.h"
-#include "simple-ocr.h"
 
 class FaceRead {
 public:
