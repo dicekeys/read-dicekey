@@ -32,7 +32,7 @@ target_include_directories(
         ${PROJECT_DIR}/extern/opencv/modules/imgcodecs/include
 )
 
-# Use C++ 17
+# Use C++ 11
 set_target_properties(${PROJECT_NAME}  PROPERTIES
-	CXX_STANDARD 17
+	CXX_STANDARD 11
 )

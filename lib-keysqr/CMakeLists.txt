@@ -10,7 +10,7 @@ add_library(lib-keysqr
     ${LIB_KEYSQR_SRCS}
 )
 
-# Use C++ 17
+# Use C++ 11
 set_target_properties(lib-keysqr PROPERTIES
-	CXX_STANDARD 17
+	CXX_STANDARD 11
 )

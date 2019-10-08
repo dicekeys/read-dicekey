@@ -35,7 +35,7 @@ macro(package_add_test TESTNAME FILES LIBRARIES)
     target_link_libraries(${TESTNAME} gtest gmock gtest_main "${LIBRARIES}")
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
     set_target_properties(${TESTNAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-    set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD 17)
+    set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD 11)
     # set_target_properties(${TESTNAME} PROPERTIES ENVIRONMENT "TEST_DIR=${PROJECT_DIR}")
     set_target_properties(${TESTNAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}")
     gtest_discover_tests(${TESTNAME}
