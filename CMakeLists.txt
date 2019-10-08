@@ -130,15 +130,6 @@ endif()
 # Ensure OpenCV is installed
 # find_package( OpenCV REQUIRED )
 
-# Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
-# (public)
-target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-    "${CMAKE_PROJECT_BINARY_DIR}/opencv_core411d.pdb"
-    "${CMAKE_PROJECT_BINARY_DIR}/opencv_imgproc.pdb"
-    lib-keysqr
-)
-
 
 ######################### Flags ############################
 # Defines Flags for Windows and Linux                      #

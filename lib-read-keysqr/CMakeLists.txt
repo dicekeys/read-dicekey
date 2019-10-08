@@ -33,6 +33,19 @@ target_include_directories(
         ${CMAKE_BINARY_DIR}
 )
 
+message("OpenCV Lib locations: ${CMAKE_BINARY_DIR}/opencv_cored.pdb, "
+    "${CMAKE_BINARY_DIR}/opencv_imgproc.pdb"
+)
+# Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
+# (public)
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+    "${CMAKE_BINARY_DIR}/opencv_cored.pdb"
+    "${CMAKE_BINARY_DIR}/opencv_imgproc.pdb"
+    lib-keysqr
+)
+
+
 # Use C++ 11
 set_target_properties(${PROJECT_NAME}  PROPERTIES
 	CXX_STANDARD 11
