@@ -18,10 +18,26 @@ file(GLOB ALL_SRC_FILES
 #source_group("Sources" FILES ${SRC_FILES})
 #source_group("Headers" FILES ${HEADERS_FILES})
 
-
 add_library(${PROJECT_NAME}
     STATIC
    ${ALL_SRC_FILES})
+
+#  -DOPENCV_EXTRA_MODULES_PATH="$myRepo"/opencv_contrib/modules
+#  -DCMAKE_INSTALL_PREFIX="$myRepo"/install/"$RepoSource" "$myRepo/$RepoSource"
+#        -DCMAKE_TOOLCHAIN_FILE=<path to the OpenCV source directory>/platforms/linux/arm-gnueabi.toolchain.cmake
+
+#add_custom_command(TARGET ${PROJECT_NAME}
+#    PRE_BUILD
+#    COMMAND cmake \
+#        -G"$CMAKE_CONFIG_GENERATOR" \
+#        CMAKE_OPTIONS='-DBUILD_PERF_TESTS:BOOL=OFF \
+#        -DBUILD_TESTS:BOOL=OFF \
+#        -DBUILD_DOCS:BOOL=OFF \
+#        -DWITH_CUDA:BOOL=OFF \
+#        -DBUILD_EXAMPLES:BOOL=OFF \
+#        -DINSTALL_CREATE_DISTRIB=ON' \
+#        "${PROJECT_NAME}/extern/opencv/build/"
+#)
 
 target_include_directories(
     ${PROJECT_NAME} 
@@ -30,12 +46,16 @@ target_include_directories(
         ${OpenCV_INCLUDE_DIRS}
 )
 
-message("OpenCV Lib locations: ${OpenCV_LIBS}")
+
+set(REDUCED_OpenCV_LIBS, "opencv_core;opencv_features2d;opencv_imgproc")
+
+message("All OpenCV Lib locations: ${OpenCV_LIBS}")
+message("Reduced OpenCV libs: ${REDUCED_OpenCV_LIBS}")
 # Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
 # (public)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-    ${OpenCV_LIBS}
+    ${REDUCED_OpenCV_LIBS}
     lib-keysqr
 )
 
