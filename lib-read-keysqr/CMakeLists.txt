@@ -30,6 +30,7 @@ target_include_directories(
         ${PROJECT_DIR}/extern/opencv/modules/core/include
         ${PROJECT_DIR}/extern/opencv/modules/imgproc/include
         ${PROJECT_DIR}/extern/opencv/modules/imgcodecs/include
+        ${CMAKE_BINARY_DIR}
 )
 
 # Use C++ 11
