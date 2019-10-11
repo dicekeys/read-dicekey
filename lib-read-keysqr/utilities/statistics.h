@@ -63,7 +63,7 @@ inline NUMBER medianInRange(
 	const size_t fromIndexInclusive,
 	const size_t toIndexExclusive
 ) {
-	if (toIndexExclusive <= fromIndexInclusive) { throw "Invalid parameter" };
+	if (toIndexExclusive <= fromIndexInclusive) { throw "Invalid parameter"; };
   const size_t numValues = toIndexExclusive - fromIndexInclusive;
 	return (numValues & 1) ?
 		// Odd number of samples, so median is the one in the middle
