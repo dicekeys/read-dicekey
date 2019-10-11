@@ -37,7 +37,7 @@ UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned int binar
 	const bool isOverline = (binaryEncoding >> 9) & 1;
 	const unsigned char letterDigitEncoding = (binaryEncoding >> 1) & 0xff;
 	return {
-		true, // isValid = true, encdoing was valid
+		true, // isValid = true, encoding was valid
 		wasReadInReverseOrder,
 		isOverline,
 //		orientationAs0to3ClockwiseTurnsFromUpright,

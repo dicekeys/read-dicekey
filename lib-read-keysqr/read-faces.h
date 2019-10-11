@@ -49,7 +49,7 @@ struct ReadFaceResult {
 //	public:
 	bool success;
 	std::vector<FaceRead> faces;
-	float angleInRadiansNonCononicalForm;
+	float angleInRadiansNonCanonicalForm;
 	float pixelsPerFaceEdgeWidth;
 	std::vector<FaceRead> strayFaces;
 	std::vector<Undoverline> strayUndoverlines;
