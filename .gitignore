@@ -65,3 +65,5 @@ tesseract.log
 dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
 extern/builds/*
 extern/*/**
+extern/opencv
+extern/build
