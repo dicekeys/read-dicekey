@@ -28,7 +28,7 @@ add_library(${PROJECT_NAME}
 
 # See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
 
-message("Target OpenCV include dirs: ${OPENCV_INCLUDE_DIR}")
+message("${PROJECT_NAME}: Target OpenCV include dirs: ${OPENCV_INCLUDE_DIR}")
 target_include_directories(
     ${PROJECT_NAME} 
         PUBLIC
