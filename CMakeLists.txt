@@ -58,6 +58,11 @@ endif(NOT CMAKE_BUILD_TYPE)
 get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 
 
+set (OPENCV_INCLUDE_DIR "$PROJECT_DIR/builds/include")
+set (OPENCV_LIB_DIR "$PROJECT_DIF/builds/opencv/sdk/native/libs/$ANDROID_ABI")
+message("OPENCV_INCLUDE_DIR $OPENCV_INCLUDE_DIR")
+message("OPENCV_LIB_DIR $OPENCV_LIB_DIR")
+
 # Paths
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -82,7 +87,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     #
     ####################################################
     # Ensure OpenCV is installed
-    find_package( OpenCV REQUIRED )
+    #find_package( OpenCV REQUIRED )
 
 
     # OpenCV

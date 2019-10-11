@@ -28,24 +28,11 @@ add_library(${PROJECT_NAME}
 
 # See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
 
-#add_custom_command(TARGET ${PROJECT_NAME}
-#    PRE_BUILD
-#    COMMAND cmake \
-#        -G"$CMAKE_CONFIG_GENERATOR" \
-#        CMAKE_OPTIONS='-DBUILD_PERF_TESTS:BOOL=OFF \
-#        -DBUILD_TESTS:BOOL=OFF \
-#        -DBUILD_DOCS:BOOL=OFF \
-#        -DWITH_CUDA:BOOL=OFF \
-#        -DBUILD_EXAMPLES:BOOL=OFF \
-#        -DINSTALL_CREATE_DISTRIB=ON' \
-#        "${PROJECT_NAME}/extern/opencv/build/"
-#)
-
 target_include_directories(
     ${PROJECT_NAME} 
         PUBLIC
         "../lib-keysqr"
-        ${OpenCV_INCLUDE_DIRS}
+        ${OPENCV_INCLUDE_DIRS}
 )
 
 
@@ -57,7 +44,9 @@ message("Reduced OpenCV libs: ${REDUCED_OpenCV_LIBS}")
 # (public)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-    ${REDUCED_OpenCV_LIBS}
+    ${OPENCV_LIB_DIR}/libopencv_core      #.so
+    ${OPENCV_LIB_DIR}/libopencv_imgcodecs #.so
+    ${OPENCV_LIB_DIR}/libopencv_imgproc   #.so
     lib-keysqr
 )
 
