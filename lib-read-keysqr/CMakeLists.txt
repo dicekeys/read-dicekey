@@ -28,18 +28,19 @@ add_library(${PROJECT_NAME}
 
 # See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
 
+message("Target OpenCV include dirs: ${OPENCV_INCLUDE_DIR}")
 target_include_directories(
     ${PROJECT_NAME} 
         PUBLIC
         "../lib-keysqr"
-        ${OPENCV_INCLUDE_DIRS}
+        ${OPENCV_INCLUDE_DIR}
 )
 
 
 set(REDUCED_OpenCV_LIBS, "opencv_core;opencv_features2d;opencv_imgproc")
 
-message("All OpenCV Lib locations: ${OpenCV_LIBS}")
-message("Reduced OpenCV libs: ${REDUCED_OpenCV_LIBS}")
+# message("All OpenCV Lib locations: ${OpenCV_LIBS}")
+# message("Reduced OpenCV libs: ${REDUCED_OpenCV_LIBS}")
 # Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
 # (public)
 target_link_libraries(${PROJECT_NAME}
