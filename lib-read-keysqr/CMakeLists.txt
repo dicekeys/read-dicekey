@@ -32,7 +32,7 @@ message("${PROJECT_NAME}: Target OpenCV include dirs: ${OPENCV_INCLUDE_DIR}")
 target_include_directories(
     ${PROJECT_NAME} 
         PUBLIC
-        "../lib-keysqr"
+        ${CMAKE_SOURCE_DIR}/lib-keysqr
         ${OPENCV_INCLUDE_DIR}
 )
 
@@ -46,7 +46,7 @@ set(REDUCED_OpenCV_LIBS, "opencv_core;opencv_features2d;opencv_imgproc")
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
     ${OPENCV_LIB_DIR}/libopencv_core      #.so
-    ${OPENCV_LIB_DIR}/libopencv_imgcodecs #.so
+#    ${OPENCV_LIB_DIR}/libopencv_imgcodecs #.so
     ${OPENCV_LIB_DIR}/libopencv_imgproc   #.so
     lib-keysqr
 )
