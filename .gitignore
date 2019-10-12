@@ -68,3 +68,4 @@ extern/*/**
 extern/opencv
 extern/build
 builds
+.vscode/c_cpp_properties.json
