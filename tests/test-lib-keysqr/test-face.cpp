@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "../../lib-keysqr/element-face.h"
+#include "element-face.h"
 
 
 TEST(face, Inits) {

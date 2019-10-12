@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include "../../lib-read-keysqr/read-keysqr.h"
-#include "../../lib-read-keysqr/validate-faces-read.h"
+#include "read-keysqr.h"
+#include "validate-faces-read.h"
 
 void testFile(
   std::string filePath = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".jpg",

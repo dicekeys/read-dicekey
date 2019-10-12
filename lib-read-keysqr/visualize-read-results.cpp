@@ -44,7 +44,7 @@ cv::Mat visualizeReadResults(
       if (error.magnitude > 0) {
         drawRotatedRect(
           resultImage,
-          cv::RotatedRect(face.center, cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCononicalForm)),
+          cv::RotatedRect(face.center, cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
           errorMagnitudeToColor(error.magnitude).scalar,
           error.magnitude == 0 ? thinLineThickness : thickLineThickness
         );
@@ -76,7 +76,7 @@ cv::Mat visualizeReadResults(
   for (FaceRead face: facesRead.strayFaces) {
       drawRotatedRect(
         resultImage,
-        cv::RotatedRect(face.center, cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCononicalForm)),
+        cv::RotatedRect(face.center, cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
         colorBigErrorRed.scalar, 1
       );
   }

@@ -47,9 +47,9 @@ FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 				if (angleInRadians > (M_PI)) {
 					angleInRadians -= float(2 * M_PI);
 				}
-				facesFound.push_back({
+				facesFound.push_back( FaceRead(
 					underline, overlines[i], center, angleInRadians
-				});
+				));
 				// Remove the ith element of overlines
 				overlines.erase(overlines.begin() + i);
 			}

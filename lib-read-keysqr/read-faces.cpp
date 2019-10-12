@@ -133,7 +133,7 @@ ReadFaceResult readFaces(
 		return { false, {}, 0, 0, facesAndStrayUndoverlinesFound.facesFound, facesAndStrayUndoverlinesFound.strayUndoverlines };
 	}
 	std::vector<FaceRead> ordeeredFaces = orderedFacesResult.orderedFaces;
-	const float angleOfKeySqrInRadiansNonCononicalForm = orderedFacesResult.angleInRadiansNonCononicalForm;
+	const float angleOfKeySqrInRadiansNonCanonicalForm = orderedFacesResult.angleInRadiansNonCanonicalForm;
 
 	for (auto &face : ordeeredFaces) {
 		if (!(face.underline.determinedIfUnderlineOrOverline || face.overline.determinedIfUnderlineOrOverline)) {
@@ -158,7 +158,7 @@ ReadFaceResult readFaces(
 		);
 			
 		
-		const float orientationInRadians = face.inferredAngleInRadians - angleOfKeySqrInRadiansNonCononicalForm;
+		const float orientationInRadians = face.inferredAngleInRadians - angleOfKeySqrInRadiansNonCanonicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
 		face.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
@@ -166,5 +166,5 @@ ReadFaceResult readFaces(
 		face.ocrDigit = charsRead.digitsMostLikelyFirst;
 	}
 
-	return { true, ordeeredFaces, orderedFacesResult.angleInRadiansNonCononicalForm, orderedFacesResult.pixelsPerFaceEdgeWidth, {} };
+	return { true, ordeeredFaces, orderedFacesResult.angleInRadiansNonCanonicalForm, orderedFacesResult.pixelsPerFaceEdgeWidth, {} };
 }
