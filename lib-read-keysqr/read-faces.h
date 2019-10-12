@@ -19,6 +19,20 @@ public:
 	cv::Point2f center = cv::Point2f{ 0, 0 };
 	float inferredAngleInRadians = 0;
 
+	FaceRead() {}
+
+	FaceRead(
+		Undoverline _underline,
+		Undoverline _overline,
+		cv::Point2f _center,
+		float _inferredAngleInRadians
+	) {
+		underline = _underline;
+		overline = _overline;
+		center = _center;
+		inferredAngleInRadians = _inferredAngleInRadians;
+	}
+
 	// Calculated after face location and angle are derived from
 	// the underline and/or overline (both if possible)
 	unsigned char orientationAs0to3ClockwiseTurnsFromUpright;

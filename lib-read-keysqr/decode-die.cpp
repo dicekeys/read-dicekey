@@ -23,7 +23,7 @@ UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned int binar
 		// of the underline.
 		// Thus, either the first or last bit should be set to 1,
 		// but never neither or both.
-		return {false};
+		return UndoverlineTypeOrientationAndEncoding();
 	}
 
 	const bool wasReadInReverseOrder = lastBitRead;
@@ -36,11 +36,9 @@ UndoverlineTypeOrientationAndEncoding decodeUndoverline11Bits(unsigned int binar
 
 	const bool isOverline = (binaryEncoding >> 9) & 1;
 	const unsigned char letterDigitEncoding = (binaryEncoding >> 1) & 0xff;
-	return {
-		true, // isValid = true, encoding was valid
+	return UndoverlineTypeOrientationAndEncoding(
 		wasReadInReverseOrder,
 		isOverline,
-//		orientationAs0to3ClockwiseTurnsFromUpright,
 		letterDigitEncoding
-	};
+    );
 }
