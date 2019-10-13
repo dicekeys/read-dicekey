@@ -11,7 +11,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # Now bring in the Google Test subdirectory.
 # How did it get here?  We used:
 # > git submodule add https://github.com/google/googletest.git extern/googletest
-add_subdirectory("${KEYSQR_LIBRARIES_PROJECT_SOURCE_DIR}/extern/googletest" "extern/googletest")
+add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "extern/googletest")
 
 include_directories(
   ${KEYSQR_LIBRARIES_PROJECT_DIR}/extern/googletest/googletest/include

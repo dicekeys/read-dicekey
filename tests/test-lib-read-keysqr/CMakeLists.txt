@@ -9,6 +9,6 @@ target_include_directories(
     test-keysqr-file-inputs
         PUBLIC
         ${OpenCV_INCLUDE_DIRS}
-        ${KEYSQR_LIBRARIES_PROJECT_DIR}/lib-keysqr
-        ${KEYSQR_LIBRARIES_PROJECT_DIR}/lib-read-keysqr
+        ${PROJECT_SOURCE_DIR}/lib-keysqr
+        ${PROJECT_SOURCE_DIR}/lib-read-keysqr
 )
