@@ -2,14 +2,14 @@ CURRENT_DIR=`pwd`
 PARENT_DIR="$(dirname "$CURRENT_DIR")"
 INSTALL_DIR=${1:-$PARENT_DIR/builds/opencv}
 INCLUDE_DIR=${2:-$PARENT_DIR/builds/include}
-printf ""
-printf "*********************************"
+printf "\n"
+printf "*********************************\n"
 printf "Command: $0\n"
 printf "Current Directory: $CURRENT_DIR \n"
 printf "Install Directory: $INSTALL_DIR \n"
-printf "INCLUDE Directory: $INCLUDE_DIR \n"
-printf "*********************************"
-printf ""
+printf "Include Directory: $INCLUDE_DIR \n"
+printf "*********************************\n"
+printf "\n"
 mkdir -p $INSTALL_DIR
 mkdir -p $INCLUDE_DIR
 OPENCV_COMPILE_OPTIONS=""
