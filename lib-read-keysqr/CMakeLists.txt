@@ -32,7 +32,7 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: Target OpenCV include dirs: ${OPENCV_
 target_include_directories(
     ${KEYSQR_LIBRARIES_PROJECT_NAME} 
         PUBLIC
-        ${KEYSQR_LIBRARIES_PROJECT_DIR}/lib-keysqr
+        ${PROJECT_SOURCE_DIR}/lib-keysqr
         ${OPENCV_INCLUDE_DIR}
 )
 
