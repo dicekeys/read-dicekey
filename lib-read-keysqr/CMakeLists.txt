@@ -18,7 +18,7 @@ file(GLOB ALL_SRC_FILES
 #source_group("Sources" FILES ${SRC_FILES})
 #source_group("Headers" FILES ${HEADERS_FILES})
 
-add_library(${PROJECT_NAME}
+add_library(${KEYSQR_LIBRARIES_PROJECT_NAME}
     STATIC
    ${ALL_SRC_FILES})
 
@@ -28,11 +28,11 @@ add_library(${PROJECT_NAME}
 
 # See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
 
-message("${PROJECT_NAME}: Target OpenCV include dirs: ${OPENCV_INCLUDE_DIR}")
+message("${KEYSQR_LIBRARIES_PROJECT_NAME}: Target OpenCV include dirs: ${OPENCV_INCLUDE_DIR}")
 target_include_directories(
-    ${PROJECT_NAME} 
+    ${KEYSQR_LIBRARIES_PROJECT_NAME} 
         PUBLIC
-        ${CMAKE_SOURCE_DIR}/lib-keysqr
+        ${KEYSQR_LIBRARIES_PROJECT_DIR}/lib-keysqr
         ${OPENCV_INCLUDE_DIR}
 )
 
@@ -43,7 +43,7 @@ set(REDUCED_OpenCV_LIBS, "opencv_core;opencv_features2d;opencv_imgproc")
 # message("Reduced OpenCV libs: ${REDUCED_OpenCV_LIBS}")
 # Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
 # (public)
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${KEYSQR_LIBRARIES_PROJECT_NAME}
     PUBLIC
     ${OPENCV_LIB_DIR}/libopencv_core      #.so
 #    ${OPENCV_LIB_DIR}/libopencv_imgcodecs #.so
@@ -53,6 +53,6 @@ target_link_libraries(${PROJECT_NAME}
 
 
 # Use C++ 11
-set_target_properties(${PROJECT_NAME}  PROPERTIES
+set_target_properties(${KEYSQR_LIBRARIES_PROJECT_NAME}  PROPERTIES
 	CXX_STANDARD 11
 )
