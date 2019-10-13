@@ -32,7 +32,7 @@ message("${PROJECT_NAME}: Target OpenCV include dirs: ${OPENCV_INCLUDE_DIR}")
 target_include_directories(
     ${PROJECT_NAME} 
         PUBLIC
-        ${CMAKE_SOURCE_DIR}/lib-keysqr
+        ../lib-keysqr
         ${OPENCV_INCLUDE_DIR}
 )
 

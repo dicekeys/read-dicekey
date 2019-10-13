@@ -2,20 +2,12 @@
 package_add_test(
     test-keysqr-file-inputs
     test-keysqr-file-inputs.cpp
-)
-
-target_link_libraries(test-keysqr-file-inputs
-    PUBLIC
-    lib-read-keysqr
-    ${OPENCV_LIB_DIR}/libopencv_core      #.so
-    ${OPENCV_LIB_DIR}/libopencv_imgcodecs #.so
-    ${OPENCV_LIB_DIR}/libopencv_imgproc   #.so
-    lib-keysqr
+    "lib-keysqr,lib-read-keysqr,${OPENCV_LIB_DIR}/libopencv_core,${OPENCV_LIB_DIR}/libopencv_imgproc,${OPENCV_LIB_DIR}/libopencv_imgcodecs"
 )
 
 target_include_directories(
     test-keysqr-file-inputs
         PUBLIC
         ${OpenCV_INCLUDE_DIRS}
-        ${CMAKE_SOURCE_DIR}/lib-read-keysqr
+        ../../lib-read-keysqr
 )
