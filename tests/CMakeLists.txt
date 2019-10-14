@@ -32,7 +32,14 @@ macro(package_add_test TESTNAME FILES LIBRARIES)
     message("Addiing test >${TESTNAME}<  files: ${FILES}  libraries: ${LIBRARIES} working_directory: ${KEYSQR_LIBRARIES_PROJECT_DIR}")
     
     add_executable("${TESTNAME}" "${FILES}")
-    target_link_libraries(${TESTNAME} gtest gmock gtest_main "${LIBRARIES}")
+    target_link_libraries(
+        ${TESTNAME}
+        PRIVATE
+        gtest
+        gmock
+        gtest_main
+        "${LIBRARIES}"
+    )
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
     set_target_properties(${TESTNAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
     set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD 11)

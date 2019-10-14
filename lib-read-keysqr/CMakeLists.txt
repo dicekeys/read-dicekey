@@ -37,17 +37,17 @@ target_include_directories(
 )
 
 
-set(REDUCED_OpenCV_LIBS, "opencv_core;opencv_features2d;opencv_imgproc")
+set(REDUCED_OpenCV_LIBS, "opencv_core;opencv_imgproc;opencv_imgcodecs")
 
-# message("All OpenCV Lib locations: ${OpenCV_LIBS}")
+message("OPENCV_LIB_DIR: ${OPENCV_LIB_DIR}")
 # message("Reduced OpenCV libs: ${REDUCED_OpenCV_LIBS}")
 # Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library
 # (public)
 target_link_libraries(${KEYSQR_LIBRARIES_PROJECT_NAME}
     PUBLIC
-    ${OPENCV_LIB_DIR}/libopencv_core      #.so
-#    ${OPENCV_LIB_DIR}/libopencv_imgcodecs #.so
-    ${OPENCV_LIB_DIR}/libopencv_imgproc   #.so
+    ${OPENCV_LIB_DIR}/libopencv_core.so      #.so
+#    ${OPENCV_LIB_DIR}/libopencv_imgcodecs.so #.so
+    ${OPENCV_LIB_DIR}/libopencv_imgproc.so   #.so
     lib-keysqr
 )
 
