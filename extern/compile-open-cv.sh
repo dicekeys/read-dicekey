@@ -76,7 +76,7 @@ declare -a ARCHITECTURES=("arm64-v8a" "armeabi-v7a" "x86" "x86_64")
 for ARCH in "${ARCHITECTURES[@]}"
 do
   mkdir -p $BUILD_BASE/$ARCH
-  cmake -S $SOURCE_DIR -B $BUILD_BASE/$ARCH $OPENCV_COMPILE_OPTIONS -DANDROID_ABI=$ARCH
+  cmake -S $SOURCE_DIR -B $BUILD_BASE/$ARCH -DANDROID_ABI=$ARCH $OPENCV_COMPILE_OPTIONS
   cd $BUILD_BASE/$ARCH
   make
   make install
