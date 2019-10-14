@@ -5,12 +5,13 @@ package_add_test(
     "lib-keysqr;lib-read-keysqr"
 )
 
+
 target_link_libraries(
     test-keysqr-file-inputs    
     PRIVATE
-    ${OPENCV_LIB_DIR}/libopencv_core.so
-    ${OPENCV_LIB_DIR}/libopencv_imgproc.so
-    ${OPENCV_LIB_DIR}/libopencv_imgcodecs.so
+    ${OPENCV_LIB_DIR}/libopencv_core
+    ${OPENCV_LIB_DIR}/libopencv_imgproc
+    ${OPENCV_LIB_DIR}/libopencv_imgcodecs
 )
 
 message("Test include directories sourced from project source dir ${PROJECT_SOURCE_DIR}")
