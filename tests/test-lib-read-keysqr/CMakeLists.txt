@@ -9,7 +9,7 @@ message("Test include directories sourced from project source dir ${PROJECT_SOUR
 target_include_directories(
     test-keysqr-file-inputs
         PRIVATE
-        ${OpenCV_INCLUDE_DIRS}
+        ${OPENCV_INCLUDE_DIR}
         ${PROJECT_SOURCE_DIR}/lib-keysqr
         ${PROJECT_SOURCE_DIR}/lib-read-keysqr
 )
