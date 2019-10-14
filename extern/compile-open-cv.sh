@@ -1,15 +1,9 @@
 CURRENT_DIR=`pwd`
+EXTERN_DIR=$CURRENT_DIR
 PARENT_DIR="$(dirname "$CURRENT_DIR")"
+SOURCE_DIR="$EXTERN_DIR/opencv"
 INSTALL_DIR=${1:-$PARENT_DIR/builds/opencv}
 INCLUDE_DIR=${2:-$PARENT_DIR/builds/include}
-printf "\n"
-printf "*********************************\n"
-printf "Command: $0\n"
-printf "Current Directory: $CURRENT_DIR \n"
-printf "Install Directory: $INSTALL_DIR \n"
-printf "Include Directory: $INCLUDE_DIR \n"
-printf "*********************************\n"
-printf "\n"
 mkdir -p $INSTALL_DIR
 mkdir -p $INCLUDE_DIR
 OPENCV_COMPILE_OPTIONS=""
@@ -62,34 +56,29 @@ OPENCV_COMPILE_OPTIONS="$OPENCV_COMPILE_OPTIONS -DCMAKE_INSTALL_PREFIX:PATH=$INS
 # OPENCV_COMPILE_OPTIONS="$OPENCV_COMPILE_OPTIONS -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$INSTALL_DIR"
 OPENCV_COMPILE_OPTIONS="$OPENCV_COMPILE_OPTIONS -DOPENCV_INCLUDE_INSTALL_PATH=$INCLUDE_DIR"
 #printf "OPENCV_COMPILE_OPTIONS $OPENCV_COMPILE_OPTIONS"
-mkdir -p cmake
-cd cmake
-mkdir -p opencv
-cd opencv
-mkdir -p arm64-v8a
-cd arm64-v8a
-cmake ../../../opencv $OPENCV_COMPILE_OPTIONS -DANDROID_ABI=arm64-v8a
-make
-make install
+BUILD_BASE="$EXTERN_DIR/cmake/opencv"
 
-exit
-
-cd ..
-mkdir -p armeabi-v7a
-cd armeabi-v7a
-cmake ../../../opencv $OPENCV_COMPILE_OPTIONS -DANDROID_ABI=armeabi-v7a
-make
-make install
-cd ..
-mkdir -p x86
-cd x86
-cmake ../../../opencv $OPENCV_COMPILE_OPTIONS -DANDROID_ABI=x86
-make
-make install
-cd ..
-mkdir -p x86_64
-cd x86_64
-cmake ../../../opencv $OPENCV_COMPILE_OPTIONS -DANDROID_ABI=x86_64
-make
-make install
-cd ..
+printf "\n"
+printf "*********************************\n"
+printf "Command: $0\n"
+printf "Current Directory: $CURRENT_DIR \n"
+printf "Install Directory: $INSTALL_DIR \n"
+printf "Include Directory: $INCLUDE_DIR \n"
+printf "Build Directory  : $BUILD_BASE \n"
+printf "*********************************\n"
+printf "\n"
+#mkdir -p cmake
+mkdir -p $BUILD_BASE
+#
+## The set of architectures to build
+declare -a ARCHITECTURES=("arm64-v8a" "armeabi-v7a" "x86" "x86_64")
+## now loop through the above array
+for ARCH in "${ARCHITECTURES[@]}"
+do
+  mkdir -p $BUILD_BASE/$ARCH
+  cmake -S $SOURCE_DIR -B $BUILD_BASE/$ARCH $OPENCV_COMPILE_OPTIONS -DANDROID_ABI=$ARCH
+  cd $BUILD_BASE/$ARCH
+  make
+  make install
+  cd $EXTERN_DIR
+done
