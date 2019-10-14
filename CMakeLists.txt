@@ -118,9 +118,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 ####################################################
 # Libraries to build
 ####################################################
+add_subdirectory(extern/opencv)
 add_subdirectory("lib-keysqr")
 add_subdirectory("lib-read-keysqr")
-
 
 #############################################################
 # Testing
@@ -129,8 +129,8 @@ add_subdirectory("lib-read-keysqr")
 # Must come after the libraries being tested
 #
 #############################################################
-option(PACKAGE_TESTS "Build the tests" ON)
-if(PACKAGE_TESTS)
+option(KEYSQR_CREATE_AND_RUN_TESTS "Create and run tests" OFF)
+if(KEYSQR_CREATE_AND_RUN_TESTS)
     include(CTest)
     enable_testing()
     add_subdirectory(tests)
