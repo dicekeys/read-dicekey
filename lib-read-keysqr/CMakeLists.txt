@@ -46,9 +46,9 @@ message("OPENCV_LIB_DIR: ${OPENCV_LIB_DIR}")
 
 target_link_libraries(${KEYSQR_LIBRARIES_PROJECT_NAME}
     PUBLIC
-    ${OPENCV_LIB_DIR}/libopencv_core      #.so
+    ${OPENCV_LIB_DIR}/libopencv_core.so      #.so
 #    ${OPENCV_LIB_DIR}/libopencv_imgcodecs #.so
-    ${OPENCV_LIB_DIR}/libopencv_imgproc   #.so
+    ${OPENCV_LIB_DIR}/libopencv_imgproc.so   #.so
     lib-keysqr
 )
 
