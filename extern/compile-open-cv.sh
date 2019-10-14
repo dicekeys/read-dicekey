@@ -78,7 +78,7 @@ do
   mkdir -p $BUILD_BASE/$ARCH
   cmake -S $SOURCE_DIR -B $BUILD_BASE/$ARCH -DANDROID_ABI=$ARCH $OPENCV_COMPILE_OPTIONS
   cd $BUILD_BASE/$ARCH
-  make
+  make -j8
   make install
   cd $EXTERN_DIR
 done
