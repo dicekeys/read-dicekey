@@ -10,7 +10,13 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
-      "variables": []
+      "variables": [
+        {
+          "name": "ANDROID_ABI",
+          "value": "x86_64",
+          "type": "STRING"
+        }
+      ]
     }
   ]
 }
