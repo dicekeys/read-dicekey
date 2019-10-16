@@ -16,6 +16,7 @@ Install Android Studio and the NDK
 bash scripts/install-android-studio-and-ndk.sh
 ```
 
+set ANDROID_HOME (on windows, it's `c:\users\<user>\AppData\Local\Android\Sdk`)
 
 
 ### On MacOS/unix
