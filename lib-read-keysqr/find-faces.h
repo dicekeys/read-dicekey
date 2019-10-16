@@ -3,12 +3,8 @@
 #pragma once
 
 #include <float.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
 #include <vector>
+#include "graphics/cv.h"
 #include "read-faces.h"
 
 struct FacesAndStrayUndoverlinesFound {

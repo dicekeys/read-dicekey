@@ -1,15 +1,11 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
 
 #include <float.h>
 #include <math.h>
 #include "utilities/vfunctional.h"
 #include "utilities/statistics.h"
+#include "graphics/cv.h"
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
 #include "keysqr-element-face-specification.h"
@@ -204,7 +200,7 @@ KeySqrGridModel calculateKeySqrGrid(
 	return KeySqrGridModel();
 }
 
-FacesOrderdWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndoverlines(
+FacesOrderedWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndoverlines(
 	const cv::Mat &grayscaleImage,
 	const FacesAndStrayUndoverlinesFound& facesAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine // = 1.0f // 1 mm
@@ -213,7 +209,7 @@ FacesOrderdWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndov
 	// a model a model that describes the locations within a 5x5 grid 
 	auto grid = calculateKeySqrGrid(facesAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
 	if (!grid.valid) {
-		return {};
+		return FacesOrderedWithMissingFacesInferredFromUnderlines();
 	}
 	std::vector<FaceRead> orderedFaces(25);
 	// Copy all the faces we found into the grid model
@@ -255,5 +251,10 @@ FacesOrderdWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndov
 		}
 	}
 
-	return { true, orderedFaces, grid.angleInRadians, facesAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth };
+	return FacesOrderedWithMissingFacesInferredFromUnderlines(
+		orderedFaces,
+		grid.angleInRadians,
+		facesAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth
+	);
+
 }

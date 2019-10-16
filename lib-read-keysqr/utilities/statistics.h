@@ -63,7 +63,7 @@ inline NUMBER medianInRange(
 	const size_t fromIndexInclusive,
 	const size_t toIndexExclusive
 ) {
-  assert(toIndexExclusive > fromIndexInclusive);
+	if (toIndexExclusive <= fromIndexInclusive) { throw "Invalid parameter"; };
   const size_t numValues = toIndexExclusive - fromIndexInclusive;
 	return (numValues & 1) ?
 		// Odd number of samples, so median is the one in the middle
@@ -168,8 +168,10 @@ static size_t findFirstIndexOfHighModeInBimodalDistibution(
 	size_t minIndexOfHighModeStartInclusive,
 	size_t maxIndexOfHighModeStartInclusive
 ) {
-  assert(sorted.size() > 0);
-  assert(minIndexOfHighModeStartInclusive <= maxIndexOfHighModeStartInclusive);
+	if (sorted.size() == 0) { throw "Cannot have binomial distribution with 0 elements"; }
+	if (minIndexOfHighModeStartInclusive > maxIndexOfHighModeStartInclusive) {
+		throw "Invalid parameter for binomial distribution function";
+	}
 
   if (minIndexOfHighModeStartInclusive == maxIndexOfHighModeStartInclusive) {
     return minIndexOfHighModeStartInclusive;
@@ -210,7 +212,9 @@ static NUMBER bimodalThreshold(
   size_t minSamplesAtLowMode = 1,
 	size_t minSamplesAtHighMode = 1
 ) {
-  assert(numbers.size() > 1);
+  if (numbers.size() <= 1) {
+		throw "Not enough samples for a binomial threshold.";
+	}
 	std::vector<NUMBER> sorted(numbers);
 	std::sort(sorted.begin(), sorted.end(), [](NUMBER a, NUMBER b) { return a < b; });
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <opencv2/opencv.hpp>
+#include "cv.h"
 
 /*
 Capture a rectangle rotated at a given angle from an image and return a copy of the image

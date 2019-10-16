@@ -21,13 +21,13 @@
 // 	return jsonResult;
 // }
 
-// read-keysqr
+// KeySqr-Android
 // base c++ project
 //   dependent on OpenCV being available
 //   should be entirely platform independent
 //   if absolutely necessary, can use ifdefs for ANDROID, IOS, etc.
 
-// keysqr-jvm
+// KeySqr-IOS
 //   exposes android api using JNI
 //     imports c++ directly
 //   importable either by

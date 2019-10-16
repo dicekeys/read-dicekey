@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "../../lib-keysqr/keysqr.h"
+#include "keysqr.h"
 
 
 TEST(KeySqr, NotInitalized) {

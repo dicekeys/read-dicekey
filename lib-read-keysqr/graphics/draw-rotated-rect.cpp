@@ -1,10 +1,5 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
-
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
+#include "draw-rotated-rect.h"
 
 void drawRotatedRect(
   cv::Mat image,
@@ -22,5 +17,5 @@ void drawRotatedRect(
         points
       };
       int npt[] = { 4 };
-      polylines(image, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
+      cv::polylines(image, ppoints, npt, 1, true, color, thickness, cv::LineTypes::LINE_8);
 }

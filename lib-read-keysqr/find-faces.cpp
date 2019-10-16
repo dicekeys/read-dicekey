@@ -1,12 +1,7 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 #include <float.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-
 #include "utilities/statistics.h"
+#include "graphics/cv.h"
 #include "graphics/geometry.h"
 #include "find-undoverlines.h"
 #include "read-faces.h"
@@ -52,9 +47,9 @@ FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 				if (angleInRadians > (M_PI)) {
 					angleInRadians -= float(2 * M_PI);
 				}
-				facesFound.push_back({
+				facesFound.push_back( FaceRead(
 					underline, overlines[i], center, angleInRadians
-				});
+				));
 				// Remove the ith element of overlines
 				overlines.erase(overlines.begin() + i);
 			}

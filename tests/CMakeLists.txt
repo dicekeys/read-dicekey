@@ -14,7 +14,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "extern/googletest")
 
 include_directories(
-  ${PROJECT_DIR}/extern/googletest/googletest/include
+  ${KEYSQR_LIBRARIES_PROJECT_DIR}/extern/googletest/googletest/include
 )
 
 mark_as_advanced(
@@ -29,18 +29,25 @@ set_target_properties(gmock PROPERTIES FOLDER extern)
 set_target_properties(gmock_main PROPERTIES FOLDER extern)
 
 macro(package_add_test TESTNAME FILES LIBRARIES)
-    message("Addiing test >${TESTNAME}<  files: ${FILES}  libraries: ${LIBRARIES} working_directory: ${PROJECT_DIR}")
+    message("Addiing test >${TESTNAME}<  files: ${FILES}  libraries: ${LIBRARIES} working_directory: ${KEYSQR_LIBRARIES_PROJECT_DIR}")
     
     add_executable("${TESTNAME}" "${FILES}")
-    target_link_libraries(${TESTNAME} gtest gmock gtest_main "${LIBRARIES}")
+    target_link_libraries(
+        ${TESTNAME}
+        PRIVATE
+        gtest
+        gmock
+        gtest_main
+        "${LIBRARIES}"
+    )
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
     set_target_properties(${TESTNAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-    set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD 17)
-    # set_target_properties(${TESTNAME} PROPERTIES ENVIRONMENT "TEST_DIR=${PROJECT_DIR}")
-    set_target_properties(${TESTNAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}")
+    set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD 11)
+    # set_target_properties(${TESTNAME} PROPERTIES ENVIRONMENT "TEST_DIR=${KEYSQR_LIBRARIES_PROJECT_DIR}")
+    set_target_properties(${TESTNAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${KEYSQR_LIBRARIES_PROJECT_DIR}")
     gtest_discover_tests(${TESTNAME}
-        WORKING_DIRECTORY ${PROJECT_DIR}
-        PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
+        WORKING_DIRECTORY ${KEYSQR_LIBRARIES_PROJECT_DIR}
+        PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${KEYSQR_LIBRARIES_PROJECT_DIR}"
     )
 endmacro()
 

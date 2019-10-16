@@ -1,16 +1,11 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 #include <float.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-
 #include <iostream>
 #include <math.h>
 #include <limits>
 #include "utilities/vfunctional.h"
 #include "utilities/statistics.h"
+#include "graphics/cv.h"
 #include "graphics/geometry.h"
 #include "graphics/find-rectangles.h"
 #include "graphics/rectangle.h"

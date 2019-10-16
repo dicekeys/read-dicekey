@@ -2,12 +2,6 @@
 
 #include <float.h>
 #include <chrono>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-
 #include <iostream>
 #include <math.h>
 
@@ -16,6 +10,7 @@
 #include "utilities/vfunctional.h"
 #include "utilities/statistics.h"
 #include "utilities/bit-operations.h"
+#include "graphics/cv.h"
 #include "graphics/geometry.h"
 #include "simple-ocr.h"
 #include "decode-face.h"
@@ -138,7 +133,7 @@ ReadFaceResult readFaces(
 		return { false, {}, 0, 0, facesAndStrayUndoverlinesFound.facesFound, facesAndStrayUndoverlinesFound.strayUndoverlines };
 	}
 	std::vector<FaceRead> ordeeredFaces = orderedFacesResult.orderedFaces;
-	const float angleOfKeySqrInRadiansNonCononicalForm = orderedFacesResult.angleInRadiansNonCononicalForm;
+	const float angleOfKeySqrInRadiansNonCanonicalForm = orderedFacesResult.angleInRadiansNonCanonicalForm;
 
 	for (auto &face : ordeeredFaces) {
 		if (!(face.underline.determinedIfUnderlineOrOverline || face.overline.determinedIfUnderlineOrOverline)) {
@@ -163,7 +158,7 @@ ReadFaceResult readFaces(
 		);
 			
 		
-		const float orientationInRadians = face.inferredAngleInRadians - angleOfKeySqrInRadiansNonCononicalForm;
+		const float orientationInRadians = face.inferredAngleInRadians - angleOfKeySqrInRadiansNonCanonicalForm;
 		const float orientationInClockwiseRotationsFloat = orientationInRadians * float(4.0 / (2.0 * M_PI));
 		const uchar orientationInClockwiseRotationsFromUpright = uchar(round(orientationInClockwiseRotationsFloat) + 4) % 4;
 		face.orientationAs0to3ClockwiseTurnsFromUpright = orientationInClockwiseRotationsFromUpright;
@@ -171,5 +166,5 @@ ReadFaceResult readFaces(
 		face.ocrDigit = charsRead.digitsMostLikelyFirst;
 	}
 
-	return { true, ordeeredFaces, orderedFacesResult.angleInRadiansNonCononicalForm, orderedFacesResult.pixelsPerFaceEdgeWidth, {} };
+	return { true, ordeeredFaces, orderedFacesResult.angleInRadiansNonCanonicalForm, orderedFacesResult.pixelsPerFaceEdgeWidth, {} };
 }

@@ -4,9 +4,7 @@
 
 #include <string>
 #include <iostream>
-
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
+#include "graphics/cv.h"
 #include "read-faces.h"
 
 

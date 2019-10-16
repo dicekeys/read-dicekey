@@ -3,11 +3,7 @@
 #pragma once
 
 #include <vector>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
+#include "cv.h"
 
 /**
  * This class calculates the corners of a rotated rect since OpenCV's
