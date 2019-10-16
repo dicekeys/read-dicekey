@@ -31,8 +31,9 @@
 *.out
 *.app
 
-.vs/*
-/build
+build/
+builds/
+extern/cmake
 /out
 slnx.sqlite
 *.suo
