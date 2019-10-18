@@ -1,4 +1,4 @@
-
+message("Tests for file inputs")
 package_add_test(
     test-keysqr-file-inputs
     test-keysqr-file-inputs.cpp
@@ -9,16 +9,14 @@ package_add_test(
 target_link_libraries(
     test-keysqr-file-inputs    
     PRIVATE
-    ${OPENCV_LIB_DIR}/libopencv_core.so
-    ${OPENCV_LIB_DIR}/libopencv_imgproc.so
-    ${OPENCV_LIB_DIR}/libopencv_imgcodecs.so
+    ${OPENCV_LIBS}
 )
 
 message("Test include directories sourced from project source dir ${PROJECT_SOURCE_DIR}")
 target_include_directories(
     test-keysqr-file-inputs
         PRIVATE
-        ${OPENCV_INCLUDE_DIR}
+        ${OPENCV_LIBS}
         ${PROJECT_SOURCE_DIR}/lib-keysqr
         ${PROJECT_SOURCE_DIR}/lib-read-keysqr
 )

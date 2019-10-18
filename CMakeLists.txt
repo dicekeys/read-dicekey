@@ -19,6 +19,7 @@ CMake fails to configure the working directory for running
 tests in Visual Studio using Google Test.
 Before running, got to Visual Studio's debug menu,
 choose the 'options' item, and then go to the
+
 'TestAdapterForGoogleTest' tab.
 Set 'Working Directory' to '$(SolutionDir)'
 (note, those are parens around SolutionDir, and not braces
@@ -57,68 +58,75 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 get_filename_component(KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 
-set(ANDROID_ABI "x86_64" CACHE STRING "Default architecture to x86_64")
-
-set (OPENCV_INCLUDE_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/builds/include")
-set (OPENCV_LIB_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/builds/opencv/sdk/native/libs/${ANDROID_ABI}")
-message("OPENCV_INCLUDE_DIR ${OPENCV_INCLUDE_DIR}")
-message("OPENCV_LIB_DIR ${OPENCV_LIB_DIR}")
+# set(ANDROID_ABI "x86_64" CACHE STRING "Default architecture to x86_64")
 
 # Paths
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-    #set(CMAKE_PROJECT_BINARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-    #set(CMAKE_BINARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-    #set(CMAKE_LIBRARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/lib" CACHE PATH FORCE)
-    #set(CMAKE_CURRENT_BINARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-    #set(CMAKE_CURRENT_LIBRARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/lib" CACHE PATH FORCE)
-    #set(BIN_DIR ${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/bin)
-    #set(LIB_DIR ${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/lib)
+#set(CMAKE_PROJECT_BINARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+#set(CMAKE_BINARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+#set(CMAKE_LIBRARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/lib" CACHE PATH FORCE)
+#set(CMAKE_CURRENT_BINARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
+#set(CMAKE_CURRENT_LIBRARY_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/build/lib" CACHE PATH FORCE)
+#set(BIN_DIR ${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/bin)
+#set(LIB_DIR ${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/lib)
 
-    message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-    message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
-    message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
-    message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
-
-
-    ####################################################
-    # External libraries to build
-    #
-    ####################################################
-    # Ensure OpenCV is installed
-    #find_package( OpenCV REQUIRED )
+message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
+message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 
 
-    # OpenCV
+####################################################
+# External libraries to build
+#
+####################################################
+# Ensure OpenCV is installed
+
+# OpenCV
+
+if (NOT ANDROID_ABI)
+    find_package( OpenCV REQUIRED )
+    set (OPENCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
+    set (OPENCV_LIBS "opencv_core;opencv_imgproc;opencv_imgcodecs")
+else()
+    message("Configuring for Android ${ANDROID_ABI}")
+    set (OPENCV_INCLUDE_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/builds/include")
+    set (OPENCV_LIB_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/builds/opencv/sdk/native/libs/${ANDROID_ABI}")
+    set (OPENCV_LIBS "${OPENCV_LIB_DIR}/libopencv_core.so;${OPENCV_LIB_DIR}/libopencv_imgproc.so;${OPENCV_LIB_DIR}/libopencv_imgcodecs.so")
 
     set(BUILD_LIST "core,imgcodecs,imgproc" CACHE STRING "Build list for OpenCV")
     # Turn off features we don't need ...
-#    set(BUILD_EXAMPLES OFF CACHE BOOL "")
-#    set(BUILD_PERF_TESTS OFF CACHE BOOL "")
-#    set(BUILD_TESTS OFF CACHE BOOL "")
-#    set(BUILD_DOCS OFF CACHE BOOL "")
-#    set(BUILD_PYTHON OFF CACHE BOOL "")
+    set(BUILD_EXAMPLES OFF CACHE BOOL "")
+    set(BUILD_PERF_TESTS OFF CACHE BOOL "")
+    set(BUILD_TESTS OFF CACHE BOOL "")
+    set(BUILD_DOCS OFF CACHE BOOL "")
+    set(BUILD_PYTHON OFF CACHE BOOL "")
 
-#    set(WITH_TIFF OFF CACHE BOOL "")
+    set(WITH_TIFF OFF CACHE BOOL "")
 
-#    set(WITH_OPENCL OFF CACHE BOOL "")
-#    set(WITH_OPENMP OFF CACHE BOOL "")
-#    set(WITH_TBB OFF CACHE BOOL "")
-#    set(WITH_MKL OFF CACHE BOOL "")
-#    set(MKL_WITH_TBB OFF CACHE BOOL "")
-#    set(MKL_WITH_OPENMP OFF CACHE BOOL "")
+    set(WITH_OPENCL OFF CACHE BOOL "")
+    set(WITH_OPENMP OFF CACHE BOOL "")
+    set(WITH_TBB OFF CACHE BOOL "")
+    set(WITH_MKL OFF CACHE BOOL "")
+    set(MKL_WITH_TBB OFF CACHE BOOL "")
+    set(MKL_WITH_OPENMP OFF CACHE BOOL "")
 
 #    set(OPENCV_SRC_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/extern/opencv")
 #    set(OPENCV_BIN_DIR "${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/extern/opencv/build")
 #    message("OpenCV SrcDir: ${OPENCV_SRC_DIR} BinDIr: ${OPENCV_BIN_DIR}")
 #    add_subdirectory("${KEYSQR_LIBRARIES_KEYSQR_LIBRARIES_PROJECT_DIR}/extern/opencv")
+    add_subdirectory(extern/opencv)
+endif()
+message("OPENCV_INCLUDE_DIR ${OPENCV_INCLUDE_DIR}")
+message("OPENCV_LIBS ${OPENCV_LIBS}")
+
 
 ####################################################
 # Libraries to build
 ####################################################
-add_subdirectory(extern/opencv)
 add_subdirectory("lib-keysqr")
 add_subdirectory("lib-read-keysqr")
 
@@ -129,8 +137,10 @@ add_subdirectory("lib-read-keysqr")
 # Must come after the libraries being tested
 #
 #############################################################
-option(KEYSQR_CREATE_AND_RUN_TESTS "Create and run tests" OFF)
-if(KEYSQR_CREATE_AND_RUN_TESTS)
+
+option(KEYSQR_CREATE_AND_RUN_TESTS "Create and run tests" False)
+message("KEYSQR_CREATE_AND_RUN_TESTS=${KEYSQR_CREATE_AND_RUN_TESTS}")
+if (NOT ("${KEYSQR_CREATE_AND_RUN_TESTS}" STREQUAL "False"))
     include(CTest)
     enable_testing()
     add_subdirectory(tests)

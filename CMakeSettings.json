@@ -12,9 +12,9 @@
       "ctestCommandArgs": "",
       "variables": [
         {
-          "name": "ANDROID_ABI",
-          "value": "x86_64",
-          "type": "STRING"
+          "name": "KEYSQR_CREATE_AND_RUN_TESTS",
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     }

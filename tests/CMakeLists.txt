@@ -1,3 +1,5 @@
+message("Entered: Tests")
+
 include(GoogleTest)
 
 # See: https://cliutils.gitlab.io/modern-cmake/chapters/testing/googletest.html#fn_1
