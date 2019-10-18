@@ -140,7 +140,7 @@ add_subdirectory("lib-read-keysqr")
 
 option(KEYSQR_CREATE_AND_RUN_TESTS "Create and run tests" False)
 message("KEYSQR_CREATE_AND_RUN_TESTS=${KEYSQR_CREATE_AND_RUN_TESTS}")
-if (NOT ("${KEYSQR_CREATE_AND_RUN_TESTS}" STREQUAL "False"))
+if ("${KEYSQR_CREATE_AND_RUN_TESTS}" STREQUAL "True")
     include(CTest)
     enable_testing()
     add_subdirectory(tests)
