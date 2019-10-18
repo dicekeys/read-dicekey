@@ -63,7 +63,7 @@ class KeySqr {
   /**
    * Calculate the sum of the errors over all faces.
    */
-  unsigned int totalError() const;
+  unsigned int totalError(bool requireUniqueLetters = true) const;
 
   /**
    * Return a copy of this KeySqr that has been rotated by the specified

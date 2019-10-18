@@ -2,19 +2,28 @@
 #include "read-keysqr.h"
 #include "validate-faces-read.h"
 
+
 void testFile(
   std::string filePath = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".jpg",
   bool validate = true,
   int maxErrorAllowed = 0
 ) {
+  // #include <iostream>
+  // #include <fstream>
+	// std::ofstream myfile;
+	// myfile.open("working-directory-is-here.txt");
+	// myfile << "this is a stupid way to find the working directory";
+	// myfile.close();
+
 //	const char* basePathCStr = std::getenv("TEST_DIR");
 //	const char* pathPathCStr = std::getenv("PATH");
 
 //	const std::string basePath = basePathCStr ? std::string(basePathCStr) : "";
 //  std::cerr << "Using base path" << basePath;
-//	const std::string currentPath = std::string(std::filesystem::current_path().u8string());
-//  std::cerr << "In working directory" << currentPath;
-  cv::Mat colorImage = cv::imread("tests/test-lib-read-keysqr/img/" + filePath, cv::IMREAD_COLOR);
+	//  const std::string currentPath = std::string(std::filesystem::current_path().u8string());
+	// std::cerr << "In working directory" << currentPath;
+
+	cv::Mat colorImage = cv::imread("tests/test-lib-read-keysqr/img/" + filePath, cv::IMREAD_COLOR);
   ASSERT_FALSE(colorImage.empty()) << "No such file at " << filePath;
 	cv::Mat grayscaleImage;
 	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
@@ -36,7 +45,7 @@ void testFile(
 
     const KeySqr keySqrNonCanonical = facesReadToKeySqr(facesRead.faces, true);
   	const KeySqr keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
-    totalError = keySqr.totalError();
+    totalError = keySqr.totalError(false);
   } catch (std::string errStr) {
     std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
     ASSERT_TRUE(false) << filename << "\n  " << errStr;
@@ -76,5 +85,5 @@ TEST(KeySqrTestInputs, K13Y63A23S13X61C50P43M10B50R33L41V40D50G61U50I42E41T13H50
 TEST(KeySqrTestInputs, R60D50Y32B60Z40O63L30K51J21M50G60P33X61E20A43U63S51F10C21H41V23N51T10I32W12) {
   testFile("R60D50Y32B60Z40O63L30K51J21M50G60P33X61E20A43U63S51F10C21H41V23N51T10I32W12.jpg", true, 4); }
 
-TEST(KeySqrTestInputs, A1tA2tA3tA4tA5tA6tA1tA2tA3tA4tA5tA6tA1tA2tA3tA4tA5tA6tA1tA2tA3tA4tA5tA6tA1t) {
-  testFile("A1tA2tA3tA4tA5tA6tA1tA2tA3tA4tA5tA6tA1tA2tA3tA4tA5tA6tA1tA2tA3tA4tA5tA6tA1t.png", true, 0); }
+TEST(KeySqrTestInputs, A1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1b) {
+  testFile("A1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1b.png", true, 0); }

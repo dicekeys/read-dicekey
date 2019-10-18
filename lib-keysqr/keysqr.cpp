@@ -177,9 +177,9 @@ unsigned char KeySqr::maxError() const
 /**
  * Calculate the sum of the errors over all faces.
  */
-unsigned int KeySqr::totalError() const
+unsigned int KeySqr::totalError(bool requireUniqueLetters) const
 {
-  if (!initialized || !areLettersUnique()) {
+  if (!initialized || (requireUniqueLetters && !areLettersUnique())) {
     return NumberOfFaces * (unsigned int)FaceErrors::Magnitude::Max;
   }
   unsigned int sumOfElementFaceErrors = 0;
