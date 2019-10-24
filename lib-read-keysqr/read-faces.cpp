@@ -76,7 +76,7 @@ FaceError FaceRead::error() const {
 
 		// Test hypothesis of no error
 		if (pUnderlineFaceInferred == pOverlineFaceInferred) {
-			// The underline and overline map to the same face face
+			// The underline and overline map to the same face
 			const ElementFaceSpecification& undoverlineFaceInferred = *(underline.faceInferred);
 
 			// Check for OCR errors for the letter read
