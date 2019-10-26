@@ -3,6 +3,8 @@
 
 #include <limits>
 
+#include "keysqr-face-specification.h"
+
 namespace FaceErrors {
   const FaceError WorstPossible = {
     FaceErrors::Magnitude::Max,

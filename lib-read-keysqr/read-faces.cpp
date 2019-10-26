@@ -38,20 +38,34 @@ char FaceRead::digit() const {
 	);
 }
 
+std::string point2fToJson(const cv::Point2f point) {
+	std::ostringstream jsonStream;
+	jsonStream << "{" <<
+		JsonKeys::Point::x + ": " << point.x << ", " <<
+		JsonKeys::Point::y + ": " << point.y <<
+		"}";
+	return jsonStream.str();
+};
+
 std::string FaceRead::toJson() const {
+  // JsonKeys::FaceRead::ocrDigitCharsFromMostToLeastLikely + "=" + ;
+  // JsonKeys::FaceRead::ocrLetterCharsFromMostToLeastLikely + "=" + ;
+
+
 	std::ostringstream jsonStream;
 	jsonStream <<
 		"{" <<
-			"underline: " << underline.toJson() << "," <<
-			"overline: " << overline.toJson() << "," <<
-			"center: {" <<
-				"x: " << center.x << ", " <<
-				"y: " << center.y << "" <<
-			"}, " <<
-			"angleInRadians: " << inferredAngleInRadians << "," <<
-			"orientationAs0to3ClockwiseTurnsFromUpright: " << orientationAs0to3ClockwiseTurnsFromUpright << "," <<
-			"ocrLetter: " << (ocrLetter.size() > 0 ? ocrLetter[0].character : '-') << "," <<
-			"ocrDigit: " << (ocrDigit.size() > 0 ? ocrDigit[0].character : '-') << "" <<
+			JsonKeys::FaceRead::underline << ": " << underline.toJson() << ", " <<
+			JsonKeys::FaceRead::overline << ": " << overline.toJson() << ", " <<
+			JsonKeys::FaceRead::center << ": " << point2fToJson(center) << ", " <<
+//			"angleInRadians: " << inferredAngleInRadians << "," <<
+			JsonKeys::FaceRead::clockwise90DegreeRotationsFromUpright << ": " << orientationAs0to3ClockwiseTurnsFromUpright << "," <<
+			JsonKeys::FaceRead::ocrLetterCharsFromMostToLeastLikely << ": \"" <<
+				ocrLetter[0].character << ocrLetter[1].character << ocrLetter[2].character << "\", " <<
+			JsonKeys::FaceRead::ocrDigitCharsFromMostToLeastLikely << ": \"" <<
+				ocrDigit[0].character << ocrDigit[1].character << ocrDigit[2].character << "\", " <<
+//			"ocrLetter: " << (ocrLetter.size() > 0 ? ocrLetter[0].character : '-') << "," <<
+//			"ocrDigit: " << (ocrDigit.size() > 0 ? ocrDigit[0].character : '-') << "" <<
 		"}";
 	return jsonStream.str();
 }
@@ -71,13 +85,13 @@ FaceError FaceRead::error() const {
 		unsigned int errorMagnitude = 0;
 		const char ocrLetter0 = ocrLetter[0].character;
 		const char ocrDigit0 = ocrDigit[0].character;
-		const ElementFaceSpecification* pUnderlineFaceInferred = underline.faceInferred;
-		const ElementFaceSpecification* pOverlineFaceInferred = overline.faceInferred;
+		const FaceSpecification* pUnderlineFaceInferred = underline.faceInferred;
+		const FaceSpecification* pOverlineFaceInferred = overline.faceInferred;
 
 		// Test hypothesis of no error
 		if (pUnderlineFaceInferred == pOverlineFaceInferred) {
 			// The underline and overline map to the same face
-			const ElementFaceSpecification& undoverlineFaceInferred = *(underline.faceInferred);
+			const FaceSpecification& undoverlineFaceInferred = *(underline.faceInferred);
 
 			// Check for OCR errors for the letter read
 			if (undoverlineFaceInferred.letter != ocrLetter[0].character) {
@@ -94,8 +108,8 @@ FaceError FaceRead::error() const {
 			}
 			return {(unsigned char) MIN(std::numeric_limits<unsigned char>::max(), errorMagnitude), errorLocation};
 		}
-		const ElementFaceSpecification& underlineFaceInferred = *pUnderlineFaceInferred;
-		const ElementFaceSpecification& overlineFaceInferred = *pOverlineFaceInferred;
+		const FaceSpecification& underlineFaceInferred = *pUnderlineFaceInferred;
+		const FaceSpecification& overlineFaceInferred = *pOverlineFaceInferred;
 		if (underlineFaceInferred.letter == ocrLetter0 && underlineFaceInferred.digit == ocrDigit0) {
 			// The underline matches the OCR result, so the error is in the overline
 			return {
@@ -149,8 +163,8 @@ ReadFaceResult readFaces(
 			face.underline.found ?
 				face.underline.whiteBlackThreshold :
 				face.overline.whiteBlackThreshold;
-		const ElementFaceSpecification &underlineInferred = *face.underline.faceInferred;
-		const ElementFaceSpecification &overlineInferred = *face.overline.faceInferred;
+		const FaceSpecification &underlineInferred = *face.underline.faceInferred;
+		const FaceSpecification &overlineInferred = *face.overline.faceInferred;
 		const CharactersReadFromFaces charsRead = readCharactersOnFace(grayscaleImage, face.center, face.inferredAngleInRadians,
 			facesAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth, whiteBlackThreshold,
 			outputOcrErrors ? ("" + std::string(1, dashIfNull(underlineInferred.letter)) + std::string(1, dashIfNull(overlineInferred.letter))) : "",

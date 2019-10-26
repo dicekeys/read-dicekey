@@ -1,6 +1,5 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
-
 #include <float.h>
 #include <math.h>
 #include "utilities/vfunctional.h"
@@ -8,7 +7,7 @@
 #include "graphics/cv.h"
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
-#include "keysqr-element-face-specification.h"
+#include "keysqr-face-specification.h"
 #include "keysqr.h"
 #include "find-undoverlines.h"
 #include "find-faces.h"

@@ -5,7 +5,7 @@
 #include "graphics/geometry.h"
 #include "graphics/cv.h"
 #include "graphics/rotate.h"
-#include "keysqr-element-face-specification.h"
+#include "keysqr-face-specification.h"
 #include "simple-ocr.h"
 #include "font.h"
 #include "write-face-characters.h"
@@ -21,12 +21,12 @@ void writeFaceCharacters(
 	Color digitColor
 ) {
 	const OcrFont font = getFont();
-	const float textHeightDestinationPixels = ElementDimensionsFractional::textRegionHeight * pixelsPerFaceEdgeWidth;
-	const float textWidthDestinationPixels = ElementDimensionsFractional::textRegionWidth * pixelsPerFaceEdgeWidth;
-	const float destinationPixelsBetweenLetterAndDigit = ElementDimensionsFractional::spaceBetweenLetterAndDigit * pixelsPerFaceEdgeWidth;
+	const float textHeightDestinationPixels = FaceDimensionsFractional::textRegionHeight * pixelsPerFaceEdgeWidth;
+	const float textWidthDestinationPixels = FaceDimensionsFractional::textRegionWidth * pixelsPerFaceEdgeWidth;
+	const float destinationPixelsBetweenLetterAndDigit = FaceDimensionsFractional::spaceBetweenLetterAndDigit * pixelsPerFaceEdgeWidth;
 	float charWidthDestinationPixels = (textWidthDestinationPixels - destinationPixelsBetweenLetterAndDigit) / 2;
 
-	const float centerSpaceInOriginPixels = ElementDimensionsFractional::spaceBetweenLetterAndDigit * pixelsPerFaceEdgeWidth *
+	const float centerSpaceInOriginPixels = FaceDimensionsFractional::spaceBetweenLetterAndDigit * pixelsPerFaceEdgeWidth *
 		font.outlineCharWidthInPixels / charWidthDestinationPixels;
 	const float textTopInOriginPixels = -float(font.outlineCharHeightInPixels) / 2;
 	const float letterLeftInOriginPixels = -(font.outlineCharWidthInPixels + centerSpaceInOriginPixels/2);

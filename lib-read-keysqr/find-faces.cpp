@@ -6,7 +6,7 @@
 #include "find-undoverlines.h"
 #include "read-faces.h"
 #include "find-faces.h"
-#include "keysqr-element-face-specification.h"
+#include "keysqr-face-specification.h"
 
 FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	const cv::Mat &grayscaleImage
@@ -19,7 +19,7 @@ FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	std::vector<float> underlineLengths = vmap<Undoverline, float>(underlines,
 		[](const Undoverline *underline) { return lineLength(underline->line); });
 	const float medianUnderlineLengthInPixels = medianInPlace(underlineLengths);
-	const float pixelsPerFaceEdgeWidth = medianUnderlineLengthInPixels / ElementDimensionsFractional::undoverlineLength;
+	const float pixelsPerFaceEdgeWidth = medianUnderlineLengthInPixels / FaceDimensionsFractional::undoverlineLength;
 	const float maxDistanceBetweenInferredCenters = pixelsPerFaceEdgeWidth / 4; // 2mm
 
 	std::vector<Undoverline> strayUndoverlines(0);

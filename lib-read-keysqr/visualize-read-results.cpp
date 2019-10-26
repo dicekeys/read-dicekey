@@ -32,7 +32,7 @@ cv::Mat visualizeReadResults(
   cv::Mat resultImage = (writeInPlace ? colorImage_BGR_CV_8UC3 : colorImage_BGR_CV_8UC3.clone());
   // Derive the length of each side of the face in pixels by dividing the
   // legnth off and 
-  const float faceSizeInPixels = ElementDimensionsFractional::size * facesRead.pixelsPerFaceEdgeWidth;
+  const float faceSizeInPixels = FaceDimensionsFractional::size * facesRead.pixelsPerFaceEdgeWidth;
   const int thinLineThickness = 1 + int(faceSizeInPixels / 70);
   const int thickLineThickness = 2 * thinLineThickness;
 

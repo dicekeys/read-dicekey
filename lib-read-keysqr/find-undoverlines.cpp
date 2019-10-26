@@ -12,7 +12,7 @@
 #include "graphics/rotate.h"
 #include "graphics/sample-point.h"
 #include "graphics/draw-rotated-rect.h"
-#include "keysqr-element-face-specification.h"
+#include "keysqr-face-specification.h"
 #include "decode-face.h"
 #include "undoverline.h"
 #include "find-undoverlines.h"
@@ -209,7 +209,7 @@ Undoverline readUndoverline(
 
 	const std::vector<uchar> medianPixelValues = samplePointsAlongLine(
 		grayscaleImage, undoverlineStartingAtImageLeft.start, undoverlineStartingAtImageLeft.end,
-		ElementDimensionsFractional::dotCentersAsFractionOfUndoverline
+		FaceDimensionsFractional::dotCentersAsFractionOfUndoverline
 	);
 
 	// In finding a white/black threshold, the sampling should ensure

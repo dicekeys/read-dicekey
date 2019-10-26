@@ -6,7 +6,7 @@
 #include "utilities/vfunctional.h"
 #include "graphics/cv.h"
 #include "graphics/geometry.h"
-#include "keysqr-element-face-specification.h"
+#include "keysqr-face-specification.h"
 #include "decode-face.h"
 #include "undoverline.h"
 
@@ -61,10 +61,10 @@ Undoverline::Undoverline(
 		(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
 
 	// calculate the number of pixels that a face is long/wide (same since square)
-	double pixelsPerElementEdgeLength = double(undoverlineLength) / ElementDimensionsFractional::undoverlineLength;
+	double pixelsPerElementEdgeLength = double(undoverlineLength) / FaceDimensionsFractional::undoverlineLength;
 
 	float pixelsFromCenterOfUndoverlineToCenterOfFace = float(
-		ElementDimensionsFractional::centerOfUndoverlineToCenterOfFace *
+		FaceDimensionsFractional::centerOfUndoverlineToCenterOfFace *
 		pixelsPerElementEdgeLength
 	);
 	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfFace;

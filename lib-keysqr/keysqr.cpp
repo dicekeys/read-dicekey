@@ -5,7 +5,7 @@
 #include <limits>
 #include <algorithm>
 #include "keysqr.h"
-#include "keysqr-element-face-specification.h"
+#include "keysqr-face-specification.h"
 
 
 const std::vector<std::vector<unsigned char>> rotationIndexes = {
@@ -54,11 +54,11 @@ KeySqr::KeySqr(const std::string humanReadableFormat) {
 	for (int faceIndex=0; faceIndex < NumberOfFaces; faceIndex++) {
     const size_t charIndex = size_t(faceIndex) * 3;
     const char letter = humanReadableFormat[charIndex];
-    if (ElementLetters.find(letter) == std::string::npos) {
+    if (FaceLetters.find(letter) == std::string::npos) {
       throw "Invalid letter at face " + std::to_string(faceIndex);
     }
     const char digit = humanReadableFormat[charIndex + 1];
-    if (ElementDigits.find(digit) == std::string::npos) {
+    if (FaceDigits.find(digit) == std::string::npos) {
       throw "Invalid digit at face " + std::to_string(faceIndex);
     }
     const char orientationChar = humanReadableFormat[charIndex + 2];
@@ -153,7 +153,7 @@ bool KeySqr::areLettersUnique() const {
   }
   std::sort(letters.begin(), letters.end(), [](char a, char b) { return a < b; });
   for (int i = 0; i < NumberOfFaces; i++) {
-    if (letters[i] != ElementLetters[i]) {
+    if (letters[i] != FaceLetters[i]) {
       return false;
     }
   }

@@ -5,9 +5,9 @@
 #include <float.h>
 #include "graphics/cv.h"
 #include "graphics/geometry.h"
-#include "keysqr-element-face-specification.h"
+#include "keysqr-face-specification.h"
 
-const float undoverlineWidthAsFractionOfLength = ElementDimensionsFractional::undoverlineThickness / ElementDimensionsFractional::undoverlineLength;
+const float undoverlineWidthAsFractionOfLength = FaceDimensionsFractional::undoverlineThickness / FaceDimensionsFractional::undoverlineLength;
 
 class Undoverline {
 public:
@@ -19,7 +19,7 @@ public:
 	unsigned char letterDigitEncoding = 0;
 	unsigned char whiteBlackThreshold = 0;
 	cv::Point2f inferredCenterOfFace = {0, 0};
-  const ElementFaceSpecification *faceInferred = &NullElementFaceSpecification;
+  const FaceSpecification *faceInferred = &NullFaceSpecification;
 	cv::RotatedRect inferredOpposingUndoverlineRotatedRect = cv::RotatedRect();
 
   Undoverline() {

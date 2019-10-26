@@ -24,8 +24,8 @@ KeySqr facesReadToKeySqr(
 	std::vector<ElementFace> faces;
 	for (size_t i = 0; i < facesRead.size(); i++) {
 		FaceRead faceRead = facesRead[i];
-		const ElementFaceSpecification &underlineInferred = *faceRead.underline.faceInferred;
-		const ElementFaceSpecification &overlineInferred = *faceRead.overline.faceInferred;
+		const FaceSpecification &underlineInferred = *faceRead.underline.faceInferred;
+		const FaceSpecification &overlineInferred = *faceRead.overline.faceInferred;
 		const char digitRead = faceRead.ocrDigit.size() == 0 ? '\0' : faceRead.ocrDigit[0].character;
 		const char letterRead = faceRead.ocrLetter.size() == 0 ? '\0' :  faceRead.ocrLetter[0].character;
 		if (!faceRead.underline.found) {
