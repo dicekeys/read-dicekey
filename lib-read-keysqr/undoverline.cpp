@@ -9,6 +9,7 @@
 #include "keysqr-face-specification.h"
 #include "decode-face.h"
 #include "undoverline.h"
+#include "json.h"
 
 Undoverline::Undoverline(
 	cv::RotatedRect _fromRotatedRect,
@@ -94,14 +95,16 @@ const std::string Undoverline::toJson() const {
 	std::ostringstream jsonStream;
 	jsonStream <<
 	"{" <<
-		"center: {" <<
-			"x: " << center.x << ", " <<
-			"y: " << center.y << "" <<
-		"}, " <<
-		"angleInRadians: " << angleOfLineInSignedRadians2f(line) << "," <<
-		"lengthInPixels: " << lineLength(line) << "," <<
-		"letterDigitEncoding: " << letterDigitEncoding << "," <<
-		"whiteBlackThreshold: " << whiteBlackThreshold << "" <<
+		JsonKeys::Undoverline::code << ": " << letterDigitEncoding << "," <<
+		JsonKeys::Undoverline::line << ": " << lineToJson(line) <<
+		// "center: {" <<
+		// 	"x: " << center.x << ", " <<
+		// 	"y: " << center.y << "" <<
+		// "}, " <<
+		// "angleInRadians: " << angleOfLineInSignedRadians2f(line) << "," <<
+		// "lengthInPixels: " << lineLength(line) << "," <<
+		// "letterDigitEncoding: " << letterDigitEncoding << "," <<
+		// "whiteBlackThreshold: " << whiteBlackThreshold << "" <<
 	"}";
 	return jsonStream.str();
 }

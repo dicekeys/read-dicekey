@@ -19,6 +19,7 @@
 #include "assemble-keysqr.h"
 #include "read-face-characters.h"
 #include "visualize-read-results.h"
+#include "json.h"
 
 char FaceRead::ocrLetterMostLikely() const {
 	return this->ocrLetter.size() == 0 ? '\0' : ocrLetter[0].character;
@@ -38,34 +39,18 @@ char FaceRead::digit() const {
 	);
 }
 
-std::string point2fToJson(const cv::Point2f point) {
-	std::ostringstream jsonStream;
-	jsonStream << "{" <<
-		JsonKeys::Point::x + ": " << point.x << ", " <<
-		JsonKeys::Point::y + ": " << point.y <<
-		"}";
-	return jsonStream.str();
-};
-
 std::string FaceRead::toJson() const {
-  // JsonKeys::FaceRead::ocrDigitCharsFromMostToLeastLikely + "=" + ;
-  // JsonKeys::FaceRead::ocrLetterCharsFromMostToLeastLikely + "=" + ;
-
-
 	std::ostringstream jsonStream;
 	jsonStream <<
 		"{" <<
 			JsonKeys::FaceRead::underline << ": " << underline.toJson() << ", " <<
 			JsonKeys::FaceRead::overline << ": " << overline.toJson() << ", " <<
-			JsonKeys::FaceRead::center << ": " << point2fToJson(center) << ", " <<
-//			"angleInRadians: " << inferredAngleInRadians << "," <<
+			JsonKeys::FaceRead::center << ": " << pointToJson(center) << ", " <<
 			JsonKeys::FaceRead::clockwise90DegreeRotationsFromUpright << ": " << orientationAs0to3ClockwiseTurnsFromUpright << "," <<
 			JsonKeys::FaceRead::ocrLetterCharsFromMostToLeastLikely << ": \"" <<
 				ocrLetter[0].character << ocrLetter[1].character << ocrLetter[2].character << "\", " <<
 			JsonKeys::FaceRead::ocrDigitCharsFromMostToLeastLikely << ": \"" <<
 				ocrDigit[0].character << ocrDigit[1].character << ocrDigit[2].character << "\", " <<
-//			"ocrLetter: " << (ocrLetter.size() > 0 ? ocrLetter[0].character : '-') << "," <<
-//			"ocrDigit: " << (ocrDigit.size() > 0 ? ocrDigit[0].character : '-') << "" <<
 		"}";
 	return jsonStream.str();
 }
