@@ -10,6 +10,7 @@
 
 const std::string FaceLetters = "ABCDEFGHIJKLMNOPRSTUVWXYZ";
 const std::string FaceDigits = "123456";
+const std::string FaceRotationLetters = "trbl";
 
 const FaceSpecification NullFaceSpecification = {'\0', '\0', 0, 0};
 

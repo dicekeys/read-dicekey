@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include "face.h"
 
 struct FaceError {
 	unsigned char magnitude;
@@ -29,19 +30,29 @@ namespace FaceErrors {
   extern const FaceError None;
 }
 
-class ElementFace {
+class ElementFace: public Face {
+  private:
+    char _letter;
+    char _digit;
+    unsigned char _orientationAs0to3ClockwiseTurnsFromUpright;
   public:
-    char letter;
-    char digit;
-    unsigned char orientationAs0to3ClockwiseTurnsFromUpright;
+      // The face letter, an english capital letter other than 'Q', or '?' if unknown
+    char letter() const;
+    // The face digit, '1'-'6', or '?' if unknown
+    char digit() const;
+    // Return integers 0-3 (NOT chars '0'-'3') or '?' if unkown
+    char orientationAs0to3ClockwiseTurnsFromUpright() const;
+
+    std::string toJson() const;
+
     FaceError error;
 
     ElementFace();
     ElementFace(
-      char _letter,
-      char _digit,
-      unsigned char _orientationAs0to3ClockwiseTurnsFromUpright,
-      FaceError _error = {0, 0}
+      char __letter,
+      char __digit,
+      unsigned char __orientationAs0to3ClockwiseTurnsFromUpright,
+      FaceError __error = {0, 0}
     );
 
     /**
@@ -58,15 +69,15 @@ class ElementFace {
      **/
     std::string toJson() const;
 
-    char orientationChar(bool useDigitsForOrientation = false) const;
+//    char orientationChar(bool useDigitsForOrientation = false) const;
 
     /*
      * Return the face as a three-character triple of
      * letter, digit, and orientation ('0' - '3') in number of turns from clockwise.
      */
-    std::string toTriple(bool useDigitsForOrientation = false) const;
+//    std::string toTriple(bool useDigitsForOrientation = false) const;
 
-    bool isDefined() const;
+//    bool isDefined() const;
 
-    bool equals(const ElementFace &other) const;
+//    bool equals(const ElementFace &other) const;
 };

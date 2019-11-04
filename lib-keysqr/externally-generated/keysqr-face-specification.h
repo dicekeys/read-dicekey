@@ -29,6 +29,7 @@
 
 extern const std::string FaceLetters;
 extern const std::string FaceDigits;
+extern const std::string FaceRotationLetters;
 
 const int NumberOfDotsInUndoverline = 11;
 const int MinNumberOfBlackDotsInUndoverline = 4;
@@ -79,10 +80,6 @@ namespace JsonKeys {
 	namespace Point {
 		const std::string x = "x";
 		const std::string y = "y";
-	};
-	namespace Line {
-		const std::string start = "start";
-		const std::string end = "end";
 	};
 	namespace Undoverline {
 		const std::string line = "line";

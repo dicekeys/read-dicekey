@@ -7,38 +7,6 @@
 #include "keysqr.h"
 #include "keysqr-face-specification.h"
 
-
-const std::vector<std::vector<unsigned char>> rotationIndexes = {
-  {
-     0,  1,  2,  3,  4,
-     5,  6,  7,  8,  9,
-    10, 11, 12, 13, 14,
-    15, 16, 17, 18, 19,
-    20, 21, 22, 23, 24
-  },
-  {
-     20, 15, 10,  5,  0,
-     21, 16, 11,  6,  1,
-     22, 17, 12,  7,  2,
-     23, 18, 13,  8,  3,
-     24, 19, 14,  9,  4
-  },
-  {
-     24, 23, 22, 21, 20,
-     19, 18, 17, 16, 15,
-     14, 13, 12, 11, 10,
-      9,  8,  7,  6,  5,
-      4,  3,  2,  1,  0
-  },
-  {
-     4,  9, 14, 19, 24,
-     3,  8, 13, 18, 23,
-     2,  7, 12, 17, 22,
-     1,  6, 11, 16, 21,
-     0,  5, 10, 15, 20,
-  }
- };
-
 /**
  * This class represents a KeySqr that has been read by scanning one or more images.
  */
@@ -129,13 +97,13 @@ std::string KeySqr::toJson() const {
  * Convert a KeySqr to a human-readable format with 3 characters representing
  * each face as a letter, digit, and orientation.
  */
-std::string KeySqr::toHumanReadableForm(bool useDigitsForOrientation) const {
+std::string KeySqr::toHumanReadableForm(bool includeFaceOrientations) const {
   if (!initialized) {
     return "";
   }
   std::string humanReadableForm = "";
-  for (int i = 0; i < NumberOfFaces; i++) {
-    humanReadableForm += faces[i].toTriple(useDigitsForOrientation);
+  for (auto &face: faces) {
+    humanReadableForm += face.toHumanReadableForm(includeFaceOrientations);
   }
   return humanReadableForm;
 };
@@ -196,18 +164,7 @@ unsigned int KeySqr::totalError(bool requireUniqueLetters) const
 const KeySqr KeySqr::rotate(int clockwiseTurns) const
 {
   if (!initialized) return *this;
-  if (clockwiseTurns < 0) {
-    clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
-  }
-  const unsigned clockwiseTurns0to3 = clockwiseTurns % 4;
-  const std::vector<unsigned char> &indexToMoveElementFaceFrom = rotationIndexes[clockwiseTurns0to3];
-  std::vector<ElementFace> rotatedFaces;
-  for (size_t i = 0; i < NumberOfFaces; i++) {
-    ElementFace face = faces[indexToMoveElementFaceFrom[i]];
-    face.orientationAs0to3ClockwiseTurnsFromUpright = (face.orientationAs0to3ClockwiseTurnsFromUpright + clockwiseTurns) % 4;
-    rotatedFaces.push_back(face);
-  }
-  return KeySqr(rotatedFaces);
+  return KeySqr(rotateKeySqrFaces<ElementFace>(faces, clockwiseTurns));
 }
 
 /**
@@ -218,17 +175,7 @@ const KeySqr KeySqr::rotate(int clockwiseTurns) const
 const KeySqr KeySqr::rotateToCanonicalOrientation() const
 {
   if (!initialized) return *this;
-  KeySqr canonicalKeySqr = *this;
-  std::string canonicalKeysHumanReadableForm = canonicalKeySqr.toHumanReadableForm();
-  for (int clockwise90DegreeTurns = 1; clockwise90DegreeTurns < 4; clockwise90DegreeTurns++) {
-    KeySqr candidate = this->rotate(clockwise90DegreeTurns);
-    std::string candidateHumanReadableForm = candidate.toHumanReadableForm();
-    if (candidateHumanReadableForm < canonicalKeysHumanReadableForm) {
-      canonicalKeySqr = candidate;
-      canonicalKeysHumanReadableForm = candidateHumanReadableForm;
-    }
-  }
-  return canonicalKeySqr;
+  return KeySqr(toCanonicalOrientation(faces));
 }
 
 bool KeySqr::isPotentialMatch(const KeySqr &other) const {

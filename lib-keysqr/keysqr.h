@@ -3,9 +3,9 @@
 #pragma once
 
 #include <vector>
+#include "face.h"
+#include "keysqr-generics.h"
 #include "element-face.h"
-
-const int NumberOfFaces = 25;
 
 /**
  * This class represents a KeySqr that has been read by scanning one or more images.
@@ -14,7 +14,7 @@ class KeySqr {
   public:
   
   bool initialized;
-  ElementFace faces[NumberOfFaces];
+  std::vector<ElementFace> faces;
 
   KeySqr();
 
@@ -44,7 +44,7 @@ class KeySqr {
    * Convert a KeySqr to a human-readable format with 3 characters representing
    * each face as a letter, digit, and orientation.
    */
-  std::string toHumanReadableForm(bool useDigitsForOrientation = false) const;
+  std::string toHumanReadableForm(bool includeFaceOrientations) const;
 
   /**
    * Test to determine if every face in the KeySqr has a different (unique)
