@@ -6,7 +6,7 @@
 
 extern "C" {
 
-JNIEXPORT jstring JNICALL readKeySqr(
+JNIEXPORT jstring JNICALL readKeySqrJson(
      JNIEnv* env,
      jobject obj,
      jint width,
