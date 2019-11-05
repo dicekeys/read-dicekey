@@ -110,7 +110,7 @@ namespace FaceErrors {
   extern const FaceError None;
 }
 
-class FaceRead: public FaceUndoverlines, public Face, public Rotateable<FaceRead> {
+class FaceRead: public FaceUndoverlines, public IFace, public Rotateable<FaceRead> {
 private:
 	char _orientationAs0to3ClockwiseTurnsFromUpright;
   std::string ocrLetterFromMostToLeastLikely;

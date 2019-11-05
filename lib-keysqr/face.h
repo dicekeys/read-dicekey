@@ -62,7 +62,7 @@ inline char rotateOrientationAsLowercaseLetterTRBL(char orientationAsLowercaseLe
   return trbl(orientationAs0to3ClockwiseTurnsFromUprightAfterRotation);
 }
 
-class Face {
+class IFace {
   public:
     // The face letter, an english capital letter other than 'Q', or '?' if unknown
     virtual char letter() const = 0;
@@ -104,7 +104,7 @@ class Face {
       return letter() != '?' && digit() != '?' && orientationAs0to3ClockwiseTurnsFromUpright() != '?';
     }
 
-    inline bool equals(const Face &other) const {
+    inline bool equals(const IFace &other) const {
       return (
         // Undefined faces cannot be equal
         isDefined() &&
@@ -120,4 +120,29 @@ template<class F>
 class Rotateable {
 public:
   virtual F rotate(int clockwiseTurnsToRight) const = 0;
+};
+
+
+class Face : public IFace, public Rotateable<Face> {
+private:
+	const char _letter;
+	const char _digit;
+	char _orientationAs0to3ClockwiseTurnsFromUpright;
+public:
+	// The face letter, an english capital letter other than 'Q', or '?' if unknown
+	char letter() const;
+	// The face digit, '1'-'6', or '?' if unknown
+	char digit() const;
+	// Return integers 0-3 (NOT chars '0'-'3') or '?' if unkown
+	char orientationAs0to3ClockwiseTurnsFromUpright() const;
+
+	Face rotate(int clockwiseTurnsToRight) const;
+
+	Face(
+		std::string letterDigitOrientationTriple
+	);
+
+	Face(
+		const IFace& f
+	);
 };

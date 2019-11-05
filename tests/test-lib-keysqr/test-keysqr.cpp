@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "keysqr-from-string.h"
+#include "keysqr-from-human-readable-form.h"
 
 
 const std::string orderedKeySqrHrf =
