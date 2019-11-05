@@ -265,8 +265,8 @@ static float findAndValidateMeanDifference(const std::vector<float> sortedValues
 	const float mean_bound_high = std::max(abs_mean_difference + minBoundEdgeRange, abs_mean_difference * 1.05f);
 	// Ensure all the delta_x and delta_y values are close to the mean
 	bool allDistancesAreCloseToTheMeanDistance = true;
-	for (int d = 1; d < sortedValues.size() && allDistancesAreCloseToTheMeanDistance; d++) {
-		float difference = abs(sortedValues[d] - sortedValues[d-1]);
+	for (size_t d = 1; d < sortedValues.size() && allDistancesAreCloseToTheMeanDistance; d++) {
+		float difference = sortedValues[d] - sortedValues[size_t(d - 1)];
 		float abs_difference = abs(difference);
 		allDistancesAreCloseToTheMeanDistance &= 
 			(mean_bound_low < abs_difference) && (abs_difference < mean_bound_high);

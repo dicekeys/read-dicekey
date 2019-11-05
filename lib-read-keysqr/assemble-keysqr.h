@@ -9,7 +9,7 @@
 class FacesOrderedWithMissingFacesInferredFromUnderlines {
 	public:
 	bool valid = false;
-	std::vector<FaceRead> orderedFaces = {};
+	std::vector<FaceUndoverlines> orderedFaces = {};
 	// The angle of what was read on the page, without any conversion to have
 	// the top left be the corner with the earliest letter in the alphabet
 	float angleInRadiansNonCanonicalForm = NAN;
@@ -18,7 +18,7 @@ class FacesOrderedWithMissingFacesInferredFromUnderlines {
 	FacesOrderedWithMissingFacesInferredFromUnderlines() {}
 
 	FacesOrderedWithMissingFacesInferredFromUnderlines(
-		std::vector<FaceRead> _orderedFaces,
+		std::vector<FaceUndoverlines> _orderedFaces,
 		float _angleInRadiansNonCanonicalForm,
 		float _pixelsPerFaceEdgeWidth
 	) {
@@ -31,6 +31,6 @@ class FacesOrderedWithMissingFacesInferredFromUnderlines {
 
 FacesOrderedWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndoverlines(
 	const cv::Mat &grayscaleImage,
-	const FacesAndStrayUndoverlinesFound& facesAndStrayUndoverlinesFound,
+	const FaceAndStrayUndoverlinesFound& faceAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine = 1.0f // 1 mm
 );

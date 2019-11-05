@@ -10,15 +10,15 @@
 #include "keysqr.h"
 #include "read-faces.h"
 
-KeySqr facesReadToKeySqr(
-	const std::vector<FaceRead> facesRead,
-	bool reportErrsToStdErr = false
-);
+// KeySqr facesReadToKeySqr(
+// 	const std::vector<FaceRead> facesRead,
+// 	bool reportErrsToStdErr = false
+// );
 
-KeySqr readKeySqr(
-	const cv::Mat &grayscaleImage,
-	bool outputErrors = false
-);
+// KeySqr readKeySqr(
+// 	const cv::Mat &grayscaleImage,
+// 	bool outputErrors = false
+// );
 
 std::string readKeySqrJson(
 	const cv::Mat &grayscaleImage
@@ -54,7 +54,7 @@ struct ResultOfScanAndAugmentKeySqrImage {
 	std::chrono::time_point<std::chrono::system_clock> whenLastRead = minTimePoint;
 	// The KeySqr that has been read is stored in this field, which also
 	// keeps track of any errors that you have to be resolved during reading.
-	KeySqr keySqr = KeySqr();
+	KeySqr<FaceRead> keySqr = KeySqr<FaceRead>();
 	// After each call, the image passed to scanAndAugmentKeySqrImage
 	// is augmented with the scan results and copied here. 
 	cv::Mat augmentedColorImage_BGR_CV_8UC3 = cv::Mat();

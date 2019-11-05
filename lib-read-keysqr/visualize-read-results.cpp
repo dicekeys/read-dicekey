@@ -44,7 +44,7 @@ cv::Mat visualizeReadResults(
       if (error.magnitude > 0) {
         drawRotatedRect(
           resultImage,
-          cv::RotatedRect(face.center, cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
+          cv::RotatedRect(face.center(), cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
           errorMagnitudeToColor(error.magnitude).scalar,
           error.magnitude == 0 ? thinLineThickness : thickLineThickness
         );
@@ -64,19 +64,19 @@ cv::Mat visualizeReadResults(
           overlineError ? thickLineThickness : thinLineThickness );
       }
       // Draw the characters read
-      writeFaceCharacters(resultImage, face.center, face.inferredAngleInRadians, facesRead.pixelsPerFaceEdgeWidth, face.letter(), face.digit(),
+      writeFaceCharacters(resultImage, face.center(), face.inferredAngleInRadians(), facesRead.pixelsPerFaceEdgeWidth, face.letter(), face.digit(),
         errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrLetter) ? error.magnitude : 0 ),
         errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrDigit) ? error.magnitude : 0 )
       );
     }
   }
-  for (Undoverline undoverline: facesRead.strayUndoverlines) {
-    drawRotatedRect(resultImage, undoverline.fromRotatedRect, colorBigErrorRed.scalar, 1);
-  }
+  // for (Undoverline undoverline: facesRead.strayUndoverlines) {
+  //   drawRotatedRect(resultImage, undoverline.fromRotatedRect, colorBigErrorRed.scalar, 1);
+  // }
   for (FaceRead face: facesRead.strayFaces) {
       drawRotatedRect(
         resultImage,
-        cv::RotatedRect(face.center, cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
+        cv::RotatedRect(face.center(), cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
         colorBigErrorRed.scalar, 1
       );
   }

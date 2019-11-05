@@ -89,22 +89,22 @@ public:
 };
 
 KeySqrGridModel calculateKeySqrGrid(
-	const FacesAndStrayUndoverlinesFound &facesAndStrayUndoverlinesFound,
+	const FaceAndStrayUndoverlinesFound &faceAndStrayUndoverlinesFound,
 	float maxFractionOffaceWithromRowOrColumnLine = 0.1f // 1 mm
 ) {
-	const std::vector<FaceRead> &facesFound = facesAndStrayUndoverlinesFound.facesFound;
-	const std::vector<Undoverline> &strayUndoverlines = facesAndStrayUndoverlinesFound.strayUndoverlines;
-	const	float maxPixelsFromRowOrColumnLine = maxFractionOffaceWithromRowOrColumnLine * facesAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth;
+	const std::vector<FaceUndoverlines> &facesFound = faceAndStrayUndoverlinesFound.facesFound;
+	const std::vector<Undoverline> &strayUndoverlines = faceAndStrayUndoverlinesFound.strayUndoverlines;
+	const	float maxPixelsFromRowOrColumnLine = maxFractionOffaceWithromRowOrColumnLine * faceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth;
 
 	for (int i = 0; i < facesFound.size(); i++) {
 		// We can build a model of the grid based on this face if we can
 		// find four others in the same row and four others in the same column.
-		const FaceRead &candidateIntersectionFace = facesFound[i];
-		GridProximity gridModel(candidateIntersectionFace.center, candidateIntersectionFace.inferredAngleInRadians);
+		const FaceUndoverlines &candidateIntersectionFace = facesFound[i];
+		GridProximity gridModel(candidateIntersectionFace.center(), candidateIntersectionFace.inferredAngleInRadians());
 		
 		std::vector<cv::Point2f> candidatePoints, sameColumn, sameRow;
 		for (int j = 0; j < facesFound.size(); j++) {
-			if (j!=i) candidatePoints.push_back(facesFound[j].center);
+			if (j!=i) candidatePoints.push_back(facesFound[j].center());
 		}
 		for (const Undoverline &undoverline: strayUndoverlines) {
 			candidatePoints.push_back(undoverline.inferredCenterOfFace);
@@ -122,8 +122,8 @@ KeySqrGridModel calculateKeySqrGrid(
 			continue;
 		}
 		// Add this undoverline to both the row and the colum so we have all 5 of each
-		sameRow.push_back(candidateIntersectionFace.center);
-		sameColumn.push_back(candidateIntersectionFace.center);
+		sameRow.push_back(candidateIntersectionFace.center());
+		sameColumn.push_back(candidateIntersectionFace.center());
 
 		// Sort the elements in rows by x and in columns by y
 		std::sort(sameRow.begin(), sameRow.end(), [](cv::Point2f a, cv::Point2f b) { return a.x < b.x; });
@@ -159,19 +159,19 @@ KeySqrGridModel calculateKeySqrGrid(
 		// Figure out the row and column of the intersection face.
 		// Since the arrayys of row Y values and column X values are sorted, we can do a linear serach.
 		int rowOfIntersectionFace = 0, columnOfIntersectionFace = 0;
-		while (rowOfIntersectionFace < yValuesOfRowsWithinColumn.size() && candidateIntersectionFace.center.y > yValuesOfRowsWithinColumn[rowOfIntersectionFace]) {
+		while (rowOfIntersectionFace < yValuesOfRowsWithinColumn.size() && candidateIntersectionFace.center().y > yValuesOfRowsWithinColumn[rowOfIntersectionFace]) {
 			rowOfIntersectionFace++;
 		}
-		while (columnOfIntersectionFace < xValuesOfColumnsWithinRow.size() && candidateIntersectionFace.center.x > xValuesOfColumnsWithinRow[columnOfIntersectionFace]) {
+		while (columnOfIntersectionFace < xValuesOfColumnsWithinRow.size() && candidateIntersectionFace.center().x > xValuesOfColumnsWithinRow[columnOfIntersectionFace]) {
 			columnOfIntersectionFace++;
 		}
 		
 		// Find the center face's center point by moving to the third row
 		// (row 2 with 0-based indexing) and third column (col 2).
-		float centerX = candidateIntersectionFace.center.x
+		float centerX = candidateIntersectionFace.center().x
 			+ (( 2 - rowOfIntersectionFace) * meanXDistanceBetweenRows)
 			+ (( 2 - columnOfIntersectionFace) * meanXDistanceBetweenColumns);
-		float centerY = candidateIntersectionFace.center.y
+		float centerY = candidateIntersectionFace.center().y
 			+ (( 2 - rowOfIntersectionFace) * meanYDistanceBetweenRows)
 			+ (( 2 - columnOfIntersectionFace) * meanYDistanceBetweenColumns);
 
@@ -201,43 +201,47 @@ KeySqrGridModel calculateKeySqrGrid(
 
 FacesOrderedWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndoverlines(
 	const cv::Mat &grayscaleImage,
-	const FacesAndStrayUndoverlinesFound& facesAndStrayUndoverlinesFound,
+	const FaceAndStrayUndoverlinesFound& faceAndStrayUndoverlinesFound,
 	float maxMmFromRowOrColumnLine // = 1.0f // 1 mm
 ) {
 	// First, take the faces and undoverlines we've found and try to build
 	// a model a model that describes the locations within a 5x5 grid 
-	auto grid = calculateKeySqrGrid(facesAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
+	auto grid = calculateKeySqrGrid(faceAndStrayUndoverlinesFound, maxMmFromRowOrColumnLine);
 	if (!grid.valid) {
 		return FacesOrderedWithMissingFacesInferredFromUnderlines();
 	}
-	std::vector<FaceRead> orderedFaces(25);
+	std::vector<FaceUndoverlines> orderedFaces(25);
 	// Copy all the faces we found into the grid model
-	for (const auto &faceFound : facesAndStrayUndoverlinesFound.facesFound) {
-		const int faceIndex = grid.inferFaceIndexFromCenterPoint(faceFound.center);
+	for (const auto &faceFound : faceAndStrayUndoverlinesFound.facesFound) {
+		const int faceIndex = grid.inferFaceIndexFromCenterPoint(faceFound.center());
 		if (faceIndex >= 0) {
 			// We were able to find this face in the grid model, so copy it in
 			orderedFaces[faceIndex] = faceFound;
 		}
 	}
 	// Copy all the stray undoverlines we found into the grid model
-	for (const auto &undoverline : facesAndStrayUndoverlinesFound.strayUndoverlines) {
+	for (const auto &undoverline : faceAndStrayUndoverlinesFound.strayUndoverlines) {
 		const int faceIndex = grid.inferFaceIndexFromCenterPoint(undoverline.inferredCenterOfFace);
 		if (faceIndex >= 0) {
 			// We found this undoverline's face in the grid model, so copy it in
 			if (undoverline.isOverline) {
-				orderedFaces[faceIndex].overline = undoverline;
-				if (!orderedFaces[faceIndex].underline.found) {
-					orderedFaces[faceIndex].underline = readUndoverline(grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
-				}
+				orderedFaces[faceIndex] = FaceUndoverlines(
+					(	orderedFaces[faceIndex].underline.found ?
+							orderedFaces[faceIndex].underline : 
+							readUndoverline(grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect)
+					),
+					undoverline
+				);
 			}
 			else {
-				orderedFaces[faceIndex].underline = undoverline;
-				if (!orderedFaces[faceIndex].overline.found) {
-					orderedFaces[faceIndex].overline = readUndoverline(grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect);
-				}
+				orderedFaces[faceIndex] = FaceUndoverlines(
+					undoverline,
+					(	orderedFaces[faceIndex].overline.found ?
+							orderedFaces[faceIndex].overline : 
+							readUndoverline(grayscaleImage, undoverline.inferredOpposingUndoverlineRotatedRect)
+					)
+				);
 			}
-			orderedFaces[faceIndex].inferredAngleInRadians = angleOfLineInSignedRadians2f(undoverline.line);
-			orderedFaces[faceIndex].center = undoverline.inferredCenterOfFace;
 		}
 	}
 	// Provide a center point for faces we know should be there, but for which we could find an overline
@@ -246,14 +250,14 @@ FacesOrderedWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndo
 		// Uncomment when debugging grid
 		// circle(colorImage, grid.getExpectedCenterOfFace(i), 6, cv::Scalar(255, 0, 255), 3);
 		if (!orderedFaces[i].underline.found && !orderedFaces[i].overline.found) {
-			orderedFaces[i].center = grid.getExpectedCenterOfFace(i);
+			orderedFaces[i] = FaceUndoverlinesCenterOnly(grid.getExpectedCenterOfFace(i));
 		}
 	}
 
 	return FacesOrderedWithMissingFacesInferredFromUnderlines(
 		orderedFaces,
 		grid.angleInRadians,
-		facesAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth
+		faceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth
 	);
 
 }

@@ -13,14 +13,14 @@ inline unsigned clockwiseTurnsToRange0To3(int clockwiseTurns) {
   return clockwiseTurns0to3;
 }
 
-inline char orientationAsClockwiseTurnsFromUprightToLowercaseLetterTRBL(char orientationAs0to3ClockwiseTurnsFromUpright) {
-  return (
-    orientationAs0to3ClockwiseTurnsFromUpright >= 0 &&
-    orientationAs0to3ClockwiseTurnsFromUpright < FaceRotationLetters.length()
-  ) ?
-    FaceRotationLetters[orientationAs0to3ClockwiseTurnsFromUpright] :
-    '?';
+// Convert clockwise turns to right to 't', 'r', 'b', 'l'
+// (top, right, bottom, left)
+// The preferred format of River City.
+inline char trbl(int clockwiseTurnsToRight) {
+  return clockwiseTurnsToRight == '?' ? '?' :
+    FaceRotationLetters[clockwiseTurnsToRange0To3(clockwiseTurnsToRight)];
 }
+
 
 inline char orientationAsLowercaseLetterTRBLToClockwiseTurnsFromUpright(char orientationAsLowercaseLetterTRBL) {
   switch (orientationAsLowercaseLetterTRBL) {
@@ -59,9 +59,8 @@ inline char rotateOrientationAsLowercaseLetterTRBL(char orientationAsLowercaseLe
     orientationAs0to3ClockwiseTurnsFromUprightBeforeRotation +
     clockwiseTurns
   );
-  return orientationAsClockwiseTurnsFromUprightToLowercaseLetterTRBL(orientationAs0to3ClockwiseTurnsFromUprightAfterRotation);
+  return trbl(orientationAs0to3ClockwiseTurnsFromUprightAfterRotation);
 }
-
 
 class Face {
   public:
@@ -72,7 +71,15 @@ class Face {
     // Return integers 0-3 (NOT chars '0'-'3') or '?' if unkown
     virtual char orientationAs0to3ClockwiseTurnsFromUpright() const = 0;
     // Return the face in JSON format
-    virtual std::string toJson() const = 0;
+    virtual std::string toJson() const {
+      return "{ letter: '" + ( std::string(1, letter()) ) +
+        "', digit: '" + ( std::string(1, digit()) ) +
+        "', orientationAsLowercaseLetterTRBL: '" + std::string(1, orientationAsLowercaseLetterTRBL()) +
+        "'}";
+    }
+
+    virtual unsigned int errorSize() const { return 0; }
+    virtual int errorLocation() const { return 0; }
 
     // Returns
     //   't' (top, 0 clockwise turns from upright)
@@ -80,8 +87,9 @@ class Face {
     //   'b' (top, 2 clockwise turns from upright)
     //   'l' (top, 3 clockwise turns from upright)
     //   '?' unknown
+    // Oh yes we've got trbl. Right here in river city.
     inline char orientationAsLowercaseLetterTRBL() const {
-      return orientationAsClockwiseTurnsFromUprightToLowercaseLetterTRBL(orientationAs0to3ClockwiseTurnsFromUpright());
+      return trbl(orientationAs0to3ClockwiseTurnsFromUpright());
     }
 
     inline std::string toHumanReadableForm(bool includeOrientation) const {
@@ -106,4 +114,10 @@ class Face {
         orientationAs0to3ClockwiseTurnsFromUpright() == other.orientationAs0to3ClockwiseTurnsFromUpright()
       );
     }
+};
+
+template<class F>
+class Rotateable {
+public:
+  virtual F rotate(int clockwiseTurnsToRight) const = 0;
 };

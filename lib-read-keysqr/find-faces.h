@@ -7,12 +7,12 @@
 #include "graphics/cv.h"
 #include "read-faces.h"
 
-struct FacesAndStrayUndoverlinesFound {
-	std::vector<FaceRead> facesFound;
+struct FaceAndStrayUndoverlinesFound {
+	std::vector<FaceUndoverlines> facesFound;
 	std::vector<Undoverline> strayUndoverlines;
 	float pixelsPerFaceEdgeWidth;
 };
 
-FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
+FaceAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	const cv::Mat &grayscaleImage
 );

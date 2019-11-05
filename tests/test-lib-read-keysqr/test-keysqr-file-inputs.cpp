@@ -6,7 +6,8 @@
 void testFile(
   std::string filePath = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".jpg",
   bool validate = true,
-  int maxErrorAllowed = 0
+  int maxErrorAllowed = 0,
+	int facesExpectedToBeRead = NumberOfFaces
 ) {
   // #include <iostream>
   // #include <fstream>
@@ -43,9 +44,13 @@ void testFile(
       // std::cerr << "Validated " << filename << "\n";
     }
 
-    const KeySqr keySqrNonCanonical = facesReadToKeySqr(facesRead.faces, true);
-  	const KeySqr keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
-    totalError = keySqr.totalError(false);
+		ASSERT_GE(facesExpectedToBeRead, facesRead.faces.size());
+
+		if (facesRead.faces.size() >= NumberOfFaces) {
+			const KeySqr<FaceRead> keySqrNonCanonical = KeySqr<FaceRead>(facesRead.faces);
+			const KeySqr<FaceRead> keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
+			totalError = keySqr.totalError();
+		}
   } catch (std::string errStr) {
     std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
     ASSERT_TRUE(false) << filename << "\n  " << errStr;

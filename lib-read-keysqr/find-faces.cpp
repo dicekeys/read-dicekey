@@ -8,7 +8,7 @@
 #include "find-faces.h"
 #include "keysqr-face-specification.h"
 
-FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
+FaceAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	const cv::Mat &grayscaleImage
 ) {
 	const auto undoverlines = findReadableUndoverlines(grayscaleImage);
@@ -23,7 +23,7 @@ FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	const float maxDistanceBetweenInferredCenters = pixelsPerFaceEdgeWidth / 4; // 2mm
 
 	std::vector<Undoverline> strayUndoverlines(0);
-	std::vector<FaceRead> facesFound;
+	std::vector<FaceUndoverlines> facesFound;
 
 	for (auto underline : underlines) {
 		// Search for overline with inferred face center near that of underline.
@@ -34,21 +34,8 @@ FacesAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 				found = true;
 				// Re-infer the center of the face and its angle by drawing a line from
 				// the center of the to the center of the overline.
-				const Line lineFromUnderlineCenterToOverlineCenter = {
-					midpointOfLine(underline.line), midpointOfLine(overlines[i].line)
-				};
-				// The center of the face is the midpoint of that line.
-				const cv::Point2f center = midpointOfLine(lineFromUnderlineCenterToOverlineCenter);
-				// The angle of the face is the angle of that line, plus 90 degrees clockwise
-				const float angleOfLineFromUnderlineToOverlineCenterInRadians =
-					angleOfLineInSignedRadians2f(lineFromUnderlineCenterToOverlineCenter);
-				float angleInRadians = angleOfLineFromUnderlineToOverlineCenterInRadians +
-					NinetyDegreesAsRadians;
-				if (angleInRadians > (M_PI)) {
-					angleInRadians -= float(2 * M_PI);
-				}
-				facesFound.push_back( FaceRead(
-					underline, overlines[i], center, angleInRadians
+				facesFound.push_back( FaceUndoverlines(
+					underline, overlines[i]
 				));
 				// Remove the ith element of overlines
 				overlines.erase(overlines.begin() + i);
