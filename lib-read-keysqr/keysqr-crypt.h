@@ -1,17 +1,15 @@
 #pragma once
 
 #include "keysqr.h"
+// #include "sodium.h"
 #include "../includes/sodium.h"
-
 
 class KeySqrCrypto {
 private:
   inline static bool hasInitializedSodium = false;
-  const KeySqr<IFace> &keysqr;
 public:
 
-  KeySqrCrypto(KeySqr<IFace> &_keysqr) :
-    keysqr(_keysqr) 
+  KeySqrCrypto()
   {
     if (!hasInitializedSodium) {
       if (sodium_init() < 0) {
@@ -56,4 +54,18 @@ public:
 
 
 
+};
+
+
+
+
+class KeySqrCryptoWithDiceKey : public KeySqrCrypto {
+private:
+  const KeySqr<IFace> &keysqr;
+
+  KeySqrCryptoWithDiceKey(KeySqr<IFace> &_keysqr) :
+    keysqr(_keysqr),
+    KeySqrCrypto()
+  {
+  }
 };
