@@ -13,13 +13,14 @@ file(GLOB ALL_SRC_FILES
     "*/*.h"
     "*.cpp"
     "*/*.cpp"
+        "../api-jni/*.cpp"
 )
 
 #source_group("Sources" FILES ${SRC_FILES})
 #source_group("Headers" FILES ${HEADERS_FILES})
 
 add_library(${KEYSQR_LIBRARIES_PROJECT_NAME}
-    STATIC
+    SHARED
    ${ALL_SRC_FILES})
 
 #  -DOPENCV_EXTRA_MODULES_PATH="$myRepo"/opencv_contrib/modules
