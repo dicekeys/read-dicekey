@@ -1,12 +1,14 @@
+#ifdef __ANDROID__
+
 #include <string>
 #include <jni.h>
-#include <graphics/cv.h>
+#include "../lib-read-keysqr/graphics/cv.h"
 
-#include "read-keysqr.h"
+#include "../lib-read-keysqr/read-keysqr.h"
 
 extern "C" {
 
-JNIEXPORT jstring JNICALL readKeySqrJson(
+JNIEXPORT jstring JNICALL Java_com_example_readkeysqr_ReadKeySqr_ReadKeySqrJson(
      JNIEnv* env,
      jobject obj,
      jint width,
@@ -26,7 +28,7 @@ JNIEXPORT jstring JNICALL readKeySqrJson(
  	return env->NewStringUTF(jsonResult.c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_com_keysqr_readkeysqr_ReadKeySqr_helloFromOpenCV(JNIEnv *env, jobject thiz) {
+JNIEXPORT jstring JNICALL Java_com_example_readkeysqr_ReadKeySqr_HelloFromOpenCV(JNIEnv *env, jobject obj) {
     std::string name = "OPENCV Version ";
     name += CV_VERSION;
 
@@ -34,3 +36,5 @@ JNIEXPORT jstring JNICALL Java_com_keysqr_readkeysqr_ReadKeySqr_helloFromOpenCV(
 }
 
 }
+
+#endif
