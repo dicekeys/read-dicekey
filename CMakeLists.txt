@@ -87,41 +87,9 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR
 
 # OpenCV
 
-if (NOT ANDROID_ABI)
-    find_package( OpenCV REQUIRED )
-    set (OPENCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
-    set (OPENCV_LIBS "opencv_core;opencv_imgproc;opencv_imgcodecs")
-else()
-    message("Configuring for Android ${ANDROID_ABI}")
-    set (OPENCV_INCLUDE_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/builds/include")
-    set (OPENCV_LIB_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/builds/opencv/sdk/native/libs/${ANDROID_ABI}")
-    set (OPENCV_LIBS "${OPENCV_LIB_DIR}/libopencv_core.so;${OPENCV_LIB_DIR}/libopencv_imgproc.so;${OPENCV_LIB_DIR}/libopencv_imgcodecs.so")
-
-    set(BUILD_LIST "core,imgcodecs,imgproc" CACHE STRING "Build list for OpenCV")
-    # Turn off features we don't need ...
-    set(BUILD_EXAMPLES OFF CACHE BOOL "")
-    set(BUILD_PERF_TESTS OFF CACHE BOOL "")
-    set(BUILD_TESTS OFF CACHE BOOL "")
-    set(BUILD_DOCS OFF CACHE BOOL "")
-    set(BUILD_PYTHON OFF CACHE BOOL "")
-    set(BUILD_ANDROID_PROJECTS OFF CACHE BOOL "")
-    set(BUILD_ANDROID_EXAMPLES OFF CACHE BOOL "")
-
-    set(WITH_TIFF OFF CACHE BOOL "")
-
-    set(WITH_OPENCL OFF CACHE BOOL "")
-    set(WITH_OPENMP OFF CACHE BOOL "")
-    set(WITH_TBB OFF CACHE BOOL "")
-    set(WITH_MKL OFF CACHE BOOL "")
-    set(MKL_WITH_TBB OFF CACHE BOOL "")
-    set(MKL_WITH_OPENMP OFF CACHE BOOL "")
-
-#    set(OPENCV_SRC_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/extern/opencv")
-#    set(OPENCV_BIN_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/extern/opencv/build")
-#    message("OpenCV SrcDir: ${OPENCV_SRC_DIR} BinDIr: ${OPENCV_BIN_DIR}")
-#    add_subdirectory("${KEYSQR_LIBRARIES_PROJECT_DIR}/extern/opencv")
-    add_subdirectory(extern/opencv)
-endif()
+find_package( OpenCV REQUIRED )
+set (OPENCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
+set (OPENCV_LIBS "opencv_core;opencv_imgproc;opencv_imgcodecs")
 message("OPENCV_INCLUDE_DIR ${OPENCV_INCLUDE_DIR}")
 message("OPENCV_LIBS ${OPENCV_LIBS}")
 

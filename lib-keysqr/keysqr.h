@@ -22,9 +22,9 @@ class KeySqr {
     // const
     std::vector<F> faces;
 
-    KeySqr();
+    // KeySqr();
 
-    // KeySqr() {}
+    KeySqr() {}
 
     KeySqr(const F &copyFrom) {
       faces = copyFrom.faces;
@@ -45,7 +45,7 @@ class KeySqr {
       if (!isInitialized()) {
         return false;
       }
-      for (const &F face : faces) {
+      for (const F& face : faces) {
         if (!face.isDefined()) {
           return false;
         }
@@ -98,7 +98,7 @@ class KeySqr {
      * same element (die or chip) appeared twice, we would conclude the key to be invalid.
      */
     bool areLettersUnique() const {
-      if (!isInitialized) {
+      if (!isInitialized()) {
         return false;
       }
       std::vector<char> letters;
