@@ -99,7 +99,7 @@ if(NOT OpenCV_core_FOUND)
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
 
         file(DOWNLOAD "https://github.com/opencv/opencv/releases/download/4.1.2/opencv-4.1.2-android-sdk.zip" "${CMAKE_SOURCE_DIR}/extern/opencv.zip")
-        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xzf "${CMAKE_BINARY_DIR}/opencv.zip" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/extern")
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xzf "${CMAKE_SOURCE_DIR}/extern/opencv.zip" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/extern")
         file(REMOVE "${CMAKE_SOURCE_DIR}/extern/opencv.zip")
 
     else()
