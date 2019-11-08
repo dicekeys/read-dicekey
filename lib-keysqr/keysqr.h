@@ -81,6 +81,8 @@ class KeySqr {
     /**
      * Convert a KeySqr to a human-readable format with 3 characters representing
      * each face as a letter, digit, and orientation.
+     * 
+     * FUTURE -- build string in place in memory that can be zerod
      */
     std::string toHumanReadableForm(bool includeFaceOrientations) const {
       assert(faces.size() == NumberOfFaces);

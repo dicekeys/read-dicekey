@@ -3,11 +3,11 @@
 
 void HashFunction::hash(
   std::vector<unsigned char>hash_output,
-  const unsigned char *message,
+  const void* message,
   unsigned long long message_length
 ) const {
   assert(hash_output.size() == hash_size_in_bytes());
-  hash(hash_output.data(), message, message_length);
+  hash(hash_output.data(), (const unsigned*)message, message_length);
 };
 
 void HashFunction::hash(
@@ -22,24 +22,24 @@ void HashFunction::hash(
 size_t HashFunctionBlake2b::hash_size_in_bytes() const { return crypto_generichash_BYTES; }
 	
 int HashFunctionBlake2b::hash(
-  unsigned char *hash_output,
-  const unsigned char *message,
+  void* hash_output,
+  const void* message,
   unsigned long long message_length
 ) const {
   return crypto_generichash(
-    hash_output, crypto_generichash_BYTES,
-    message, message_length,
+    (unsigned char*)hash_output, crypto_generichash_BYTES,
+    (const unsigned char*)message, message_length,
     NULL, 0);
 }
 
 size_t HashFunctionSHA256::hash_size_in_bytes() const { return crypto_hash_sha256_BYTES; }
 
 int HashFunctionSHA256::hash(
-  unsigned char *hash_output,
-  const unsigned char *message,
+  void* hash_output,
+  const void* message,
   unsigned long long message_length
 ) const {
-  return crypto_hash_sha256(hash_output,message, message_length);
+  return crypto_hash_sha256((unsigned char*)hash_output, (const unsigned char*)message, message_length);
 }
 
 HashFunctionArgon2id::HashFunctionArgon2id(
@@ -60,8 +60,8 @@ HashFunctionArgon2id::HashFunctionArgon2id(
 size_t HashFunctionArgon2id::hash_size_in_bytes() const { return hash_output_size_in_bytes; }
 	
 int HashFunctionArgon2id::hash(
-  unsigned char *hash_output,
-  const unsigned char *message,
+  void* hash_output,
+  const void* message,
   unsigned long long message_length
 ) const {
   // Argon2id requires a 16-byte salt.
@@ -70,7 +70,7 @@ int HashFunctionArgon2id::hash(
   static const unsigned char zero_bytes_for_salt[crypto_pwhash_argon2id_SALTBYTES] =
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   return crypto_pwhash(
-    hash_output, hash_size_in_bytes(),
+    (unsigned char*)hash_output, hash_size_in_bytes(),
     (const char*)message, message_length,
     zero_bytes_for_salt,
     opslimit,

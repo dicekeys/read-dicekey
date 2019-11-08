@@ -9,14 +9,14 @@ class HashFunction {
 	public:
 	virtual size_t hash_size_in_bytes() const = 0;
 	virtual int hash(
-		unsigned char *hash_output,
-		const unsigned char *message,
+		void* hash_output,
+		const void* message,
 		unsigned long long message_length
 	) const = 0;
 
 	void hash(
 		std::vector<unsigned char>hash_output,
-		const unsigned char *message,
+		const void* message,
 		unsigned long long message_length
 	) const;
 
@@ -30,8 +30,8 @@ class HashFunctionBlake2b : public HashFunction {
 	size_t hash_size_in_bytes() const { return crypto_generichash_BYTES; }
 	
 	int hash(
-		unsigned char *hash_output,
-		const unsigned char *message,
+		void* hash_output,
+		const void* message,
 		unsigned long long message_length
 	) const;
 };
@@ -40,8 +40,8 @@ class HashFunctionSHA256 : public HashFunction {
 	size_t hash_size_in_bytes() const;
 	
 	int hash(
-		unsigned char *hash_output,
-		const unsigned char *message,
+		void* hash_output,
+		const void* message,
 		unsigned long long message_length
 	) const;
 };
@@ -61,8 +61,8 @@ class HashFunctionArgon2id : public HashFunction {
   size_t hash_size_in_bytes() const { return hash_output_size_in_bytes; }
 	
   int hash(
-    unsigned char *hash_output,
-    const unsigned char *message,
+    void* hash_output,
+    const void* message,
     unsigned long long message_length
   ) const;
 };
