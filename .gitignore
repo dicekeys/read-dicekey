@@ -64,10 +64,6 @@ Browse.VC.db
 
 tesseract.log
 dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
-extern/builds/*
 extern/*/**
-extern/opencv
-extern/build
-!extern/opencv-android/**/*
 builds
 .vscode/c_cpp_properties.json

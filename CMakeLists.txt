@@ -85,18 +85,21 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR
 ####################################################
 # Ensure OpenCV is installed
 
-# OpenCV
+set (OpenCV_DIR "${CMAKE_BINARY_DIR}/opencv/build")
+find_package(OpenCV COMPONENTS core imgproc imgcodecs)
 
-if (ANDROID_ABI)
-    set(OpenCV_DIR "extern/opencv-android/sdk/native/jni")
+if(NOT OpenCV_core_FOUND)
+
+    find_package(Git REQUIRED)
+    execute_process(COMMAND git clone https://github.com/opencv/opencv.git)
+
+    message("Compiling OpenCV library")
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory "opencv/build")
+    execute_process(COMMAND "${CMAKE_COMMAND}" "-DBUILD_LIST=core,imgproc,imgcodecs" ".." WORKING_DIRECTORY "opencv/build")
+    execute_process(COMMAND "${CMAKE_COMMAND}" "--build" "." WORKING_DIRECTORY "opencv/build")
+
+    find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
 endif()
-
-find_package( OpenCV REQUIRED )
-set (OPENCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
-set (OPENCV_LIBS "opencv_core;opencv_imgproc;opencv_imgcodecs")
-message("OPENCV_INCLUDE_DIR ${OPENCV_INCLUDE_DIR}")
-message("OPENCV_LIBS ${OPENCV_LIBS}")
-
 
 ####################################################
 # Libraries to build
@@ -150,7 +153,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
    -D_CONSOLE 
     )
     if(MSVC)
-        target_compile_options(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE /MTd /W3 /GL /Oi /Gy /EHsc) # /Zi
+        target_compile_options(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE /W3 /GL /Oi /Gy /EHsc) # /Zi
     endif()
 endif()
 
