@@ -85,20 +85,36 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR
 ####################################################
 # Ensure OpenCV is installed
 
-set (OpenCV_DIR "${CMAKE_BINARY_DIR}/opencv/build")
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    set (Cross_OpenCV_DIR "${CMAKE_SOURCE_DIR}/extern/OpenCV-android-sdk/sdk/native/jni")
+else()
+    set (Cross_OpenCV_DIR "${CMAKE_BINARY_DIR}/opencv/build")
+endif()
+
+set (OpenCV_DIR ${Cross_OpenCV_DIR})
 find_package(OpenCV COMPONENTS core imgproc imgcodecs)
 
 if(NOT OpenCV_core_FOUND)
 
-    find_package(Git REQUIRED)
-    execute_process(COMMAND git clone https://github.com/opencv/opencv.git)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Android")
 
-    message("Compiling OpenCV library")
-    execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory "opencv/build")
-    execute_process(COMMAND "${CMAKE_COMMAND}" "-DBUILD_LIST=core,imgproc,imgcodecs" ".." WORKING_DIRECTORY "opencv/build")
-    execute_process(COMMAND "${CMAKE_COMMAND}" "--build" "." WORKING_DIRECTORY "opencv/build")
+        file(DOWNLOAD "https://github.com/opencv/opencv/releases/download/4.1.2/opencv-4.1.2-android-sdk.zip" "${CMAKE_SOURCE_DIR}/extern/opencv.zip")
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xzf "${CMAKE_BINARY_DIR}/opencv.zip" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/extern")
+        file(REMOVE "${CMAKE_SOURCE_DIR}/extern/opencv.zip")
 
-    set (OpenCV_DIR "${CMAKE_BINARY_DIR}/opencv/build")
+    else()
+
+        find_package(Git REQUIRED)
+        execute_process(COMMAND git clone "https://github.com/opencv/opencv.git")
+
+        message("Compiling OpenCV library")
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory "opencv/build")
+        execute_process(COMMAND "${CMAKE_COMMAND}" "-DBUILD_LIST=core,imgproc,imgcodecs" ".." WORKING_DIRECTORY "opencv/build")
+        execute_process(COMMAND "${CMAKE_COMMAND}" "--build" "." WORKING_DIRECTORY "opencv/build")
+
+    endif()
+
+    set (OpenCV_DIR ${Cross_OpenCV_DIR})
     find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
 endif()
 
