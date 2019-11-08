@@ -1,3 +1,6 @@
 [submodule "extern/googletest"]
 	path = extern/googletest
 	url = https://github.com/google/googletest.git
+[submodule "extern/opencv-compiled"]
+	path = extern/opencv-compiled
+	url = https://github.com/dicekeys/opencv-compiled
