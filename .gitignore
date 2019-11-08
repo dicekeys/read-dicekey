@@ -68,5 +68,6 @@ extern/builds/*
 extern/*/**
 extern/opencv
 extern/build
+!extern/opencv-android/**/*
 builds
 .vscode/c_cpp_properties.json

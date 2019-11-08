@@ -87,6 +87,10 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR
 
 # OpenCV
 
+if (ANDROID_ABI)
+    set(OpenCV_DIR "extern/opencv-android/sdk/native/jni")
+endif()
+
 find_package( OpenCV REQUIRED )
 set (OPENCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
 set (OPENCV_LIBS "opencv_core;opencv_imgproc;opencv_imgcodecs")
