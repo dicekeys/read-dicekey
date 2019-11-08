@@ -98,6 +98,7 @@ if(NOT OpenCV_core_FOUND)
     execute_process(COMMAND "${CMAKE_COMMAND}" "-DBUILD_LIST=core,imgproc,imgcodecs" ".." WORKING_DIRECTORY "opencv/build")
     execute_process(COMMAND "${CMAKE_COMMAND}" "--build" "." WORKING_DIRECTORY "opencv/build")
 
+    set (OpenCV_DIR "${CMAKE_BINARY_DIR}/opencv/build")
     find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
 endif()
 
