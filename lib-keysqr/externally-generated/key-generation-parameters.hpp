@@ -10,13 +10,12 @@
 namespace KeyGenerationOptionsJson {
 	namespace FieldNames {
 		const std::string additionalSalt = "additionalSalt";
-		const std::string fasterHashFunction = "fasterHashFunction";
+		const std::string hashFunction = "hashFunction";
 		const std::string includeOrientationOfFacesInKey = "includeOrientationOfFacesInKey";
 		const std::string keyLengthInBytes = "keyLengthInBytes";
 		const std::string keyType = "keyType";
 		const std::string purpose = "purpose";
 		const std::string restictToClientApplicationsIdPrefixes = "restictToClientApplicationsIdPrefixes";
-		const std::string slowerHashFunction = "slowerHashFunction";
 	}
 
 	enum Purpose {
@@ -69,11 +68,13 @@ namespace HashAlgorithmJson {
 	}	
 	enum Algorithm {
 		_INVALID_ = 0,
-		Argon2id
+		Argon2id,
+		Scrypt
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( Algorithm, {
 		{Algorithm::_INVALID_, nullptr},
-		{Algorithm::Argon2id, "Argon2id"}
+		{Algorithm::Argon2id, "Argon2id"},
+		{Algorithm::Scrypt, "Scrypt"}
 	})
 	
 };

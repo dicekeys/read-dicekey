@@ -18,8 +18,7 @@ public:
 	KeyGenerationOptionsJson::KeyType keyType;
   unsigned int keyLengthInBytes;
 	std::vector<std::string> restictToClientApplicationsIdPrefixes;
-	HashFunction *slowerHashFunction;
-	HashFunction *fasterHashFunction;
+	HashFunction *hashFunction;
 	bool includeOrientationOfFacesInKey;
 
 	~KeyGenerationOptions();

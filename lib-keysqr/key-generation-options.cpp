@@ -13,11 +13,11 @@
 
 
 KeyGenerationOptions::~KeyGenerationOptions() {
-  if (slowerHashFunction) {
-    delete slowerHashFunction;
+  if (hashFunction) {
+    delete hashFunction;
   }
-  if (fasterHashFunction) {
-    delete fasterHashFunction;
+  if (hashFunction) {
+    delete hashFunction;
   }
 }
 
@@ -110,55 +110,41 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
     );
 
   //
-  // slowerHashFunction
+  // hashFunction
   //
-  if (!keyGenerationOptionsObject.contains(KeyGenerationOptionsJson::FieldNames::slowerHashFunction)) {
-    slowerHashFunction = new HashFunctionSHA256();
+  if (!keyGenerationOptionsObject.contains(KeyGenerationOptionsJson::FieldNames::hashFunction)) {
+    hashFunction = new HashFunctionSHA256();
   } else {
-    const auto jslowerHashFunction = keyGenerationOptionsObject.at(KeyGenerationOptionsJson::FieldNames::slowerHashFunction);
-    if (jslowerHashFunction == KeyGenerationOptionsJson::HashFunction::SHA256) {
-      slowerHashFunction = new HashFunctionSHA256();
-    } else if (jslowerHashFunction == KeyGenerationOptionsJson::HashFunction::BLAKE2b) {
-      slowerHashFunction = new HashFunctionBlake2b();
-    } else if (jslowerHashFunction.is_object()) {
+    const auto jhashFunction = keyGenerationOptionsObject.at(KeyGenerationOptionsJson::FieldNames::hashFunction);
+    if (jhashFunction == KeyGenerationOptionsJson::HashFunction::SHA256) {
+      hashFunction = new HashFunctionSHA256();
+    } else if (jhashFunction == KeyGenerationOptionsJson::HashFunction::BLAKE2b) {
+      hashFunction = new HashFunctionBlake2b();
+    } else if (jhashFunction.is_object()) {
       const HashAlgorithmJson::Algorithm algorithm =
-        jslowerHashFunction.value<HashAlgorithmJson::Algorithm>(
+        jhashFunction.value<HashAlgorithmJson::Algorithm>(
           HashAlgorithmJson::FieldNames::algorithm,
           HashAlgorithmJson::Algorithm::_INVALID_
         );
+      const unsigned long long opslimit =
+        jhashFunction.value(
+          HashAlgorithmJson::FieldNames::opsLimit,
+          Argoin2idDefaults::opslimit
+        );
+      const size_t memlimit =
+        jhashFunction.value(
+          HashAlgorithmJson::FieldNames::memLimit,
+          Argoin2idDefaults::memlimit
+        );
       if (algorithm == HashAlgorithmJson::Algorithm::Argon2id) {
-          const unsigned long long opslimit =
-            jslowerHashFunction.value(
-              HashAlgorithmJson::FieldNames::opsLimit,
-              Argoin2idDefaults::opslimit
-            );
-          const size_t memlimit =
-            jslowerHashFunction.value(
-              HashAlgorithmJson::FieldNames::memLimit,
-              Argoin2idDefaults::memlimit
-            );
-          slowerHashFunction = new HashFunctionArgon2id(keyLengthInBytes, opslimit, memlimit);
+        hashFunction = new HashFunctionArgon2id(keyLengthInBytes, opslimit, memlimit);
+      } else if (algorithm == HashAlgorithmJson::Algorithm::Scrypt) {
+        hashFunction = new HashFunctionScrypt(keyLengthInBytes, opslimit, memlimit);
       } else {
-        throw "Invalid slowerHashFunction";
+        throw "Invalid hashFunction";
       }
     } else {
-      throw "Invalid slowerHashFunction";
-    }
-  }
-
-  //
-  // fasterHashFunction
-  //
-  if (!keyGenerationOptionsObject.contains(KeyGenerationOptionsJson::FieldNames::fasterHashFunction)) {
-    fasterHashFunction = new HashFunctionSHA256();
-  } else {
-    const auto jfasterHashFunction = keyGenerationOptionsObject.at(KeyGenerationOptionsJson::FieldNames::fasterHashFunction);
-    if (jfasterHashFunction == KeyGenerationOptionsJson::HashFunction::SHA256) {
-      fasterHashFunction = new HashFunctionSHA256();
-    } else if (jfasterHashFunction == KeyGenerationOptionsJson::HashFunction::BLAKE2b) {
-      fasterHashFunction = new HashFunctionBlake2b();
-    } else {
-      throw "Invalid fasterHashFunction";
+      throw "Invalid hashFunction";
     }
   }
 

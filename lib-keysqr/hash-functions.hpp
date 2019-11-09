@@ -46,6 +46,7 @@ class HashFunctionSHA256 : public HashFunction {
 	) const;
 };
 
+
 class HashFunctionArgon2id : public HashFunction {
 	private:
 		unsigned long long hash_output_size_in_bytes;
@@ -54,6 +55,27 @@ class HashFunctionArgon2id : public HashFunction {
 	public:
 
 	HashFunctionArgon2id(
+		unsigned long long _hash_output_size_in_bytes,
+		unsigned long long _opslimit,
+		size_t _memlimit
+	);
+  size_t hash_size_in_bytes() const { return hash_output_size_in_bytes; }
+	
+  int hash(
+    void* hash_output,
+    const void* message,
+    unsigned long long message_length
+  ) const;
+};
+
+class HashFunctionScrypt : public HashFunction {
+	private:
+		unsigned long long hash_output_size_in_bytes;
+		unsigned long long opslimit;
+		size_t memlimit;
+	public:
+
+	HashFunctionScrypt(
 		unsigned long long _hash_output_size_in_bytes,
 		unsigned long long _opslimit,
 		size_t _memlimit
