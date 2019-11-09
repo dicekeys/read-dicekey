@@ -35,6 +35,7 @@ target_include_directories(
         PUBLIC
         ${PROJECT_SOURCE_DIR}/lib-keysqr
         ${OpenCV_INCLUDE_DIRS}
+        "${libsodium_SOURCE_DIR}/libsodium/src/libsodium/include"
 )
 
 
@@ -46,6 +47,7 @@ target_link_libraries(${KEYSQR_LIBRARIES_PROJECT_NAME}
     PRIVATE 
     ${OpenCV_LIBS}
     lib-keysqr
+    sodium
 )
 
 

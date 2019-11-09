@@ -87,6 +87,10 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR
 include("extern/opencv.cmake")
 
 ####################################################
+# Ensure OpenCV is installed
+include("extern/libsodium.cmake")
+
+####################################################
 # Libraries to build
 ####################################################
 add_subdirectory("lib-keysqr")
