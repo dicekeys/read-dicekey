@@ -33,7 +33,7 @@ Set 'Working Directory' to '$(SolutionDir)'
 # Make sure we're using CMAKE 3.1 or higher, ideally the latest
 # From https://cliutils.gitlab.io/modern-cmake/chapters/basics.html
 ############################################################
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.14)
 
 if(${CMAKE_VERSION} VERSION_LESS 3.15)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
