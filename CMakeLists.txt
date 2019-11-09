@@ -87,7 +87,7 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR
 include("extern/opencv.cmake")
 
 ####################################################
-# Ensure OpenCV is installed
+# Ensure libSodium is installed
 include("extern/libsodium.cmake")
 
 ####################################################
