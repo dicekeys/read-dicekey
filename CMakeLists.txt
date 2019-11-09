@@ -53,7 +53,7 @@ project(${KEYSQR_LIBRARIES_PROJECT_NAME}
 )
 # Define Release by default.
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
   message(STATUS "Build type not specified: Use Release by default.")
 endif(NOT CMAKE_BUILD_TYPE)
 get_filename_component(KEYSQR_LIBRARIES_PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)

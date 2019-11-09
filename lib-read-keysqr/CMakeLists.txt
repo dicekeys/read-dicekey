@@ -30,12 +30,10 @@ add_library(${KEYSQR_LIBRARIES_PROJECT_NAME}
 # See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
 
 message("${KEYSQR_LIBRARIES_PROJECT_NAME}: Target OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
-target_include_directories(
-    ${KEYSQR_LIBRARIES_PROJECT_NAME} 
-        PUBLIC
+target_include_directories( ${KEYSQR_LIBRARIES_PROJECT_NAME} PUBLIC
         ${PROJECT_SOURCE_DIR}/lib-keysqr
         ${OpenCV_INCLUDE_DIRS}
-        "${libsodium_SOURCE_DIR}/libsodium/src/libsodium/include"
+        ${libsodium_SOURCE_DIR}/libsodium/src/libsodium/include
 )
 
 
