@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include "hash-functions.hpp"
-#include "json.hpp"
+#include "../includes/json.hpp"
 // Must come after json.hpp
 #include "externally-generated/key-generation-parameters.hpp"
 

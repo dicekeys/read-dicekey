@@ -6,6 +6,7 @@
 // This c++ header file specifies the JSON parameter names
 // for KeyGenerationOptions,
 #include <string>
+#include "../includes/json.hpp"
 
 namespace KeyGenerationOptionsJson {
 	namespace FieldNames {

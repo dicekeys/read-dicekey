@@ -3,7 +3,6 @@
 #include <vector>
 #include "sodium.h"
 
-
 class HashFunction {
 	public:
 	virtual size_t hash_size_in_bytes() const = 0;
