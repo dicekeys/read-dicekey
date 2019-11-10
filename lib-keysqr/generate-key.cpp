@@ -16,23 +16,36 @@ void generateKey(
 ) {
   assert(keyGeneratedOutput.size() == keyGenerationOptions.keyLengthInBytes);
   std::string keySqrInHumanReadableFormat = keySqr.toHumanReadableForm(keyGenerationOptions.includeOrientationOfFacesInKey);
-  size_t fasterHashSize = keyGenerationOptions.fasterHashFunction->hash_size_in_bytes();
-  size_t slowHashPreimageLength = 2 * fasterHashSize;
+
+  size_t slowHashPreimageLength =
+    // length of the keysqr in human readable format
+    keySqrInHumanReadableFormat.length() +
+    // 1 character for a null char between the two strings
+    1 +
+    // length of the json string specifying the key generation options
+    keyGenerationOptions.keyGenerationOptionsJsonString.length();
+
   unsigned char *slowHashPreimage = (unsigned char*)sodium_malloc(slowHashPreimageLength);
-  // [ fasterHash(keyGenerationOptionsJsonStirng) o fasterHash(keySquareInHumanReadableForm) ]
-  keyGenerationOptions.fasterHashFunction->hash(
+  if (slowHashPreimage == NULL) {
+    throw "Insufficient memory";
+  }
+
+  memcpy(
     slowHashPreimage,
+    keySqrInHumanReadableFormat.c_str(),
+    keySqrInHumanReadableFormat.length()
+  );
+  keySqrInHumanReadableFormat[keySqrInHumanReadableFormat.length()] = '0';
+  memcpy(
+    slowHashPreimage + keySqrInHumanReadableFormat.length() + 1,
     keyGenerationOptions.keyGenerationOptionsJsonString.c_str(),
     keyGenerationOptions.keyGenerationOptionsJsonString.length()
   );
-  keyGenerationOptions.fasterHashFunction->hash(
-    slowHashPreimage + fasterHashSize,
-    keySqrInHumanReadableFormat.c_str(),
-    keyGenerationOptions.keyGenerationOptionsJsonString.length()
-  );
-  keyGenerationOptions.slowerHashFunction->hash(
+
+  keyGenerationOptions.hashFunction->hash(
     keyGeneratedOutput,
-    slowHashPreimage, slowHashPreimageLength
+    slowHashPreimage,
+    slowHashPreimageLength
   );
 
   // sodium_memzero(keySqrInHumanReadableFormat.c_str, keySqrInHumanReadableFormat.size());
