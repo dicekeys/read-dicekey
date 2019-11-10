@@ -12,6 +12,8 @@
  */
 class KeyGenerationOptions {
 
+private:
+	nlohmann::json keyGenerationOptionsExplicit;
 public:
 	const std::string keyGenerationOptionsJsonString;
 	KeyGenerationOptionsJson::Purpose purpose;
@@ -28,5 +30,10 @@ public:
    * of the key generation options.
    **/
   const KeyGenerationOptions(const std::string &keyGenerationOptionsJson);
+
+	const std::string jsonKeyGenerationOptionsWithAllOptionalParametersSpecified(
+		int indent = -1,
+	  const char indent_char = ' '
+	) const;
 
 };

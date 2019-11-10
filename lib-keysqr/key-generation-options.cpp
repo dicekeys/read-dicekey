@@ -11,11 +11,7 @@
 
 #include "key-generation-options.hpp"
 
-
 KeyGenerationOptions::~KeyGenerationOptions() {
-  if (hashFunction) {
-    delete hashFunction;
-  }
   if (hashFunction) {
     delete hashFunction;
   }
@@ -42,6 +38,7 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
   if (purpose == KeyGenerationOptionsJson::Purpose::_INVALID_) {
     throw "Invalid purpose in KeyGenerationOptions";
   }
+  keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::purpose] = purpose;
 
   //
   // keyType
@@ -62,6 +59,7 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
       KeyGenerationOptionsJson::KeyType::_INVALID_
   );
 
+
   // Validate that the key type is allowed for this purpose
   if (purpose == KeyGenerationOptionsJson::Purpose::ForSymmetricKeySealedMessages &&
       keyType != KeyGenerationOptionsJson::KeyType::XSalsa20Poly1305
@@ -76,6 +74,10 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
       keyType != KeyGenerationOptionsJson::KeyType::X25519
   ) {
     throw "Invalid key type for public key cryptography";
+  }
+
+  if (!keyType != KeyGenerationOptionsJson::KeyType::_INVALID_) {
+    keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::keyType] = keyType;
   }
 
   //
@@ -109,13 +111,20 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
       {""}
     );
 
+    
+  if (!keyType == KeyGenerationOptionsJson::KeyType::_INVALID_) {
+    keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::keyLengthInBytes] = keyLengthInBytes;
+  }
+
   //
   // hashFunction
   //
   if (!keyGenerationOptionsObject.contains(KeyGenerationOptionsJson::FieldNames::hashFunction)) {
-    hashFunction = new HashFunctionSHA256();
+    hashFunction = new HashFunctionSHA256();    
+    keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::hashFunction] = KeyGenerationOptionsJson::HashFunction::SHA256;
   } else {
     const auto jhashFunction = keyGenerationOptionsObject.at(KeyGenerationOptionsJson::FieldNames::hashFunction);
+    keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::hashFunction] = jhashFunction;
     if (jhashFunction == KeyGenerationOptionsJson::HashFunction::SHA256) {
       hashFunction = new HashFunctionSHA256();
     } else if (jhashFunction == KeyGenerationOptionsJson::HashFunction::BLAKE2b) {
@@ -143,6 +152,11 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
       } else {
         throw "Invalid hashFunction";
       }
+      keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::hashFunction] = {
+        {HashAlgorithmJson::FieldNames::algorithm, algorithm},
+        {HashAlgorithmJson::FieldNames::memLimit, memlimit},
+        {HashAlgorithmJson::FieldNames::opsLimit, opslimit}
+      };
     } else {
       throw "Invalid hashFunction";
     }
@@ -155,7 +169,8 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
     KeyGenerationOptionsJson::FieldNames::includeOrientationOfFacesInKey,
     false
   );
-
+  keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::includeOrientationOfFacesInKey] =
+    includeOrientationOfFacesInKey;
   //
   // additionalSalt
   //
@@ -163,5 +178,16 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
   // of the KeyGenerationOptions json string from which keys are generated.
   // const string additionalSalt = keyGenerationOptionsObject.value<std::string>(
   // 		KeyGenerationOptionsJson::FieldNames::additionalSalt, "");
+  if (keyGenerationOptionsObject.contains(KeyGenerationOptionsJson::FieldNames::additionalSalt)) {
+    keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::additionalSalt] =
+      keyGenerationOptionsObject[KeyGenerationOptionsJson::FieldNames::additionalSalt];
+  }
 
 };
+
+const std::string KeyGenerationOptions::jsonKeyGenerationOptionsWithAllOptionalParametersSpecified(
+  int indent,
+  const char indent_char
+) const {
+  return keyGenerationOptionsExplicit.dump(indent, indent_char);
+}

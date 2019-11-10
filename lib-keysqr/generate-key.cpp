@@ -15,11 +15,12 @@ void generateKey(
   const KeyGenerationOptions &keyGenerationOptions
 ) {
   assert(keyGeneratedOutput.size() == keyGenerationOptions.keyLengthInBytes);
-  std::string keySqrInHumanReadableFormat = keySqr.toHumanReadableForm(keyGenerationOptions.includeOrientationOfFacesInKey);
+  std::string keySqrInHumanReadableForm =
+    keySqr.toHumanReadableForm(keyGenerationOptions.includeOrientationOfFacesInKey);
 
   size_t slowHashPreimageLength =
     // length of the keysqr in human readable format
-    keySqrInHumanReadableFormat.length() +
+    keySqrInHumanReadableForm.length() +
     // 1 character for a null char between the two strings
     1 +
     // length of the json string specifying the key generation options
@@ -32,12 +33,12 @@ void generateKey(
 
   memcpy(
     slowHashPreimage,
-    keySqrInHumanReadableFormat.c_str(),
-    keySqrInHumanReadableFormat.length()
+    keySqrInHumanReadableForm.c_str(),
+    keySqrInHumanReadableForm.length()
   );
-  keySqrInHumanReadableFormat[keySqrInHumanReadableFormat.length()] = '0';
+  keySqrInHumanReadableForm[keySqrInHumanReadableForm.length()] = '0';
   memcpy(
-    slowHashPreimage + keySqrInHumanReadableFormat.length() + 1,
+    slowHashPreimage + keySqrInHumanReadableForm.length() + 1,
     keyGenerationOptions.keyGenerationOptionsJsonString.c_str(),
     keyGenerationOptions.keyGenerationOptionsJsonString.length()
   );
@@ -48,7 +49,7 @@ void generateKey(
     slowHashPreimageLength
   );
 
-  // sodium_memzero(keySqrInHumanReadableFormat.c_str, keySqrInHumanReadableFormat.size());
+  // sodium_memzero(keySqrInHumanReadableForm.c_str, keySqrInHumanReadableForm.size());
 
   sodium_free(slowHashPreimage);
 }
