@@ -1,21 +1,21 @@
 #include <cassert>
 #include "hash-functions.hpp"
 
-void HashFunction::hash(
+int HashFunction::hash(
   std::vector<unsigned char>hash_output,
   const void* message,
   unsigned long long message_length
 ) const {
   assert(hash_output.size() == hash_size_in_bytes());
-  hash(hash_output.data(), (const unsigned*)message, message_length);
+  return hash(hash_output.data(), (const unsigned*)message, message_length);
 };
 
-void HashFunction::hash(
+int HashFunction::hash(
   std::vector<unsigned char>hash_output,
   const std::vector<unsigned char>message
 ) const {
   assert(hash_output.size() == hash_size_in_bytes());
-  hash(hash_output.data(), message.data(), message.size());
+  return hash(hash_output.data(), message.data(), message.size());
 };
 
 
@@ -70,8 +70,10 @@ int HashFunctionArgon2id::hash(
   static const unsigned char zero_bytes_for_salt[crypto_pwhash_argon2id_SALTBYTES] =
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   return crypto_pwhash(
-    (unsigned char*)hash_output, hash_size_in_bytes(),
-    (const char*)message, message_length,
+    (unsigned char*)hash_output,
+		hash_size_in_bytes(),
+    (const char*)message,
+		message_length,
     zero_bytes_for_salt,
     opslimit,
     memlimit,
@@ -110,8 +112,10 @@ int HashFunctionScrypt::hash(
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
   return crypto_pwhash_scryptsalsa208sha256(
-    (unsigned char*)hash_output, hash_size_in_bytes(),
-    (const char*)message, message_length,
+    (unsigned char*)hash_output,
+		hash_size_in_bytes(),
+    (const char*)message,
+		message_length,
     zero_bytes_for_salt,
     opslimit,
     memlimit

@@ -1,7 +1,7 @@
 #include <cassert>
 #include <vector>
 
-#include "sodium.h"
+#include <sodium.h>
 
 #include "keysqr.h"
 #include "generate-key.hpp"
@@ -43,7 +43,7 @@ void generateKey(
     keyGenerationOptions.keyGenerationOptionsJsonString.length()
   );
 
-  keyGenerationOptions.hashFunction->hash(
+  const int nonZeroHashResultMeansOutOfMemoryError = keyGenerationOptions.hashFunction->hash(
     keyGeneratedOutput,
     slowHashPreimage,
     slowHashPreimageLength
@@ -52,4 +52,9 @@ void generateKey(
   // sodium_memzero(keySqrInHumanReadableForm.c_str, keySqrInHumanReadableForm.size());
 
   sodium_free(slowHashPreimage);
+
+	if (nonZeroHashResultMeansOutOfMemoryError != 0) {
+		throw "Insufficient memory";
+	}
+
 }

@@ -4,7 +4,7 @@
 #include "keysqr.h"
 #include "hash-functions.hpp"
 
-#include "json.hpp"
+#include "../includes/json.hpp"
 // Must come after json.hpp
 #include "externally-generated/key-generation-parameters.hpp"
 
@@ -31,10 +31,10 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
   //
   purpose = keyGenerationOptionsObject.value<KeyGenerationOptionsJson::Purpose>(
       KeyGenerationOptionsJson::FieldNames::purpose,
-      KeyGenerationOptionsJson::Purpose::_INVALID_
+      KeyGenerationOptionsJson::Purpose::_INVALID_PURPOSE_
     );
 
-  if (purpose == KeyGenerationOptionsJson::Purpose::_INVALID_) {
+  if (purpose == KeyGenerationOptionsJson::Purpose::_INVALID_PURPOSE_) {
     throw "Invalid purpose in KeyGenerationOptions";
   }
   keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::purpose] = purpose;
@@ -55,7 +55,7 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
       // For public key crypto, default to X25519
       KeyGenerationOptionsJson::KeyType::X25519 :
       // Otherwise, the leave the key setting to invalid (we don't care about a specific key type)
-      KeyGenerationOptionsJson::KeyType::_INVALID_
+      KeyGenerationOptionsJson::KeyType::_INVALID_KEYTYPE_
   );
 
 
@@ -75,7 +75,7 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
     throw "Invalid key type for public key cryptography";
   }
 
-  if (!keyType != KeyGenerationOptionsJson::KeyType::_INVALID_) {
+  if (!keyType != KeyGenerationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
     keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::keyType] = keyType;
   }
 
@@ -111,7 +111,7 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
     );
 
     
-  if (!keyType == KeyGenerationOptionsJson::KeyType::_INVALID_) {
+  if (!keyType == KeyGenerationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
     keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::keyLengthInBytes] = keyLengthInBytes;
   }
 
@@ -132,7 +132,7 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
       const HashAlgorithmJson::Algorithm algorithm =
         jhashFunction.value<HashAlgorithmJson::Algorithm>(
           HashAlgorithmJson::FieldNames::algorithm,
-          HashAlgorithmJson::Algorithm::_INVALID_
+          HashAlgorithmJson::Algorithm::_INVALID_ALGORITHM_
         );
       const unsigned long long opslimit =
         jhashFunction.value(

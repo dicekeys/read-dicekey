@@ -4,9 +4,10 @@
 //////////////////////////////////////////////////////////////////
 //
 // This c++ header file specifies the JSON parameter names
-// for KeyGenerationOptions,
+// for KeyGenerationOptions.
+#pragma once
+
 #include <string>
-#include "../includes/json.hpp"
 
 namespace KeyGenerationOptionsJson {
 	namespace FieldNames {
@@ -20,14 +21,14 @@ namespace KeyGenerationOptionsJson {
 	}
 
 	enum Purpose {
-		_INVALID_ = 0,
+		_INVALID_PURPOSE_ = 0,
 		ForApplicationUse,
 		ForSymmetricKeySealedMessages,
 		ForPublicKeySealedMesssages,
 		ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( Purpose, {
-		{Purpose::_INVALID_, nullptr},
+		{Purpose::_INVALID_PURPOSE_, nullptr},
 		{Purpose::ForApplicationUse, "ForApplicationUse"},
 		{Purpose::ForSymmetricKeySealedMessages, "ForSymmetricKeySealedMessages"},
 		{Purpose::ForPublicKeySealedMesssages, "ForPublicKeySealedMesssages"},
@@ -36,24 +37,24 @@ namespace KeyGenerationOptionsJson {
 	
 
 	enum KeyType {
-		_INVALID_ = 0,
+		_INVALID_KEYTYPE_ = 0,
 		XSalsa20Poly1305,
 		X25519
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( KeyType, {
-		{KeyType::_INVALID_, nullptr},
+		{KeyType::_INVALID_KEYTYPE_, nullptr},
 		{KeyType::XSalsa20Poly1305, "XSalsa20Poly1305"},
 		{KeyType::X25519, "X25519"}
 	})
 	
 
 	enum HashFunction {
-		_INVALID_ = 0,
+		_INVALID_HASHFUNCTION_ = 0,
 		BLAKE2b,
 		SHA256
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( HashFunction, {
-		{HashFunction::_INVALID_, nullptr},
+		{HashFunction::_INVALID_HASHFUNCTION_, nullptr},
 		{HashFunction::BLAKE2b, "BLAKE2b"},
 		{HashFunction::SHA256, "SHA256"}
 	})
@@ -68,12 +69,12 @@ namespace HashAlgorithmJson {
 		const std::string opsLimit = "opsLimit";
 	}	
 	enum Algorithm {
-		_INVALID_ = 0,
+		_INVALID_ALGORITHM_ = 0,
 		Argon2id,
 		Scrypt
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( Algorithm, {
-		{Algorithm::_INVALID_, nullptr},
+		{Algorithm::_INVALID_ALGORITHM_, nullptr},
 		{Algorithm::Argon2id, "Argon2id"},
 		{Algorithm::Scrypt, "Scrypt"}
 	})

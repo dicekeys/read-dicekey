@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "sodium.h"
+#include <sodium.h>
 
 class HashFunction {
 	public:
@@ -12,20 +12,20 @@ class HashFunction {
 		unsigned long long message_length
 	) const = 0;
 
-	void hash(
+	int hash(
 		std::vector<unsigned char>hash_output,
 		const void* message,
 		unsigned long long message_length
 	) const;
 
-	void hash(
+	int hash(
 		std::vector<unsigned char>hash_output,
 		const std::vector<unsigned char>message
 	) const;
 };
 
 class HashFunctionBlake2b : public HashFunction {
-	size_t hash_size_in_bytes() const { return crypto_generichash_BYTES; }
+	size_t hash_size_in_bytes() const;
 	
 	int hash(
 		void* hash_output,
@@ -57,8 +57,7 @@ class HashFunctionArgon2id : public HashFunction {
 		unsigned long long _opslimit,
 		size_t _memlimit
 	);
-  size_t hash_size_in_bytes() const { return hash_output_size_in_bytes; }
-	
+	size_t hash_size_in_bytes() const;
   int hash(
     void* hash_output,
     const void* message,
@@ -78,7 +77,7 @@ class HashFunctionScrypt : public HashFunction {
 		unsigned long long _opslimit,
 		size_t _memlimit
 	);
-  size_t hash_size_in_bytes() const { return hash_output_size_in_bytes; }
+	size_t hash_size_in_bytes() const;
 	
   int hash(
     void* hash_output,
