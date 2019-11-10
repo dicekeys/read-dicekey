@@ -33,7 +33,7 @@ Set 'Working Directory' to '$(SolutionDir)'
 # Make sure we're using CMAKE 3.1 or higher, ideally the latest
 # From https://cliutils.gitlab.io/modern-cmake/chapters/basics.html
 ############################################################
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.14)
 
 if(${CMAKE_VERSION} VERSION_LESS 3.15)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
@@ -53,7 +53,7 @@ project(${KEYSQR_LIBRARIES_PROJECT_NAME}
 )
 # Define Release by default.
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
   message(STATUS "Build type not specified: Use Release by default.")
 endif(NOT CMAKE_BUILD_TYPE)
 get_filename_component(KEYSQR_LIBRARIES_PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
@@ -84,15 +84,11 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR
 #
 ####################################################
 # Ensure OpenCV is installed
+include("extern/opencv.cmake")
 
-# OpenCV
-
-find_package( OpenCV REQUIRED )
-set (OPENCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
-set (OPENCV_LIBS "opencv_core;opencv_imgproc;opencv_imgcodecs")
-message("OPENCV_INCLUDE_DIR ${OPENCV_INCLUDE_DIR}")
-message("OPENCV_LIBS ${OPENCV_LIBS}")
-
+####################################################
+# Ensure libSodium is installed
+include("extern/libsodium.cmake")
 
 ####################################################
 # Libraries to build
@@ -146,7 +142,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
    -D_CONSOLE 
     )
     if(MSVC)
-        target_compile_options(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE /MTd /W3 /GL /Oi /Gy /EHsc) # /Zi
+        target_compile_options(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE /W3 /GL /Oi /Gy /EHsc) # /Zi
     endif()
 endif()
 
