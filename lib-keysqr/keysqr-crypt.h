@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cassert>
-#include "keysqr.h"
 
-// #include "sodium.h"
-#include "../includes/sodium.h"
+#include "sodium.h"
+
+#include "keysqr.h"
 #include "key-generation-options.hpp"
 
 class KeySqrCrypto {

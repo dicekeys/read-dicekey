@@ -1,8 +1,7 @@
 #pragma once
 
 #include <vector>
-// #include "sodium.h"
-#include "../includes/sodium.h"
+#include "sodium.h"
 
 
 class HashFunction {

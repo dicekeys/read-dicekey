@@ -1,8 +1,7 @@
 #include <cassert>
-#include "keysqr.h"
+#include "sodium.h"
 
-// #include "sodium.h"
-#include "../includes/sodium.h"
+#include "keysqr.h"
 #include "hash-functions.hpp"
 
 #include "json.hpp"

@@ -1,9 +1,9 @@
 #include <cassert>
 #include <vector>
-// #include "sodium.h"
+
+#include "sodium.h"
 
 #include "keysqr.h"
-#include "../includes/sodium.h"
 #include "generate-key.hpp"
 
 /**
