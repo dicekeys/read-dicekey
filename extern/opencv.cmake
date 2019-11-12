@@ -63,7 +63,10 @@ endif()
 message("OpenCV downloaded.")
 
 find_package(OpenCV ${OPENCV_VERSION} REQUIRED COMPONENTS core imgproc imgcodecs)
-add_library(opencv SHARED IMPORTED)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	file(INSTALL "${_OpenCV_LIB_PATH}/" DESTINATION "${CMAKE_BINARY_DIR}/bin" FILES_MATCHING PATTERN "*.dll" )
+endif()
 
 message("OpenCV_DIR = ${OpenCV_DIR}")
 message("OpenCV_SOURCE_DIR = ${OpenCV_SOURCE_DIR}")
