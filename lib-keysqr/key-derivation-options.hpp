@@ -29,7 +29,7 @@ public:
    * Create a KeyDerivationOptions class from the JSON representation
    * of the key generation options.
    **/
-  const KeyDerivationOptions(const std::string &keyDerivationOptionsJson);
+  KeyDerivationOptions(const std::string &keyDerivationOptionsJson);
 
 	const std::string jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(
 		int indent = -1,

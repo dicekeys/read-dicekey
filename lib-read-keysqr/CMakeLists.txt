@@ -25,7 +25,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         STATIC
         ${ALL_SRC_FILES}
     )
-elseif()
+else()
     add_library(${KEYSQR_LIBRARIES_PROJECT_NAME}
         SHARED
         ${ALL_SRC_FILES}
