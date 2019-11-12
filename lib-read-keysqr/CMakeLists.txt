@@ -18,12 +18,19 @@ file(GLOB ALL_SRC_FILES
 #source_group("Sources" FILES ${SRC_FILES})
 #source_group("Headers" FILES ${HEADERS_FILES})
 
-add_library(${KEYSQR_LIBRARIES_PROJECT_NAME}
-# must be turned on for android, but currently breaks testing on windows
-    SHARED
-#    STATIC
-    ${ALL_SRC_FILES})
-
+# This if statement is a hack until Stuart figures out
+# how to get builds with shared libs working on windows
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_library(${KEYSQR_LIBRARIES_PROJECT_NAME}
+        STATIC
+        ${ALL_SRC_FILES}
+    )
+elseif()
+    add_library(${KEYSQR_LIBRARIES_PROJECT_NAME}
+        SHARED
+        ${ALL_SRC_FILES}
+    )
+endif()
 
 # See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
 

@@ -5,12 +5,19 @@ file(GLOB LIB_KEYSQR_SRCS
     "*/*.cpp"
 )
 
-add_library(lib-keysqr
-# must be turned on for android, but currently breaks testing on windows
-    SHARED
-#    STATIC
-    ${LIB_KEYSQR_SRCS}
-)
+# This if statement is a hack until Stuart figures out
+# how to get builds with shared libs working on windows
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_library(lib-keysqr
+        STATIC
+        ${LIB_KEYSQR_SRCS}
+    )
+else()
+    add_library(lib-keysqr
+        SHARED
+        ${LIB_KEYSQR_SRCS}
+    )
+endif()
 
 target_link_libraries(lib-keysqr
     PRIVATE

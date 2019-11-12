@@ -1,4 +1,5 @@
 message("Tests for file inputs")
+
 package_add_test(
     test-keysqr-file-inputs
     test-keysqr-file-inputs.cpp
