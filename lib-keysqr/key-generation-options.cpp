@@ -85,22 +85,28 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
   keyLengthInBytes =
     keyGenerationOptionsObject.value<unsigned int>(
       KeyGenerationOptionsJson::FieldNames::keyLengthInBytes,
-      (
-        keyType == KeyGenerationOptionsJson::KeyType::X25519 ||
-        keyType == KeyGenerationOptionsJson::KeyType::XSalsa20Poly1305
-      ) ?
+      keyType == KeyGenerationOptionsJson::KeyType::X25519 ?
+        crypto_box_SEEDBYTES :
+      keyType == KeyGenerationOptionsJson::KeyType::XSalsa20Poly1305 ?
         // When a 256-bit (32 byte) key is needed, default to 32 bytes
-        32 :
+        crypto_stream_xsalsa20_KEYBYTES :
         // When the key type is not defined, default to 32 bytes. 
         32
     );
 
-  if ( (
-      keyType == KeyGenerationOptionsJson::KeyType::X25519 ||
-      keyType == KeyGenerationOptionsJson::KeyType::XSalsa20Poly1305
-    ) && keyLengthInBytes != 32
+  if (
+    keyType == KeyGenerationOptionsJson::KeyType::X25519
+    && keyLengthInBytes != crypto_box_SEEDBYTES
   ) {
-    throw "Invalid keyLengthInBytes for this key type";
+    throw "X25519 public key cryptography must use keyLengthInBytes of " +
+      std::to_string(crypto_box_SEEDBYTES);
+  }
+  if (
+    keyType == KeyGenerationOptionsJson::KeyType::XSalsa20Poly1305 &&
+    keyLengthInBytes != crypto_stream_xsalsa20_KEYBYTES
+  ) {
+    throw "XSalsa20Poly1305 symmetric cryptography must use keyLengthInBytes of " +
+      std::to_string(crypto_stream_xsalsa20_KEYBYTES) ;
   }
 
 	if (keyType == KeyGenerationOptionsJson::KeyType::_INVALID_KEYTYPE_) {

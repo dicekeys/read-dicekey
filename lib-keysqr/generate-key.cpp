@@ -6,15 +6,23 @@
 #include "keysqr.h"
 #include "generate-key.hpp"
 
-/**
- * All permission checks must take place BEFORE this is called.
- */
+
 void generateKey(
-  std::vector<unsigned char> keyGeneratedOutput,
+  void* keyGeneratedOutput,
+  size_t keyGenerationOutputLengthInBytes,
   const KeySqr<Face> &keySqr,
-  const KeyGenerationOptions &keyGenerationOptions
+  const KeyGenerationOptions &keyGenerationOptions,
+  const KeyGenerationOptionsJson::Purpose mandatePurpose
 ) {
-  assert(keyGeneratedOutput.size() == keyGenerationOptions.keyLengthInBytes);
+  if (
+    mandatePurpose != KeyGenerationOptionsJson::_INVALID_PURPOSE_ &&
+    mandatePurpose != keyGenerationOptions.purpose  
+  ) {
+    throw ("Key generation options must have purpose " + mandatePurpose);
+  }
+  if(keyGenerationOutputLengthInBytes != keyGenerationOptions.keyLengthInBytes) {
+    throw "Invalid length of key to generate";
+  };
   std::string keySqrInHumanReadableForm =
     keySqr.toHumanReadableForm(keyGenerationOptions.includeOrientationOfFacesInKey);
 
@@ -57,4 +65,20 @@ void generateKey(
 		throw "Insufficient memory";
 	}
 
+}
+
+
+void generateKey(
+  std::vector<unsigned char> &keyGeneratedOutput,
+  const KeySqr<Face> &keySqr,
+  const KeyGenerationOptions &keyGenerationOptions,
+  const KeyGenerationOptionsJson::Purpose mandatePurpose
+) {
+  return generateKey(
+    keyGeneratedOutput.data(),
+    keyGeneratedOutput.size(),
+    keySqr,
+    keyGenerationOptions,
+    mandatePurpose
+  );
 }
