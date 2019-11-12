@@ -6,7 +6,9 @@ file(GLOB LIB_KEYSQR_SRCS
 )
 
 add_library(lib-keysqr
-    STATIC
+# must be turned on for android, but currently breaks testing on windows
+    SHARED
+#    STATIC
     ${LIB_KEYSQR_SRCS}
 )
 
