@@ -24,7 +24,7 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
   // We make heavy use of the library's enum conversion, as documented at:
   //   https://github.com/nlohmann/json#specializing-enum-conversion
   nlohmann::json keyGenerationOptionsObject =
-    nlohmann::json(keyGenerationOptionsJsonString);
+    nlohmann::json::parse(keyGenerationOptionsJsonString);
 
   //
   // purpose (the purpose of the key to be generated)
@@ -75,7 +75,7 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
     throw "Invalid key type for public key cryptography";
   }
 
-  if (!keyType != KeyGenerationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
+  if (keyType != KeyGenerationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
     keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::keyType] = keyType;
   }
 
@@ -103,6 +103,10 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
     throw "Invalid keyLengthInBytes for this key type";
   }
 
+	if (keyType == KeyGenerationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
+		keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::keyLengthInBytes] = keyLengthInBytes;
+	}
+
   restictToClientApplicationsIdPrefixes =
     keyGenerationOptionsObject.value<const std::vector<std::string>>(
       KeyGenerationOptionsJson::FieldNames::restictToClientApplicationsIdPrefixes,
@@ -110,10 +114,10 @@ KeyGenerationOptions::KeyGenerationOptions(const std::string &keyGenerationOptio
       {""}
     );
 
-    
-  if (!keyType == KeyGenerationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
-    keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::keyLengthInBytes] = keyLengthInBytes;
-  }
+	if (keyGenerationOptionsObject.contains(KeyGenerationOptionsJson::FieldNames::restictToClientApplicationsIdPrefixes)) {
+		keyGenerationOptionsExplicit[KeyGenerationOptionsJson::FieldNames::restictToClientApplicationsIdPrefixes] = restictToClientApplicationsIdPrefixes;
+	}
+
 
   //
   // hashFunction
