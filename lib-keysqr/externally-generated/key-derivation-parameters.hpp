@@ -1,15 +1,15 @@
 //////////////////////////////////////////////////////////////////
-// KeyGenerationOptions JSON Specification
+// KeyDerivationOptions JSON Specification
 // - Automatically-generated file - NOT TO BE MODIFIED DIRECTLY)
 //////////////////////////////////////////////////////////////////
 //
 // This c++ header file specifies the JSON parameter names
-// for KeyGenerationOptions.
+// for KeyDerivationOptions.
 #pragma once
 
 #include <string>
 
-namespace KeyGenerationOptionsJson {
+namespace KeyDerivationOptionsJson {
 	namespace FieldNames {
 		const std::string additionalSalt = "additionalSalt";
 		const std::string hashFunction = "hashFunction";

@@ -1,13 +1,13 @@
 #include "gtest/gtest.h"
-#include "key-generation-options.hpp"
+#include "key-derivation-options.hpp"
 
 
-TEST(KeyGenerationOptions, GeneratesDefaults) {
-	KeyGenerationOptions kgo = KeyGenerationOptions(R"KGO({
+TEST(KeyDerivationOptions, GeneratesDefaults) {
+	KeyDerivationOptions kgo = KeyDerivationOptions(R"KGO({
 	"purpose": "ForApplicationUse"	
 })KGO");
 	ASSERT_EQ(
-		kgo.jsonKeyGenerationOptionsWithAllOptionalParametersSpecified(1, '\t'),
+		kgo.jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({
 	"hashFunction": "SHA256",
 	"includeOrientationOfFacesInKey": false,
@@ -17,13 +17,13 @@ TEST(KeyGenerationOptions, GeneratesDefaults) {
 	);
 }
 
-TEST(KeyGenerationOptions, InitsWithClientPrefixes) {
-	KeyGenerationOptions kgo = KeyGenerationOptions(R"KGO({
+TEST(KeyDerivationOptions, InitsWithClientPrefixes) {
+	KeyDerivationOptions kgo = KeyDerivationOptions(R"KGO({
 	"purpose": "ForApplicationUse",
 	"restictToClientApplicationsIdPrefixes": ["com.dicekeys.client", "com.dicekeys.another"]
 })KGO");
 	ASSERT_EQ(
-		kgo.jsonKeyGenerationOptionsWithAllOptionalParametersSpecified(1, '\t'),
+		kgo.jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({
 	"hashFunction": "SHA256",
 	"includeOrientationOfFacesInKey": false,

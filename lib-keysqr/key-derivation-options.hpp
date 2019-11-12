@@ -4,34 +4,34 @@
 #include "hash-functions.hpp"
 #include "../includes/json.hpp"
 // Must come after json.hpp
-#include "externally-generated/key-generation-parameters.hpp"
+#include "externally-generated/key-derivation-parameters.hpp"
 
 /**
  * This class represents key generation options,
  * provided in JSON format, as an immutable class.
  */
-class KeyGenerationOptions {
+class KeyDerivationOptions {
 
 private:
-	nlohmann::json keyGenerationOptionsExplicit;
+	nlohmann::json keyDerivationOptionsExplicit;
 public:
-	const std::string keyGenerationOptionsJsonString;
-	KeyGenerationOptionsJson::Purpose purpose;
-	KeyGenerationOptionsJson::KeyType keyType;
+	const std::string keyDerivationOptionsJsonString;
+	KeyDerivationOptionsJson::Purpose purpose;
+	KeyDerivationOptionsJson::KeyType keyType;
   unsigned int keyLengthInBytes;
 	std::vector<std::string> restictToClientApplicationsIdPrefixes;
 	HashFunction *hashFunction;
 	bool includeOrientationOfFacesInKey;
 
-	~KeyGenerationOptions();
+	~KeyDerivationOptions();
 
   /**
-   * Create a KeyGenerationOptions class from the JSON representation
+   * Create a KeyDerivationOptions class from the JSON representation
    * of the key generation options.
    **/
-  const KeyGenerationOptions(const std::string &keyGenerationOptionsJson);
+  const KeyDerivationOptions(const std::string &keyDerivationOptionsJson);
 
-	const std::string jsonKeyGenerationOptionsWithAllOptionalParametersSpecified(
+	const std::string jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(
 		int indent = -1,
 	  const char indent_char = ' '
 	) const;

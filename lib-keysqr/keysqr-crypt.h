@@ -5,22 +5,22 @@
 #include "sodium.h"
 
 #include "keysqr.h"
-#include "key-generation-options.hpp"
-#include "generate-key.hpp"
+#include "key-derivation-options.hpp"
+#include "derive-key.hpp"
 
 class KeySqrCrypto {
 private:
   inline static bool hasInitializedSodium = false;
   const KeySqr<Face> &keySqr;
-  const KeyGenerationOptions &keyGenerationOptions;
+  const KeyDerivationOptions &keyDerivationOptions;
 public:
 
   KeySqrCrypto(
     const KeySqr<Face> &_keySqr,
-    const KeyGenerationOptions &_keyGenerationOptions
+    const KeyDerivationOptions &_keyDerivationOptions
   ) :
     keySqr(_keySqr),
-    keyGenerationOptions(_keyGenerationOptions)
+    keyDerivationOptions(_keyDerivationOptions)
   {
     if (!hasInitializedSodium) {
       if (sodium_init() < 0) {
@@ -34,12 +34,12 @@ public:
   
   const std::vector<unsigned char> generateKeyForApplicationUse(
   ) {
-    std::vector<unsigned char> keyForApplicationUse(keyGenerationOptions.keyLengthInBytes);
+    std::vector<unsigned char> keyForApplicationUse(keyDerivationOptions.keyLengthInBytes);
     generateKey(
       keyForApplicationUse,
       keySqr,
-      keyGenerationOptions,
-      KeyGenerationOptionsJson::Purpose::ForApplicationUse
+      keyDerivationOptions,
+      KeyDerivationOptionsJson::Purpose::ForApplicationUse
     );
     return keyForApplicationUse;
   }
@@ -77,8 +77,8 @@ public:
         keyForSymmetricKeySealedMessages,
         crypto_secretbox_KEYBYTES,
         keySqr,
-        keyGenerationOptions,
-        KeyGenerationOptionsJson::Purpose::ForSymmetricKeySealedMessages
+        keyDerivationOptions,
+        KeyDerivationOptionsJson::Purpose::ForSymmetricKeySealedMessages
       );
 
       crypto_secretbox_easy(
@@ -115,8 +115,8 @@ public:
         keyForSymmetricKeySealedMessages,
         crypto_secretbox_KEYBYTES,
         keySqr,
-        keyGenerationOptions,
-        KeyGenerationOptionsJson::Purpose::ForSymmetricKeySealedMessages
+        keyDerivationOptions,
+        KeyDerivationOptionsJson::Purpose::ForSymmetricKeySealedMessages
       );
 
       crypto_secretbox_open_easy(
@@ -146,13 +146,13 @@ public:
         keySeedForPublicKeySealedMesssages,
         crypto_secretbox_KEYBYTES,
         keySqr,
-        keyGenerationOptions,
+        keyDerivationOptions,
         // There are two valid purposes for requesting a public key,
         // but we're always passing in a constant of one of those two valid options
         // to ensure the purpose matching requirement is enforced.
-        keyGenerationOptions.purpose == KeyGenerationOptionsJson::Purpose::ForPublicKeySealedMesssages ?
-          KeyGenerationOptionsJson::Purpose::ForPublicKeySealedMesssages :
-          KeyGenerationOptionsJson::Purpose::ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption
+        keyDerivationOptions.purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssages ?
+          KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssages :
+          KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption
       );
       crypto_box_seed_keypair(pk.data(), sk, keySeedForPublicKeySealedMesssages);
       sodium_memzero(keySeedForPublicKeySealedMesssages, crypto_box_SEEDBYTES);
@@ -207,8 +207,8 @@ public:
         keySeedForPublicKeySealedMesssages,
         crypto_secretbox_KEYBYTES,
         keySqr,
-        keyGenerationOptions,
-        KeyGenerationOptionsJson::Purpose::ForPublicKeySealedMesssages
+        keyDerivationOptions,
+        KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssages
       );
       crypto_box_seed_keypair(publicKey.data(), secretKey, keySeedForPublicKeySealedMesssages);
       sodium_memzero(keySeedForPublicKeySealedMesssages, crypto_box_SEEDBYTES);
@@ -246,8 +246,8 @@ public:
         keySeedForPublicKeySealedMesssages,
         crypto_secretbox_KEYBYTES,
         keySqr,
-        keyGenerationOptions,
-        KeyGenerationOptionsJson::Purpose::ForPublicKeySealedMesssages
+        keyDerivationOptions,
+        KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssages
       );
       crypto_box_seed_keypair(pk, sk, keySeedForPublicKeySealedMesssages);
       sodium_memzero(keySeedForPublicKeySealedMesssages, crypto_box_SEEDBYTES);
@@ -276,7 +276,7 @@ public:
     const unsigned char* message,
     const size_t messageLength
   ) {
-    if (keyGenerationOptions.purpose == KeyGenerationOptionsJson::Purpose::ForSymmetricKeySealedMessages) {
+    if (keyDerivationOptions.purpose == KeyDerivationOptionsJson::Purpose::ForSymmetricKeySealedMessages) {
       return sealSymmetric(message, messageLength);
     } else {
       return sealPublic(message, messageLength);
@@ -293,7 +293,7 @@ public:
     const unsigned char* ciphertext,
     const size_t ciphertextLength
   ) {
-    if (keyGenerationOptions.purpose == KeyGenerationOptionsJson::Purpose::ForSymmetricKeySealedMessages) {
+    if (keyDerivationOptions.purpose == KeyDerivationOptionsJson::Purpose::ForSymmetricKeySealedMessages) {
       return unsealSymmetric(ciphertext, ciphertextLength);
     } else {
       return unsealPublic(ciphertext, ciphertextLength);
