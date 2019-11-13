@@ -1,7 +1,5 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 
-#pragma once
-
 #include <vector>
 #include <cassert>
 #include "keysqr-from-human-readable-form.h"

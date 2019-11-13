@@ -192,7 +192,7 @@ class KeySqr {
       }
       return KeySqr<F>(newFaces);
     } else {
-      // isPotentialMatch failed, so the previous scan was incompatable with the faces
+      // isPotentialMatch failed, so the previous scan was incompatible with the faces
       // from the current scan.  Perhaps the previous scan was at a different frame of
       // reference and the grid was rotated.
       for (int clockwiseTurns = 1; clockwiseTurns < 4; clockwiseTurns++) {
@@ -204,6 +204,8 @@ class KeySqr {
           return mergePrevious(rotatedKey);
         }
       }
+      // No match with previous, so just return new faces
+      return KeySqr<F>(faces);
     }
   }
 
