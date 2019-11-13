@@ -205,7 +205,7 @@ class KeySqr {
         }
       }
       // No match with previous, so just return new faces
-      return KeySqr<F>(newFaces);
+      return KeySqr<F>(faces);
     }
   }
 
