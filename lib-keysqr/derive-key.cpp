@@ -18,7 +18,7 @@ void generateKey(
     mandatePurpose != KeyDerivationOptionsJson::_INVALID_PURPOSE_ &&
     mandatePurpose != keyDerivationOptions.purpose  
   ) {
-    throw ("Key generation options must have purpose " + mandatePurpose);
+    throw ("Key generation options must have purpose " + std::to_string(mandatePurpose));
   }
   if(keyDerivationOutputLengthInBytes != keyDerivationOptions.keyLengthInBytes) {
     throw "Invalid length of key to generate";
