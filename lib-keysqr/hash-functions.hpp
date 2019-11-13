@@ -6,6 +6,7 @@
 class HashFunction {
 	public:
 	virtual size_t hash_size_in_bytes() const = 0;
+	virtual ~HashFunction() {}
 	virtual int hash(
 		void* hash_output,
 		const void* message,
