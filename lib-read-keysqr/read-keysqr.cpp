@@ -40,8 +40,12 @@ KeySqr<FaceRead> readKeySqr(
 std::string readKeySqrJson(
 	const cv::Mat &grayscaleImage
 ) {
-  KeySqr<FaceRead> keySqr = readKeySqr(grayscaleImage, false);
-  return keySqr.toJson();
+	try {
+	  KeySqr<FaceRead> keySqr = readKeySqr(grayscaleImage, false);
+	  return keySqr.toJson();
+	} catch (...) {
+		return "null";
+	}
 }
 
 
