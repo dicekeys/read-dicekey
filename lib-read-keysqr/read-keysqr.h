@@ -45,6 +45,8 @@ private:
 	// is false when a default result is constructed by the caller and a pointer is
 	// passed to it.
 	bool initialized = false;
+	float angleInRadiansNonCanonicalForm;
+	float pixelsPerFaceEdgeWidth;
 	// This value is set the first time scanAndAugmentKeySqrImage is called
 	std::chrono::time_point<std::chrono::system_clock> whenFirstRead = minTimePoint;
 	// The value is set the first time scanAndAugmentKeySqrImage is called
@@ -72,8 +74,11 @@ public:
 		void* pointerToByteArray
 	);
 
-	// void augmentImage(
-	// );
+	void renderAugmentationOverlay(	
+		int width,
+		int height,
+		uint32_t* rgbaArrayPtr
+	);
 
 	std::string jsonKeySqr();
 

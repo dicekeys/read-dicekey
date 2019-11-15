@@ -15,7 +15,8 @@ const Color colorBigErrorRed = Color(128, 0, 0);
 Color errorMagnitudeToColor(unsigned errorMagnitude);
 
 cv::Mat visualizeReadResults(
-  cv::Mat &colorImage_BGR_CV_8UC3,
-  const ReadFaceResult &facesRead,
-  bool writeInPlace = false
+	cv::Mat &overlayImage,
+	const std::vector<FaceRead> &faces,
+	float angleInRadiansNonCanonicalForm,
+	float pixelsPerFaceEdgeWidth
 );

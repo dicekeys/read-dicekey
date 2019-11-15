@@ -107,6 +107,8 @@ bool KeySqrImageReader::processImage(
 	if (facesRead.success && facesRead.faces.size() == NumberOfFaces) {
 		// We have successfully read in a full KeySqr of faces which
 		// should update the any keySqr we have previously read in.
+		angleInRadiansNonCanonicalForm = facesRead.angleInRadiansNonCanonicalForm;
+		pixelsPerFaceEdgeWidth = facesRead.pixelsPerFaceEdgeWidth;
 
 		const KeySqr<FaceRead> previousKeySqr = keySqr;
 		
@@ -145,11 +147,41 @@ bool KeySqrImageReader::processImage(
 	return terminate;
 }
 
-// void KeySqrImageReader::augmentImage(
-
-// ) {
-// 	augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(sourceColorImageBGR_CV_8UC3, facesRead, false);
-// }
+/*
+ByteBuffer = buffer = ByteBuffer.allocateDirect( 4 * width * height );
+// call my API using the bytebuffer, which can later be replaced with an API that
+// writes directly into a canvas
+int[] colors = 
+// createBitmap(int[] colors, int width, int height, Bitmap.Config config)
+Bitmap bitmap = createArray( buffer.asIntBuffer().array(), width, height, Bitmap.Config.ARGB_8888)
+// The bitmap can be written into a canvas.
+// Later, we can repace the image augmentation code with code that writes directly into the canvas.
+*/
+/*
+ * Note that the rgba array from android will be inbig endian format
+ */
+void KeySqrImageReader::renderAugmentationOverlay(	
+		const int width,
+		const int height,
+		uint32_t* rgbaArrayPtr
+) {
+	// Make all pixels transparent
+	uint32_t* pixelPtr = rgbaArrayPtr; 
+	uint32_t* end = pixelPtr + ((size_t) width) * ((size_t) height);
+	while (pixelPtr < end) {
+		// 100% transparent (black with opacity 0)
+		(*pixelPtr++) = 0;
+	}
+	if (keySqr.isInitialized && keySqr.faces.size == NumberOfFaces) {
+		cv::Mat overlayImage_RGBA_CV(cv::Size(width, height), CV_8UC4, rgbaArrayPtr);
+		augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(
+			overlayImage_RGBA_CV,
+			keySqr.faces,
+			angleInRadiansNonCanonicalForm,
+			pixelsPerFaceEdgeWidth
+		);
+	}
+}
 
 std::string KeySqrImageReader::jsonKeySqr() {
 	return keySqr.toJson();

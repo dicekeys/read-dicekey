@@ -25,62 +25,60 @@ Color errorMagnitudeToColor(unsigned errorMagnitude) {
 }
 
 cv::Mat visualizeReadResults(
-	cv::Mat &colorImage_BGR_CV_8UC3,
-	const ReadFaceResult &facesRead,
-	bool writeInPlace
+	cv::Mat &overlayImage,
+	const std::vector<FaceRead> &faces,
+	float angleInRadiansNonCanonicalForm,
+	float pixelsPerFaceEdgeWidth
 ) {
-  cv::Mat resultImage = (writeInPlace ? colorImage_BGR_CV_8UC3 : colorImage_BGR_CV_8UC3.clone());
   // Derive the length of each side of the face in pixels by dividing the
   // legnth off and 
-  const float faceSizeInPixels = FaceDimensionsFractional::size * facesRead.pixelsPerFaceEdgeWidth;
+  const float faceSizeInPixels = FaceDimensionsFractional::size * pixelsPerFaceEdgeWidth;
   const int thinLineThickness = 1 + int(faceSizeInPixels / 70);
   const int thickLineThickness = 2 * thinLineThickness;
 
-  if (facesRead.success) {
-    for (const FaceRead &face: facesRead.faces) {
-      const auto error = face.error();
+  for (const FaceRead &face: faces) {
+    const auto error = face.error();
 
-      // Draw a rectangle around the face if an error has been found
-      if (error.magnitude > 0) {
-        drawRotatedRect(
-          resultImage,
-          cv::RotatedRect(face.center(), cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
-          errorMagnitudeToColor(error.magnitude).scalar,
-          error.magnitude == 0 ? thinLineThickness : thickLineThickness
-        );
-      }
-      // Draw a rectangle arond the underline
-      if (face.underline.found) {
-        bool underlineError = (error.location & FaceErrors::Location::Underline);
-        drawRotatedRect(resultImage, face.underline.fromRotatedRect,
-          errorMagnitudeToColor( underlineError ? error.magnitude : 0 ).scalar,
-          underlineError ? thickLineThickness : thinLineThickness );
-      }
-      // Draw a rectangle arond the overline
-      if (face.overline.found) {
-        bool overlineError = (error.location & FaceErrors::Location::Overline);
-        drawRotatedRect(resultImage, face.overline.fromRotatedRect,
-          errorMagnitudeToColor( overlineError ? error.magnitude : 0 ).scalar,
-          overlineError ? thickLineThickness : thinLineThickness );
-      }
-      // Draw the characters read
-      writeFaceCharacters(resultImage, face.center(), face.inferredAngleInRadians(), facesRead.pixelsPerFaceEdgeWidth, face.letter(), face.digit(),
-        errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrLetter) ? error.magnitude : 0 ),
-        errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrDigit) ? error.magnitude : 0 )
+    // Draw a rectangle around the face if an error has been found
+    if (error.magnitude > 0) {
+      drawRotatedRect(
+        overlayImage,
+        cv::RotatedRect(face.center(), cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(angleInRadiansNonCanonicalForm)),
+        errorMagnitudeToColor(error.magnitude).scalarABGR,
+        error.magnitude == 0 ? thinLineThickness : thickLineThickness
       );
     }
+    // Draw a rectangle arond the underline
+    if (face.underline.found) {
+      bool underlineError = (error.location & FaceErrors::Location::Underline);
+      drawRotatedRect(overlayImage, face.underline.fromRotatedRect,
+        errorMagnitudeToColor( underlineError ? error.magnitude : 0 ).scalarABGR,
+        underlineError ? thickLineThickness : thinLineThickness );
+    }
+    // Draw a rectangle arond the overline
+    if (face.overline.found) {
+      bool overlineError = (error.location & FaceErrors::Location::Overline);
+      drawRotatedRect(overlayImage, face.overline.fromRotatedRect,
+        errorMagnitudeToColor( overlineError ? error.magnitude : 0 ).scalarABGR,
+        overlineError ? thickLineThickness : thinLineThickness );
+    }
+    // Draw the characters read
+    writeFaceCharacters(overlayImage, face.center(), face.inferredAngleInRadians(), pixelsPerFaceEdgeWidth, face.letter(), face.digit(),
+      errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrLetter) ? error.magnitude : 0 ),
+      errorMagnitudeToColor( (error.location & FaceErrors::Location::OcrDigit) ? error.magnitude : 0 )
+    );
   }
   // for (Undoverline undoverline: facesRead.strayUndoverlines) {
-  //   drawRotatedRect(resultImage, undoverline.fromRotatedRect, colorBigErrorRed.scalar, 1);
+  //   drawRotatedRect(overlayImage, undoverline.fromRotatedRect, colorBigErrorRed.scalarABGR, 1);
   // }
-  for (FaceRead face: facesRead.strayFaces) {
-      drawRotatedRect(
-        resultImage,
-        cv::RotatedRect(face.center(), cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
-        colorBigErrorRed.scalar, 1
-      );
-  }
+  // for (FaceRead face: facesRead.strayFaces) {
+  //     drawRotatedRect(
+  //       overlayImage,
+  //       cv::RotatedRect(face.center(), cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
+  //       colorBigErrorRed.scalarABGR, 1
+  //     );
+  // }
 
 
-	return resultImage;
+	return overlayImage;
 }
