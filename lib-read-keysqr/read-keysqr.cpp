@@ -87,41 +87,74 @@ const int millisecondsToTryToRemoveCorrectableErrors = 4000;
  * std::string in JSON format that can be returned back to any
  * consumer that can parse JSON format.
  **/
-bool scanAndAugmentKeySqrImage(
-	cv::Mat &sourceColorImageBGR_CV_8UC3,
-	ResultOfScanAndAugmentKeySqrImage* result
+bool KeySqrImageReader::processImage(
+		int width,
+		int height,
+		size_t bytesPerRow,
+		void* pointerToGrayscaleChannelByteArray
 ) {
-	const ReadFaceResult facesRead = readFaces(sourceColorImageBGR_CV_8UC3, false);
+  const cv::Mat grayscaleImage(cv::Size(width, height), CV_8UC1, pointerToGrayscaleChannelByteArray, bytesPerRow);
 
-	const KeySqr<FaceRead> latestKeySqr = (facesRead.success && facesRead.faces.size() == NumberOfFaces) ?
-		KeySqr<FaceRead>(facesRead.faces) :
-		KeySqr<FaceRead>();
-	
-	const KeySqr<FaceRead> mergedKeySqr = (!result->initialized) ? latestKeySqr :
-		latestKeySqr.isInitialized() ?
-			latestKeySqr.mergePrevious(result->keySqr) :
-			latestKeySqr;
+	const ReadFaceResult facesRead = readFaces(grayscaleImage, false);
 
-	result->whenLastRead = std::chrono::system_clock::now();
-	result->whenFirstRead = (result->initialized) ? result->whenFirstRead : result->whenLastRead;
-	result->whenLastImproved =
-		(!result->initialized || result->keySqr.totalError() > mergedKeySqr.totalError()) ?
-			result->whenLastRead : result->whenLastImproved;
+	whenLastRead = std::chrono::system_clock::now();
+	if (!initialized) {
+		whenFirstRead = whenLastRead;
+		whenLastImproved = whenLastRead;
+		initialized = true;
+	}
 
-	// We're done when we either have an error-free scan, or no face that can't be improved after
+	if (facesRead.success && facesRead.faces.size() == NumberOfFaces) {
+		// We have successfully read in a full KeySqr of faces which
+		// should update the any keySqr we have previously read in.
+
+		const KeySqr<FaceRead> previousKeySqr = keySqr;
+		
+		if (previousKeySqr.isInitialized()) {
+			// There may be useful data from the previous read to carry in,
+			// as it could have read something this read missed.
+			// Merge the old into the new
+			keySqr = KeySqr<FaceRead>(facesRead.faces).mergePrevious(keySqr);
+			if (keySqr.totalError() > previousKeySqr.totalError()) {
+				//The new read reduces the magnitude of the read errors to resolve
+				whenLastImproved = whenLastRead;
+			}
+		} else {
+			// This is the first time that a set of faces has been read
+			keySqr = KeySqr<FaceRead>(facesRead.faces);
+			whenLastImproved = whenLastRead;
+		}
+	}
+
+	// The process of repeatedly processing camera images should stop when either
+	//   1. we have a scan that is free of errors
+	//   2. the errors observed are correctable with high probability AND
+	//      we haven't been able to process an image that corrects them for the
+	//      period of time defined by millisecondsToTryToRemoveCorrectableErrors.
 	const bool terminate = (
 			// We have an error free scan, or...
-			mergedKeySqr.totalError() == 0
+			keySqr.totalError() == 0
 		) || (
 			// We have only correctable errors, and we've our budget of time hoping more
 			// scanning will remove those errors.
-			mergedKeySqr.maxError() <= maxCorrectableError &&
-			std::chrono::duration_cast<std::chrono::milliseconds>(result->whenLastRead - result->whenLastImproved).count() >
+			keySqr.maxError() <= maxCorrectableError &&
+			std::chrono::duration_cast<std::chrono::milliseconds>(whenLastRead - whenLastImproved).count() >
 				millisecondsToTryToRemoveCorrectableErrors
 		);
 	// auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(foo - now).count;
+	return terminate;
+}
 
-	result->keySqr = mergedKeySqr;
-	result->augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(sourceColorImageBGR_CV_8UC3, facesRead, false);
+// void KeySqrImageReader::augmentImage(
+
+// ) {
+// 	augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(sourceColorImageBGR_CV_8UC3, facesRead, false);
+// }
+
+std::string KeySqrImageReader::jsonKeySqr() {
+	return keySqr.toJson();
+}
+
+bool KeySqrImageReader::isFinished() {
 	return terminate;
 }
