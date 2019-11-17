@@ -95,8 +95,8 @@ const std::string Undoverline::toJson() const {
 	std::ostringstream jsonStream;
 	jsonStream <<
 	"{" <<
-		JsonKeys::Undoverline::code << ": " << letterDigitEncoding << "," <<
-		JsonKeys::Undoverline::line << ": " << lineToJson(line) <<
+		"\"" << JsonKeys::Undoverline::code << "\": " << std::to_string(letterDigitEncoding) << "," <<
+		"\"" << JsonKeys::Undoverline::line << "\": " << lineToJson(line) <<
 		// "center: {" <<
 		// 	"x: " << center.x << ", " <<
 		// 	"y: " << center.y << "" <<

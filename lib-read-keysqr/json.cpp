@@ -4,8 +4,8 @@
 std::string pointToJson(const cv::Point2f point) {
 	std::ostringstream jsonStream;
 	jsonStream << "{" <<
-		JsonKeys::Point::x + ": " << point.x << ", " <<
-		JsonKeys::Point::y + ": " << point.y <<
+		"\"" << JsonKeys::Point::x + "\": " << std::to_string(point.x) << ", " <<
+		"\"" << JsonKeys::Point::y + "\": " << std::to_string(point.y) <<
 		"}";
 	return jsonStream.str();
 };

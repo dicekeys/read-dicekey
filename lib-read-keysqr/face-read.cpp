@@ -72,14 +72,14 @@ std::string FaceRead::toJson() const {
 	std::ostringstream jsonStream;
 	jsonStream <<
 		"{" <<
-			JsonKeys::FaceRead::underline << ": " << underline.toJson() << ", " <<
-			JsonKeys::FaceRead::overline << ": " << overline.toJson() << ", " <<
-			JsonKeys::FaceRead::center << ": " << pointToJson(center()) << ", " <<
-			JsonKeys::FaceRead::clockwise90DegreeRotationsFromUpright << ": " << orientationAs0to3ClockwiseTurnsFromUpright() << "," <<
-			JsonKeys::FaceRead::ocrLetterCharsFromMostToLeastLikely << ": \"" <<
+			"\"" << JsonKeys::FaceRead::underline << "\": " << underline.toJson() << ", " <<
+			"\"" << JsonKeys::FaceRead::overline << "\": " << overline.toJson() << ", " <<
+			"\"" << JsonKeys::FaceRead::center << "\": " << pointToJson(center()) << ", " <<
+			"\"" << JsonKeys::FaceRead::clockwise90DegreeRotationsFromUpright << "\": " << std::to_string(orientationAs0to3ClockwiseTurnsFromUpright()) << "," <<
+			"\"" << JsonKeys::FaceRead::ocrLetterCharsFromMostToLeastLikely << "\": \"" <<
 				ocrLetterFromMostToLeastLikely << "\", " <<
-			JsonKeys::FaceRead::ocrDigitCharsFromMostToLeastLikely << ": \"" <<
-				ocrDigitFromMostToLeastLikely << "\", " <<
+			"\"" << JsonKeys::FaceRead::ocrDigitCharsFromMostToLeastLikely << "\": \"" <<
+				ocrDigitFromMostToLeastLikely << "\"" <<
 		"}";
 	return jsonStream.str();
 }
