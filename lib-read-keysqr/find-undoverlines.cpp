@@ -120,9 +120,14 @@ Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const cv::RotatedRect 
 	const bool isVertical = lineLength(vertical) > lineLength(horizontal);
 	const Line& l = isVertical ? vertical : horizontal;
 	cv::Point2f start = l.start, end = l.end;
-	const float pixelStepX = isVertical ? ((end.x - start.x) / (end.y - start.y)) : 1;
-	const float pixelStepY = isVertical ? 1 : ((end.y - start.y) / (end.x - start.x));
-
+	const float dx = end.x - start.x;
+	const float dy = end.y - end.x;
+	const float divisor = std::max( abs(dx), abs(dy) );
+	if (divisor == 0) {
+		return l;
+	}
+	const float pixelStepX = dx / divisor;
+	const float pixelStepY = dy / divisor;
 	assert(abs(pixelStepX) <= 1);
 	assert(abs(pixelStepY) <= 1);
 
