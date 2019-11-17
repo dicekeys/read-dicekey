@@ -108,34 +108,23 @@ std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& grayscal
 
 Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const cv::RotatedRect &lineBoundaryRect) {
 	const RRectCorners corners(lineBoundaryRect);
-	const int lineHeight = std::max(corners.bottomLeft.y, corners.bottomRight.y) - std::min(corners.topLeft.y, corners.topRight.y);
-	const int lineWidth = std::max(corners.topRight.x, corners.bottomRight.x) - std::min(corners.topLeft.x, corners.bottomLeft.x);
+	
+	const Line vertical = {
+		midpoint2f(corners.topLeft, corners.topRight),
+		midpoint2f(corners.bottomLeft, corners.bottomRight)
+	};
+	const Line horizontal = {
+		midpoint2f(corners.topLeft, corners.bottomLeft),
+		midpoint2f(corners.topRight, corners.bottomRight)
+	};
+	const bool isVertical = lineLength(vertical) > lineLength(horizontal);
+	const Line& l = isVertical ? vertical : horizontal;
+	cv::Point2f start = l.start, end = l.end;
+	const float pixelStepX = isVertical ? ((end.x - start.x) / (end.y - start.y)) : 1;
+	const float pixelStepY = isVertical ? 1 : ((end.y - start.y) / (end.x - start.x));
 
-	const bool isVertical = lineHeight > lineWidth;
-	cv::Point2f start, end;
-	float pixelStepX, pixelStepY;
-
-	if (isVertical) {
-		// Vertical (the line is closer to vertical than horizontal)
-		// start from half way between top left and top right and proceed to half way from bottom left and bottom right
-		start = midpoint2f(corners.topLeft, corners.topRight);
-		end = midpoint2f(corners.bottomLeft, corners.bottomRight);
-		// A step moving one Y pixel moves a fraction of a pixel in the x direction
-		pixelStepY = 1;
-		pixelStepX = ((end.x - start.x) / (end.y - start.y));
-	}
-	else {
-		// Horizontal (the line is closer to horizontal than vertical)
-		// start from half way between top left and bottom left and proceed from half way between top right and bottom right
-		start = midpoint2f(corners.topLeft, corners.bottomLeft);
-		end = midpoint2f(corners.topRight, corners.bottomRight);
-		// A step moving one X pixel moves a fraction of a pixel in the Y direction
-		pixelStepX = 1;
-		pixelStepY = ((end.y - start.y) / (end.x - start.x));
-	}
 	assert(abs(pixelStepX) <= 1);
 	assert(abs(pixelStepY) <= 1);
-
 
 	// Take 25 samples of points between start and end so that we can find
 	// theshold between light and dark.
