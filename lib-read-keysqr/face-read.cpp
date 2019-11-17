@@ -75,7 +75,7 @@ std::string FaceRead::toJson() const {
 			"\"" << JsonKeys::FaceRead::underline << "\": " << underline.toJson() << ", " <<
 			"\"" << JsonKeys::FaceRead::overline << "\": " << overline.toJson() << ", " <<
 			"\"" << JsonKeys::FaceRead::center << "\": " << pointToJson(center()) << ", " <<
-			"\"" << JsonKeys::FaceRead::clockwise90DegreeRotationsFromUpright << "\": " << std::to_string(orientationAs0to3ClockwiseTurnsFromUpright()) << "," <<
+			"\"" << JsonKeys::FaceRead::orientationAsLowercaseLetterTRBL << "\": \"" << std::string(1, orientationAsLowercaseLetterTRBL()) << "\"," <<
 			"\"" << JsonKeys::FaceRead::ocrLetterCharsFromMostToLeastLikely << "\": \"" <<
 				ocrLetterFromMostToLeastLikely << "\", " <<
 			"\"" << JsonKeys::FaceRead::ocrDigitCharsFromMostToLeastLikely << "\": \"" <<

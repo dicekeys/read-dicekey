@@ -17,10 +17,10 @@
 //    -- The TypeScript version of this specification file
 //
 // To change the KeySqr specification, you will need to change
-// and re-run specification program in TypeSecript.
+// and re-run specification program in TypeScript.
 //
 // To add additional definitions or help functions, create a new file
-// that reads the contants you need from this file.
+// that reads the constants you need from this file.
 //
 #pragma once
 
@@ -88,7 +88,7 @@ namespace JsonKeys {
 	namespace FaceRead {
 		const std::string underline = "underline";
 		const std::string overline = "overline";
-		const std::string clockwise90DegreeRotationsFromUpright = "clockwise90DegreeRotationsFromUpright";
+		const std::string orientationAsLowercaseLetterTRBL = "orientationAsLowercaseLetterTRBL";
 		const std::string ocrLetterCharsFromMostToLeastLikely = "ocrLetterCharsFromMostToLeastLikely";
 		const std::string ocrDigitCharsFromMostToLeastLikely = "ocrDigitCharsFromMostToLeastLikely";
 		const std::string center = "center";
