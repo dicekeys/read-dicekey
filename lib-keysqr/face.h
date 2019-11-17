@@ -6,11 +6,7 @@
 #include <string>
 
 inline unsigned clockwiseTurnsToRange0To3(int clockwiseTurns) {
-  if (clockwiseTurns < 0) {
-    clockwiseTurns = 4 - ((-clockwiseTurns) % 4);
-  }
-  const unsigned clockwiseTurns0to3 = clockwiseTurns % 4;
-  return clockwiseTurns0to3;
+  return clockwiseTurns % 4;
 }
 
 // Convert clockwise turns to right to 't', 'r', 'b', 'l'
