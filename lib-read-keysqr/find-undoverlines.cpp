@@ -121,7 +121,7 @@ Line undoverlineRectToLine(const cv::Mat &grayscaleImage, const cv::RotatedRect 
 	const Line& l = isVertical ? vertical : horizontal;
 	cv::Point2f start = l.start, end = l.end;
 	const float dx = end.x - start.x;
-	const float dy = end.y - end.y;
+	const float dy = end.y - start.y;
 	const float divisor = std::max( abs(dx), abs(dy) );
 	if (divisor == 0) {
 		return l;
