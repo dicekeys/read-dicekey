@@ -76,7 +76,7 @@ class KeySqr {
       std::string json = "[";
       for (int i = 0; i < NumberOfFaces; i++) {
         if (i!=0) {
-          json += ","
+          json += ",";
         }
         json faces[i].toJson();
       }
