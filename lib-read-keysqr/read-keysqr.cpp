@@ -172,7 +172,7 @@ void KeySqrImageReader::renderAugmentationOverlay(
 		// 100% transparent (black with opacity 0)
 		(*pixelPtr++) = 0;
 	}
-	if (keySqr.isInitialized && keySqr.faces.size == NumberOfFaces) {
+	if (keySqr.isInitialized() && keySqr.faces.size() == NumberOfFaces) {
 		cv::Mat overlayImage_RGBA_CV(cv::Size(width, height), CV_8UC4, rgbaArrayPtr);
 		augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(
 			overlayImage_RGBA_CV,
