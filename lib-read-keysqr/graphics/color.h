@@ -7,13 +7,15 @@ class Color {
 	unsigned char r;
 	unsigned char g;
 	unsigned char b;
-  cv::Scalar scalar;
+  cv::Scalar scalarBGR;
+  cv::Scalar scalarABGR;
 
 	Color(unsigned char _r, unsigned char _g, unsigned char _b) {
 		r = _r;
 		g = _g;
 		b = _b;
-    scalar = cv::Scalar(b, g, r);
+    scalarBGR = cv::Scalar(b, g, r);
+		scalarABGR = cv::Scalar(255, b, g, r);
 	}
 
 };
