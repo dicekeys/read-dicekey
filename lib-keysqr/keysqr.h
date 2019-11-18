@@ -78,7 +78,7 @@ class KeySqr {
         if (i!=0) {
           json += ",";
         }
-        json faces[i].toJson();
+        json += faces[i].toJson();
       }
       json += "]";
       return json;
