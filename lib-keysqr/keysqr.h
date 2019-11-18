@@ -73,9 +73,12 @@ class KeySqr {
       if (!isInitialized()) {
         return "null";
       }
-      std::string json = "[\n";
+      std::string json = "[";
       for (int i = 0; i < NumberOfFaces; i++) {
-        json += "\t" + faces[i].toJson() + "\n";
+        if (i!=0) {
+          json += ","
+        }
+        json faces[i].toJson();
       }
       json += "]";
       return json;
