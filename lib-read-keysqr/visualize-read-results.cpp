@@ -44,7 +44,7 @@ cv::Mat visualizeReadResults(
       drawRotatedRect(
         overlayImage,
         cv::RotatedRect(face.center(), cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(angleInRadiansNonCanonicalForm)),
-        errorMagnitudeToColor(error.magnitude).scalarABGR,
+        errorMagnitudeToColor(error.magnitude).scalarRGBA,
         error.magnitude == 0 ? thinLineThickness : thickLineThickness
       );
     }
@@ -52,14 +52,14 @@ cv::Mat visualizeReadResults(
     if (face.underline.found) {
       bool underlineError = (error.location & FaceErrors::Location::Underline);
       drawRotatedRect(overlayImage, face.underline.fromRotatedRect,
-        errorMagnitudeToColor( underlineError ? error.magnitude : 0 ).scalarABGR,
+        errorMagnitudeToColor( underlineError ? error.magnitude : 0 ).scalarRGBA,
         underlineError ? thickLineThickness : thinLineThickness );
     }
     // Draw a rectangle arond the overline
     if (face.overline.found) {
       bool overlineError = (error.location & FaceErrors::Location::Overline);
       drawRotatedRect(overlayImage, face.overline.fromRotatedRect,
-        errorMagnitudeToColor( overlineError ? error.magnitude : 0 ).scalarABGR,
+        errorMagnitudeToColor( overlineError ? error.magnitude : 0 ).scalarRGBA,
         overlineError ? thickLineThickness : thinLineThickness );
     }
     // Draw the characters read
@@ -69,13 +69,13 @@ cv::Mat visualizeReadResults(
     );
   }
   // for (Undoverline undoverline: facesRead.strayUndoverlines) {
-  //   drawRotatedRect(overlayImage, undoverline.fromRotatedRect, colorBigErrorRed.scalarABGR, 1);
+  //   drawRotatedRect(overlayImage, undoverline.fromRotatedRect, colorBigErrorRed.scalarRGBA, 1);
   // }
   // for (FaceRead face: facesRead.strayFaces) {
   //     drawRotatedRect(
   //       overlayImage,
   //       cv::RotatedRect(face.center(), cv::Size2d(faceSizeInPixels, faceSizeInPixels), radiansToDegrees(facesRead.angleInRadiansNonCanonicalForm)),
-  //       colorBigErrorRed.scalarABGR, 1
+  //       colorBigErrorRed.scalarRGBA, 1
   //     );
   // }
 
