@@ -12,9 +12,9 @@ std::string pointToJson(const cv::Point2f point) {
 
 std::string lineToJson(const Line line) {
 	std::ostringstream jsonStream;
-	jsonStream << "[" <<
-		pointToJson(line.start) << ", " <<
-		pointToJson(line.end) <<
-	"]";
+	jsonStream << "{" <<
+		"\"" << JsonKeys::Line::start + "\": " << pointToJson(line.start) << ", " <<
+		"\"" << JsonKeys::Line::end + "\": " << pointToJson(line.end) <<
+	"}";
 	return jsonStream.str();
 }

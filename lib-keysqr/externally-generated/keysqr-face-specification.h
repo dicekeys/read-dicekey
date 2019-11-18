@@ -77,6 +77,10 @@ namespace FaceDimensionsFractional {
 };
 
 namespace JsonKeys {
+	namespace Line {
+		const std::string start = "start";
+		const std::string end = "end";
+	};
 	namespace Point {
 		const std::string x = "x";
 		const std::string y = "y";
