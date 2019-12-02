@@ -91,23 +91,25 @@ const OcrResult findClosestMatchingCharacter(
     result[i].errorScore = 0;
   }
 
+  const float charWidthOverImageWidth = float(font.ocrCharWidthInPixels) / float(imageWidth);
+  const float charHeightOverImageHeight = float(font.ocrCharHeightInPixels) / float(imageHeight);
   for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
     for (int imageY = 0; imageY < imageHeight; imageY++) {
+      const int modelY = int( (imageY + 0.5f) * charHeightOverImageHeight ); //  font.ocrCharHeightInPixels) / float(imageHeight));
+      assert(modelY < font.ocrCharHeightInPixels);
       for (int imageX = 0; imageX < imageWidth; imageX++) {
-				const uchar pixel = bwImageOfCharacter.at<uchar>(cv::Point2i(imageX, imageY));
+        const int modelX = int( (imageX + 0.5f) * charWidthOverImageWidth ); // * font.ocrCharWidthInPixels) / float(imageWidth));
+        assert(modelX < font.ocrCharWidthInPixels);
+        const uchar pixel = bwImageOfCharacter.at<uchar>(imageY, imageX); // cv::Point2i(imageX, imageY));
         const bool isImagePixelBlack = pixel < 128;
-        const int modelX = int( ((imageX + 0.5f) * font.ocrCharWidthInPixels) / float(imageWidth));
-        const int modelY = int( ((imageY + 0.5f) * font.ocrCharHeightInPixels) / float(imageHeight));
-				assert(modelX < font.ocrCharWidthInPixels);
-				assert(modelY < font.ocrCharHeightInPixels);
         const int modelIndex = (modelY * font.ocrCharWidthInPixels) + modelX;
 				assert(modelIndex < alphabet[charIndex].ifPixelIsBlack.size());
         for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
-					const int penalty = isImagePixelBlack ?
-						alphabet[charIndex].ifPixelIsBlack[modelIndex] :
-						alphabet[charIndex].ifPixelIsWhite[modelIndex];
-					assert(penalty <= 5);
-					result[charIndex].errorScore += penalty;
+		  const int penalty = isImagePixelBlack ?
+		    alphabet[charIndex].ifPixelIsBlack[modelIndex] :
+			alphabet[charIndex].ifPixelIsWhite[modelIndex];
+			assert(penalty <= 5);
+			result[charIndex].errorScore += penalty;
         }
       }
     }
