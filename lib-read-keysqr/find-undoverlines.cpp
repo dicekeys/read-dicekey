@@ -207,7 +207,7 @@ Undoverline readUndoverline(
 	);
 
 	// In finding a white/black threshold, the sampling should ensure
-	// there are at least enough zeros an dones above/below the threshold.
+	// there are at least enough zeros and ones above/below the threshold.
 	unsigned char whiteBlackThreshold = bimodalThreshold(medianPixelValues, MinNumberOfBlackDotsInUndoverline, MinNumberOfWhiteDotsInUndoverline);
 	uint binaryCodingReadForwardOrBackward = sampledPointsToBits(medianPixelValues, whiteBlackThreshold);
 
