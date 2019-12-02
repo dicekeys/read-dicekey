@@ -80,7 +80,9 @@ public:
 		uint32_t* rgbaArrayPtr
 	);
 
-	std::string jsonKeySqr();
+	KeySqr<FaceRead> keySqrRead() { return keySqr; }
+
+	std::string jsonKeySqrRead();
 
 	bool isFinished();
 

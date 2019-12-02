@@ -183,7 +183,7 @@ void KeySqrImageReader::renderAugmentationOverlay(
 	}
 }
 
-std::string KeySqrImageReader::jsonKeySqr() {
+std::string KeySqrImageReader::jsonKeySqrRead() {
 	return keySqr.toJson();
 }
 
