@@ -19,7 +19,7 @@ cv::Mat ocrErrorHeatMap(
 );
 
 const OcrResult findClosestMatchingCharacter(
-  const OcrFont font,
+  const OcrFont& font,
   const OcrAlphabet &alphabet,
   const cv::Mat &bwImageOfCharacter
 );

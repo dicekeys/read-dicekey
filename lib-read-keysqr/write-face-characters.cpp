@@ -20,7 +20,7 @@ void writeFaceCharacters(
 	Color letterColor,
 	Color digitColor
 ) {
-	const OcrFont font = getFont();
+	const OcrFont &font = *getFont();
 	const float textHeightDestinationPixels = FaceDimensionsFractional::textRegionHeight * pixelsPerFaceEdgeWidth;
 	const float textWidthDestinationPixels = FaceDimensionsFractional::textRegionWidth * pixelsPerFaceEdgeWidth;
 	const float destinationPixelsBetweenLetterAndDigit = FaceDimensionsFractional::spaceBetweenLetterAndDigit * pixelsPerFaceEdgeWidth;

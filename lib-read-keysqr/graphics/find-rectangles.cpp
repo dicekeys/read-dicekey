@@ -95,7 +95,7 @@ std::vector<RectangleDetected> findRectangles(
 			return cv::arcLength(*contour, false) >= minPerimeter;
 		});
 
-		for (auto contour : contours) {
+		for (auto &contour : contours) {
 			rectanglesFound.push_back(RectangleDetected(contour, l == 0 ? 0 : (l + 1) * 255 / N));
 		}
 	}

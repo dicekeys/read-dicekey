@@ -8,7 +8,7 @@
 #include "font.h"
 
 cv::Mat ocrErrorHeatMap(
-  const OcrFont font,
+  const OcrFont &font,
   const OcrAlphabet &alphabet,
   const char characterRead,
   const cv::Mat &bwImageOfCharacter
@@ -66,7 +66,7 @@ cv::Mat ocrErrorHeatMap(
         if ( (isImagePixelBlack && penaltyIfBlack > 0) || ((!isImagePixelBlack) && penaltyIfWhite > 0) ) {
           errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x) = errorImage.at<cv::Vec3b>(topRowOfErrorMode + y, x);
         } else {
-          errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x)[0] = 
+          errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x)[0] =
             errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x)[1] =
             errorImage.at<cv::Vec3b>(topRowOfErrorsCalculatedForCharacterRead + y, x)[2] = 255;
         }
@@ -77,7 +77,7 @@ cv::Mat ocrErrorHeatMap(
 }
 
 const OcrResult findClosestMatchingCharacter(
-  const OcrFont font,
+  const OcrFont &font,
   const OcrAlphabet &alphabet,
   const cv::Mat &bwImageOfCharacter
 ) {
@@ -119,12 +119,12 @@ const OcrResult findClosestMatchingCharacter(
 }
 
 const OcrResult readLetter(const cv::Mat &letterImage) {
-  const auto font = getFont();
-  return findClosestMatchingCharacter(font, font.letters, letterImage);
+  const OcrFont *font = getFont();
+  return findClosestMatchingCharacter(*font, font->letters, letterImage);
 }
 
 const OcrResult readDigit(const cv::Mat &digitImage) {
-  const auto font = getFont();
-  return findClosestMatchingCharacter(font, font.digits, digitImage);
+  const OcrFont *font = getFont();
+  return findClosestMatchingCharacter(*font, font->digits, digitImage);
 }
 
