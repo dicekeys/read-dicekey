@@ -220,6 +220,9 @@ class KeySqr {
    */
   unsigned int totalError() const
   {
+    if (!isInitialized()) {
+      return std::numeric_limits<unsigned int>::max();
+    }
     unsigned int sumOfFaceErrors = 0;
     for (const F &face: faces) {
       sumOfFaceErrors += (unsigned int) face.errorSize();
@@ -234,6 +237,9 @@ class KeySqr {
    **/
   unsigned int maxError() const
   {
+    if (!isInitialized()) {
+      return std::numeric_limits<unsigned int>::max();
+    }
     unsigned int max = 0;
     for (const F &face: faces) {
       if (face.errorSize() > max) {
