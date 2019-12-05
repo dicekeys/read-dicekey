@@ -27,7 +27,7 @@ cv::Mat ocrErrorHeatMap(
   // Black out the rectangle so that lines between images are black.
   rectangle(errorImage, cv::Rect(0, 0, cols, rows), cv::Scalar(0, 0, 0), cv::FILLED);
 
-  const OcrChar* charRecord = vreduce<OcrChar, const OcrChar*>( alphabet,
+  const OcrChar* charRecord = vreduce<OcrChar, const OcrChar*>( alphabet.characters,
     [characterRead](const OcrChar* r, const OcrChar* c) -> const OcrChar* {return c->character == characterRead ? c : r; },
     (const OcrChar*)(NULL));
 
@@ -35,13 +35,15 @@ cv::Mat ocrErrorHeatMap(
     for (int x=0; x < charCols; x++) {
         const uchar pixel = bwImageOfCharacter.at<uchar>(cv::Point2i(x, y));
         const bool isImagePixelBlack = pixel < 128;
-        const int modelX = int( ((x + 0.5f) * font.ocrCharWidthInPixels) / float(charCols));
-        const int modelY = int( ((y + 0.5f) * font.ocrCharHeightInPixels) / float(charRows));
+        const size_t modelX = int( ((x + 0.5f) * font.ocrCharWidthInPixels) / float(charCols));
+        const size_t modelY = int( ((y + 0.5f) * font.ocrCharHeightInPixels) / float(charRows));
 				assert(modelX < font.ocrCharWidthInPixels);
 				assert(modelY < font.ocrCharHeightInPixels);
-        const int modelIndex = (modelY * font.ocrCharWidthInPixels) + modelX;
-        const unsigned penaltyIfWhite = charRecord->ifPixelIsWhite[modelIndex];
-        const unsigned penaltyIfBlack = charRecord->ifPixelIsBlack[modelIndex];
+        const unsigned char penaltyEntry = alphabet.penalties[
+          ((modelY * font.ocrCharWidthInPixels) + modelX) * alphabet.characters.size()
+        ];
+        const unsigned penaltyIfWhite = penaltyEntry >> 4;
+        const unsigned penaltyIfBlack = penaltyEntry & 0xf;
         // BGR => B=0, G=1, R=2
 
         // Write in the the image that shows the potential errors at each pixel
@@ -83,34 +85,33 @@ const OcrResult findClosestMatchingCharacter(
 ) {
   const int imageHeight = bwImageOfCharacter.rows;
   const int imageWidth = bwImageOfCharacter.cols;
-  const int numberOfCharactersInAlphabet = (int) alphabet.size();
+  const int numberOfCharactersInAlphabet = (int) alphabet.characters.size();
   std::vector<OcrResultEntry> result(numberOfCharactersInAlphabet);
 
   for (int i=0; i < numberOfCharactersInAlphabet; i++) {
-    result[i].character = alphabet[i].character;
+    result[i].character = alphabet.characters[i].character;
     result[i].errorScore = 0;
   }
 
   const float charWidthOverImageWidth = float(font.ocrCharWidthInPixels) / float(imageWidth);
   const float charHeightOverImageHeight = float(font.ocrCharHeightInPixels) / float(imageHeight);
-  for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
-    for (int imageY = 0; imageY < imageHeight; imageY++) {
-      const int modelY = int( (imageY + 0.5f) * charHeightOverImageHeight ); //  font.ocrCharHeightInPixels) / float(imageHeight));
-      assert(modelY < font.ocrCharHeightInPixels);
-      for (int imageX = 0; imageX < imageWidth; imageX++) {
-        const int modelX = int( (imageX + 0.5f) * charWidthOverImageWidth ); // * font.ocrCharWidthInPixels) / float(imageWidth));
-        assert(modelX < font.ocrCharWidthInPixels);
+  const size_t penaltyStepX = numberOfCharactersInAlphabet;
+  const size_t penaltyStepY = (penaltyStepX * font.ocrCharWidthInPixels);
+  for (int imageY = 0; imageY < imageHeight; imageY++) {
+    const int modelY = int( (imageY + 0.5f) * charHeightOverImageHeight ); //  font.ocrCharHeightInPixels) / float(imageHeight));
+    const unsigned char* penaltyPtrAtModelY = alphabet.penalties + (modelY * penaltyStepY);
+    assert(modelY < font.ocrCharHeightInPixels);
+    for (int imageX = 0; imageX < imageWidth; imageX++) {
+      const int modelX = int( (imageX + 0.5f) * charWidthOverImageWidth ); // * font.ocrCharWidthInPixels) / float(imageWidth));
+      const unsigned char* penaltyPtrAtModelYX = penaltyPtrAtModelY + (modelX * penaltyStepX);
+      assert(modelX < font.ocrCharWidthInPixels);
+      for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
         const uchar pixel = bwImageOfCharacter.at<uchar>(imageY, imageX); // cv::Point2i(imageX, imageY));
+        unsigned char penaltyEntry = *(penaltyPtrAtModelYX + charIndex);
         const bool isImagePixelBlack = pixel < 128;
-        const int modelIndex = (modelY * font.ocrCharWidthInPixels) + modelX;
-				assert(modelIndex < alphabet[charIndex].ifPixelIsBlack.size());
-        for (int charIndex = 0; charIndex < numberOfCharactersInAlphabet; charIndex++) {
-		  const int penalty = isImagePixelBlack ?
-		    alphabet[charIndex].ifPixelIsBlack[modelIndex] :
-			alphabet[charIndex].ifPixelIsWhite[modelIndex];
-			assert(penalty <= 5);
-			result[charIndex].errorScore += penalty;
-        }
+        unsigned char penalty = isImagePixelBlack ?
+          (penaltyEntry & 0xf) : (penaltyEntry >> 4);
+        result[charIndex].errorScore += penalty;
       }
     }
   }

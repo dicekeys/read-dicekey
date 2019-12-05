@@ -53,12 +53,12 @@ void writeFaceCharacters(
 		digitLeftInOriginPixels * deltaYFromSourceChangeInX +
 		textTopInOriginPixels * deltaYFromSourceChangeInY;
 
-	const OcrChar* letterRecord = vreduce<OcrChar, const OcrChar*>( font.letters,
+	const OcrChar* letterRecord = vreduce<OcrChar, const OcrChar*>( font.letters.characters,
 		[letter](const OcrChar* r, const OcrChar* c) -> const OcrChar* {return c->character == letter ? c : r; },
 		(const OcrChar*)(NULL)
 	);
 
-	const OcrChar* digitRecord = vreduce<OcrChar, const OcrChar*>(font.digits,
+	const OcrChar* digitRecord = vreduce<OcrChar, const OcrChar*>(font.digits.characters,
 		[digit](const OcrChar* r, const OcrChar* c) -> const OcrChar * {return c->character == digit ? c : r; },
 		(const OcrChar*)(NULL)
 		);

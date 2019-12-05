@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <vector>
@@ -9,12 +10,18 @@ struct UShortPoint {
 
 struct OcrChar {
 	char character;
-	const std::vector<unsigned char> ifPixelIsWhite;
-	const std::vector<unsigned char> ifPixelIsBlack;
 	const std::vector<UShortPoint> outlinePoints;
 };
 
-typedef std::vector<OcrChar> OcrAlphabet;
+struct OcrAlphabet {
+	// A description of each character
+	std::vector<OcrChar> characters;
+
+	// [ocrCharHeightInPixels][ocrCharWidthInPixels][characters.size()]
+	// entry = [y][x][characterIndex]
+	//   penalty = observedBitWasWhite ? (entry >> 4) : (entry & 0xf)
+	const unsigned char* penalties;
+};
 
 struct OcrFont {
 	const float charWidthOverFontSize;
@@ -27,4 +34,3 @@ struct OcrFont {
 	const OcrAlphabet letters;
 	const OcrAlphabet digits;
 };
-
