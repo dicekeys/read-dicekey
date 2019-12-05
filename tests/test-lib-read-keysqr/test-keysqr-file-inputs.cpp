@@ -92,3 +92,14 @@ TEST(KeySqrTestInputs, R60D50Y32B60Z40O63L30K51J21M50G60P33X61E20A43U63S51F10C21
 
 TEST(KeySqrTestInputs, A1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1b) {
   testFile("A1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1b.png", true, 0); }
+
+
+TEST(KeySqrTestInputs, OpenBox1) {
+  testFile("openbox1.jpg", true, 0);
+}
+TEST(KeySqrTestInputs, OpenBox2) {
+  testFile("openbox2.jpg", true, 0);
+}
+TEST(KeySqrTestInputs, OpenBox3) {
+  testFile("openbox3.jpg", true, 0);
+}
