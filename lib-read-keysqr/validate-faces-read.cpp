@@ -14,7 +14,7 @@ three-character triples of letter, digit ('0'-'6'), and orientation (as number o
 '0'-'3').
 */
 void validateFacesRead(
-	const std::vector<FaceRead> facesRead,
+	const std::vector<FaceRead> &facesRead,
 	std::string keySqrInHumanReadableForm
 ) {
 	const KeySqr<FaceRead> keySqrNonCanonical = KeySqr<FaceRead>(facesRead);

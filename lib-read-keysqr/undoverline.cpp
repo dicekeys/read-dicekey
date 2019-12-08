@@ -25,7 +25,7 @@ Undoverline::Undoverline(
 		abs(undoverlineStartingAtImageLeft.end.x - undoverlineStartingAtImageLeft.start.x) <
 		abs(undoverlineStartingAtImageLeft.end.y - undoverlineStartingAtImageLeft.start.y);
 
-	// FIXME -- remove debugging when all works.
+	// Uncomment for debugging
 		//cv::imwrite("undoverlineStartingAtImageLeft-highlighted.png", highlightUndoverline(colorImage, rectEncompassingLine));
 		// const cv::Point2f center = midpointOfLine(undoverlineStartingAtImageLeft);
 		// const float lineLen = lineLength(undoverlineStartingAtImageLeft);
@@ -60,6 +60,8 @@ Undoverline::Undoverline(
 
 	float upAngleInRadians = angleOfLineInSignedRadians2f(line) +
 		(decoded.isOverline ? NinetyDegreesAsRadians : -NinetyDegreesAsRadians);
+	float cosUpAngleInRadians = cos(upAngleInRadians);
+	float sinUpAngleInRadians = sin(upAngleInRadians);
 
 	// calculate the number of pixels that a face is long/wide (same since square)
 	double pixelsPerElementEdgeLength = double(undoverlineLength) / FaceDimensionsFractional::undoverlineLength;
@@ -70,18 +72,19 @@ Undoverline::Undoverline(
 	);
 	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfFace;
 
-	const cv::Point2f lineCenter = midpointOfLine(undoverlineStartingAtImageLeft);
-	const auto x = lineCenter.x + pixelsFromCenterOfUndoverlineToCenterOfFace * cos(upAngleInRadians);
-	const auto y = lineCenter.y + pixelsFromCenterOfUndoverlineToCenterOfFace * sin(upAngleInRadians);
-	inferredCenterOfFace = cv::Point2f(x, y);
+	center = midpointOfLine(undoverlineStartingAtImageLeft);
+	inferredCenterOfFace = cv::Point2f(
+		center.x + pixelsFromCenterOfUndoverlineToCenterOfFace * cosUpAngleInRadians,
+		center.y + pixelsFromCenterOfUndoverlineToCenterOfFace * sinUpAngleInRadians
+	);
 
-	cv::Point2f inferredOpposingUnderlineCenter(
-		fromRotatedRect.center.x + pixelsBetweenCentersOfUndoverlines * cos(upAngleInRadians),
-		fromRotatedRect.center.y + pixelsBetweenCentersOfUndoverlines * sin(upAngleInRadians)
+	inferredOpposingUndoverlineCenter = cv::Point2f(
+		fromRotatedRect.center.x + pixelsBetweenCentersOfUndoverlines * cosUpAngleInRadians,
+		fromRotatedRect.center.y + pixelsBetweenCentersOfUndoverlines * sinUpAngleInRadians
 	);
 
 	inferredOpposingUndoverlineRotatedRect = cv::RotatedRect(
-		inferredOpposingUnderlineCenter,
+		inferredOpposingUndoverlineCenter,
 		fromRotatedRect.size,
 		fromRotatedRect.angle
 	);

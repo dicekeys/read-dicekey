@@ -32,12 +32,23 @@ void testFile(
   
   const size_t indexOfLastSlash = filePath.find_last_of("/") + 1;
   const std::string filename = filePath.substr(indexOfLastSlash);
+  const std::string fileBase = filename.substr(0, filename.find_last_of("."));
 
   int totalError;
   try {
     const auto facesRead = readFaces(grayscaleImage, true);
     //const cv::Mat faceReadOutput = visualizeReadResults(image, facesRead, true);
     //cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", faceReadOutput);
+
+    // Uncomment for debugging
+    cv::Mat colorImage;
+    cv::cvtColor(grayscaleImage, colorImage, cv::COLOR_GRAY2BGR);
+    for (auto const f : facesRead.faces) {
+      cv::line(colorImage, f.underline.line.start, f.underline.line.end, cv::Scalar(255, 0, 255), 3);
+      cv::line(colorImage, f.overline.line.start, f.overline.line.end, cv::Scalar(255, 255, 0), 3);
+    }
+    cv::imwrite("out/undoverlines/" + fileBase + ".png", colorImage);
+
 
     if (validate) {
       validateFacesRead(facesRead.faces, filename.substr(0, 75));
@@ -94,12 +105,12 @@ TEST(KeySqrTestInputs, A1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1b
   testFile("A1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1bA6bA5bA4bA3bA2bA1b.png", true, 0); }
 
 
-TEST(KeySqrTestInputs, OpenBox1) {
-  testFile("openbox1.jpg", true, 0);
+TEST(KeySqrTestInputs, OpenBox1_D2lC5rP1bK5bT1bY2bU1tG3rB6rZ5bS2tV5bO5bM4rJ4bX1tN6tA5rH1rW4lR4lE5bL1bI6rF6b) {
+  testFile("D2lC5rP1bK5bT1bY2bU1tG3rB6rZ5bS2tV5bO5bM4rJ4bX1tN6tA5rH1rW4lR4lE5bL1bI6rF6b-openbox1.jpg", true, 0);
 }
-TEST(KeySqrTestInputs, OpenBox2) {
-  testFile("openbox2.jpg", true, 0);
+TEST(KeySqrTestInputs, OpenBox2_D2lC5rP1bK5bT1bY2bU1tG3rB6rZ5bS2tV5bO5bM4rJ4bX1tN6tA5rH1rW4lR4lE5bL1bI6rF6b) {
+  testFile("D2lC5rP1bK5bT1bY2bU1tG3rB6rZ5bS2tV5bO5bM4rJ4bX1tN6tA5rH1rW4lR4lE5bL1bI6rF6b-openbox2.jpg", true, 0);
 }
-TEST(KeySqrTestInputs, OpenBox3) {
-  testFile("openbox3.jpg", true, 0);
+TEST(KeySqrTestInputs, OpenBox3_D2lC5rP1bK5bT1bY2bU1tG3rB6rZ5bS2tV5bO5bM4rJ4bX1tN6tA5rH1rW4lR4lE5bL1bI6rF6bdash1) {
+  testFile("D2lC5rP1bK5bT1bY2bU1tG3rB6rZ5bS2tV5bO5bM4rJ4bX1tN6tA5rH1rW4lR4lE5bL1bI6rF6b-openbox3.jpg", true, 0);
 }

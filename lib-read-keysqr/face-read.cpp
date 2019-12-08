@@ -50,14 +50,16 @@ char FaceRead::ocrDigitMostLikely() const {
 }
 
 char FaceRead::letter() const {
-	return majorityOfThree(
+	const char letter = majorityOfThree(
 		underline.faceInferred->letter, overline.faceInferred->letter, ocrLetterMostLikely()
 	);
+	return letter != 0 ? letter : '?';
 }
 char FaceRead::digit() const {
-	return majorityOfThree(
+	const char digit = majorityOfThree(
 		underline.faceInferred->digit, overline.faceInferred->digit, ocrDigitMostLikely()
 	);
+	return digit != 0 ? digit : '?';
 }
 
 char FaceRead::orientationAs0to3ClockwiseTurnsFromUpright() const {

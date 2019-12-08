@@ -251,13 +251,16 @@ static NUMBER bimodalThresholdWithFractionalDensities(
 }
 
 
-static float findAndValidateMeanDifference(const std::vector<float> sortedValues, float minBoundEdgeRange = 5.0f)
+static float findAndValidateMeanDifference(const std::vector<float> &sortedValues, float minBoundEdgeRange = NAN)
 {
 	if (sortedValues.size() < 2) {
 		return NAN;
 	}
 	const float mean_difference = (sortedValues[sortedValues.size() -1] - sortedValues[0]) / float(sortedValues.size() - 1);
 	const float abs_mean_difference = abs(mean_difference);
+	if (isnan(minBoundEdgeRange)) {
+		minBoundEdgeRange = abs_mean_difference / 5;
+	}
 	// Ensure all delta_x and delta_y values are within 5% of the mean, though always
 	// allow up to a minimum error since vertical/horizontal lines will have no delta_x/delta_y,
 	// but could have a few pixel variation due to measurement errors.

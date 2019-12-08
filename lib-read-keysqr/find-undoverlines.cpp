@@ -28,8 +28,8 @@ bool isRectangleShapedLikeUndoverline(const RectangleDetected* rect) {
 		);
 }
 
-float findTighestModalAreaOfRects(const std::vector<RectangleDetected> &rects, int numberInMode = 35) {
-	const int halfModeSize = MIN(int((rects.size() / 2) - 1), numberInMode / 2);
+float findTighestModalAreaOfRects(const std::vector<RectangleDetected> &rects, size_t numberInMode = 35) {
+	const size_t halfModeSize = MIN(size_t((rects.size() / 2) - 1), numberInMode / 2);
 	std::vector<float> areas = vmap<RectangleDetected, float>(rects, [](const RectangleDetected *r) -> float {
 		return r->area;
 	});
@@ -97,9 +97,12 @@ std::vector<RectangleDetected> findCandidateUndoverlines(const cv::Mat& grayscal
 			});
 
 			// Uncomment for debugging
-			// for (auto const r : candidateUndoverlines) {
-			// 	drawRotatedRect(colorImage, r.rotatedRect, cv::Scalar(255, 0, 255));
+			//cv::Mat colorImage;
+			//cv::cvtColor(grayscaleImage, colorImage, cv::COLOR_GRAY2BGR);
+			//for (auto const r : candidateUndoverlines) {
+			// 	drawRotatedRect(colorImage, r.rotatedRect, cv::Scalar(255, 0, 255), 3);
 			// }
+			//cv::imwrite("candidate-undoverlines.png", colorImage);
 	}
 
 	return candidateUndoverlines;
@@ -238,6 +241,17 @@ UnderlinesAndOverlines findReadableUndoverlines(
 	// Sort underlines and overlines on y axis
 	std::sort( underlines.begin(), underlines.end(), [](Undoverline a, Undoverline b) {return a.inferredCenterOfFace.y < b.inferredCenterOfFace.y; } );
 	std::sort( overlines.begin(), overlines.end(), [](Undoverline a, Undoverline b) {return a.inferredCenterOfFace.y < b.inferredCenterOfFace.y; } );
+
+	// Uncomment for debugging
+	//cv::Mat colorImage;
+	//cv::cvtColor(grayscaleImage, colorImage, cv::COLOR_GRAY2BGR);
+	//for (auto const r : underlines) {
+	//	drawRotatedRect(colorImage, r.fromRotatedRect, cv::Scalar(255, 0, 255), 3);
+	//}
+	//for (auto const r : overlines) {
+	//	drawRotatedRect(colorImage, r.fromRotatedRect, cv::Scalar(255, 255, 0), 3);
+	//}
+	//cv::imwrite("candidate-undoverlines-part2.png", colorImage);
 
 	return {underlines, overlines};
 }
