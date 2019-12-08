@@ -41,13 +41,13 @@ void testFile(
     //cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", faceReadOutput);
 
     // Uncomment for debugging
-    cv::Mat colorImage;
-    cv::cvtColor(grayscaleImage, colorImage, cv::COLOR_GRAY2BGR);
-    for (auto const f : facesRead.faces) {
-      cv::line(colorImage, f.underline.line.start, f.underline.line.end, cv::Scalar(255, 0, 255), 3);
-      cv::line(colorImage, f.overline.line.start, f.overline.line.end, cv::Scalar(255, 255, 0), 3);
-    }
-    cv::imwrite("out/undoverlines/" + fileBase + ".png", colorImage);
+    // cv::Mat colorImage;
+    // cv::cvtColor(grayscaleImage, colorImage, cv::COLOR_GRAY2BGR);
+    // for (auto const f : facesRead.faces) {
+    //   cv::line(colorImage, f.underline.line.start, f.underline.line.end, cv::Scalar(255, 0, 255), 3);
+    //   cv::line(colorImage, f.overline.line.start, f.overline.line.end, cv::Scalar(255, 255, 0), 3);
+    // }
+    // cv::imwrite("out/undoverlines/" + fileBase + ".png", colorImage);
 
 
     if (validate) {

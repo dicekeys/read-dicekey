@@ -206,13 +206,13 @@ FacesOrderedWithMissingFacesInferredFromUnderlines orderFacesAndInferMissingUndo
 	float maxMmFromRowOrColumnLine // = 1.0f // 1 mm
 ) {
 	// Uncomment for debugging
-	cv::Mat colorImage;
-	cv::cvtColor(grayscaleImage, colorImage, cv::COLOR_GRAY2BGR);
-	for (auto const f : faceAndStrayUndoverlinesFound.facesFound) {
-		cv::line(colorImage, f.underline.line.start, f.underline.line.end, cv::Scalar(255, 0, 255), 3);
-		cv::line(colorImage, f.overline.line.start, f.overline.line.end, cv::Scalar(255, 255, 0), 3);
-	}
-	cv::imwrite("out/undoverlines/candidate-face-undoverlines.png", colorImage);
+	// cv::Mat colorImage;
+	// cv::cvtColor(grayscaleImage, colorImage, cv::COLOR_GRAY2BGR);
+	// for (auto const f : faceAndStrayUndoverlinesFound.facesFound) {
+	// 	cv::line(colorImage, f.underline.line.start, f.underline.line.end, cv::Scalar(255, 0, 255), 3);
+	// 	cv::line(colorImage, f.overline.line.start, f.overline.line.end, cv::Scalar(255, 255, 0), 3);
+	// }
+	// cv::imwrite("out/undoverlines/candidate-face-undoverlines.png", colorImage);
 
 	// First, take the faces and undoverlines we've found and try to build
 	// a model a model that describes the locations within a 5x5 grid 
