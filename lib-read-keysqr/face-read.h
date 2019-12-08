@@ -78,7 +78,7 @@ private:
 public:
   cv::Point2f center() const { return _center; };
 
-  FaceUndoverlinesCenterOnly(cv::Point2f __center) :
+  FaceUndoverlinesCenterOnly(const cv::Point2f __center) :
     FaceUndoverlines(),
     _center(__center)
     {}

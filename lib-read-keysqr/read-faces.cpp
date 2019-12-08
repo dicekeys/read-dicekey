@@ -26,7 +26,7 @@ ReadFaceResult readFaces(
 	bool outputOcrErrors
 ) {
 	FaceAndStrayUndoverlinesFound faceAndStrayUndoverlinesFound = findFacesAndStrayUndoverlines(grayscaleImage);
-	auto orderedFacesResult = orderFacesAndInferMissingUndoverlines(grayscaleImage, faceAndStrayUndoverlinesFound);
+	const auto orderedFacesResult = orderFacesAndInferMissingUndoverlines(grayscaleImage, faceAndStrayUndoverlinesFound);
 	std::vector<FaceRead> orderedFaces;
 	const float angleOfKeySqrInRadiansNonCanonicalForm = orderedFacesResult.angleInRadiansNonCanonicalForm;
 
