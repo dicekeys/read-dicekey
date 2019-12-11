@@ -14,4 +14,7 @@ public:
   ): PublicKey(publicKeyBytes, keyDerivationOptionsJson)
   {}
 
+
+  GlobalPublicKey(std::string publicKeyAsJson) : PublicKey(publicKeyAsJson) {}
+
 };

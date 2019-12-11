@@ -10,6 +10,9 @@ public:
   ): PublicKey(publicKeyBytes, keyDerivationOptionsJson)
   {}
 
+  ScopedPublicKey(std::string publicKeyAsJson) : PublicKey(publicKeyAsJson) {}
+
+
   const std::vector<unsigned char> seal(
     const unsigned char* message,
     const size_t messageLength

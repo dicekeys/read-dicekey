@@ -36,11 +36,16 @@ public:
     const std::vector<unsigned char> &publicKey
   );
 
-  const std::vector<unsigned char> getPublicKeyBytes(
-  ) const;
+  const std::vector<unsigned char> getPublicKeyBytes() const;
 
-  const std::string getPublicKeyBytesAsHexDigits(
-  ) const;
+  const std::string getPublicKeyBytesAsHexDigits() const;
+
+  const std::string getKeyDerivationOptionsJson() const {
+    return keyDerivationOptionsJson; 
+  }
+
+protected:
+  static PublicKey PublicKey::create(std::string publicKeyAsJson);
 
 };
 

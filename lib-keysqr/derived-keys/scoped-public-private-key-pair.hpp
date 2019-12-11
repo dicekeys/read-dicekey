@@ -10,8 +10,6 @@ class ScopedPublicPrivateKeyPair : public DerivedPublicPrivateKeyPair {
     const std::string &clientsApplicationId = ""
   );
 
-  const ScopedPublicKey getPublicKey() const;
-
   const SodiumBuffer unseal(
     const unsigned char* ciphertext,
     const size_t ciphertextLength

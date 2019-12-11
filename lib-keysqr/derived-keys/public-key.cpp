@@ -16,15 +16,18 @@ PublicKey::PublicKey(
     }
   }
 
-PublicKey::PublicKey(std::string publicKeyAsJson) {
+PublicKey::PublicKey(std::string publicKeyAsJson) :
+  PublicKey(create(publicKeyAsJson)) {}
+
+PublicKey PublicKey::create(std::string publicKeyAsJson) {
   nlohmann::json jsonObject = nlohmann::json::parse(publicKeyAsJson);
   const std::string publicKeyBytesAsHexDigits = jsonObject.value<std::string>(
     PublicKeyJsonFieldName::publicKeyBytesAsHexDigits, "");
   const std::vector<unsigned char> publicKeyBytes = hexStrToByteVector(publicKeyBytesAsHexDigits);
   const std::string keyDerivationOptionsJson = jsonObject.value<std::string>(
     PublicKeyJsonFieldName::keyDerivationOptionsJson, ""
-  );
-  PublicKey(publicKeyBytes, keyDerivationOptionsJson);
+    );
+  return PublicKey(publicKeyBytes, keyDerivationOptionsJson);
 }
 
 const std::string PublicKey::toJson(

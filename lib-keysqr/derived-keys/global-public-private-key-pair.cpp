@@ -17,3 +17,13 @@ const MessageWithDecryptionRestrictions GlobalPublicPrivateKeyPair::unseal(
 ) const {
   return MessageWithDecryptionRestrictions(PublicPrivateKeyPair::unsealCiphertext(ciphertext, ciphertextLength));
 }
+
+const MessageWithDecryptionRestrictions GlobalPublicPrivateKeyPair::unseal(
+  const std::vector<unsigned char> &ciphertext
+) const {
+  return MessageWithDecryptionRestrictions(PublicPrivateKeyPair::unsealCiphertext(ciphertext.data(), ciphertext.size()));
+}
+
+const GlobalPublicKey GlobalPublicPrivateKeyPair::getPublicKey() const {
+  return GlobalPublicKey(publicKeyBytes, keyDerivationOptionsJson);
+}

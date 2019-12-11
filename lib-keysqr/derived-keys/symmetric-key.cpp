@@ -34,6 +34,8 @@ const std::vector<unsigned char> SymmetricKey::seal(
     noncePtr,
     derivedKey.data
   );
+
+  return compositeCiphertext;
 }
 
 const SodiumBuffer SymmetricKey::unseal(

@@ -24,9 +24,11 @@ class GlobalPublicPrivateKeyPair : public DerivedPublicPrivateKeyPair {
     const size_t ciphertextLength
   ) const;
 
-  const GlobalPublicKey getPublicKey() const {
-    return GlobalPublicKey(publicKeyBytes, keyDerivationOptionsJson);
-  }
+  const MessageWithDecryptionRestrictions unseal(
+    const std::vector<unsigned char> &ciphertext
+  ) const;
+
+  const GlobalPublicKey getPublicKey() const;
 
 
 };
