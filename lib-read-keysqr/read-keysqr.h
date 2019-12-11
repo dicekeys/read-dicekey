@@ -7,7 +7,7 @@
 #include <limits>
 #include <chrono>
 
-#include "keysqr.h"
+#include "keysqr.hpp"
 #include "read-faces.h"
 
 // KeySqr facesReadToKeySqr(

@@ -1,4 +1,4 @@
-#include "keysqr.h"
+#include "keysqr.hpp"
 
 const std::vector<std::vector<unsigned char>> rotationIndexes = {
   {

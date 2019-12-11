@@ -7,7 +7,7 @@
 
 #include "utilities/bit-operations.h"
 #include "graphics/cv.h"
-#include "keysqr.h"
+#include "keysqr.hpp"
 #include "read-faces.h"
 #include "read-keysqr.h"
 #include "visualize-read-results.h"

@@ -14,7 +14,7 @@
 #include "decode-face.h"
 #include "face-read.h"
 // #include "find-undoverlines.h"
-// #include "keysqr.h"
+// #include "keysqr.hpp"
 // #include "face-read.h"
 // #include "assemble-keysqr.h"
 // #include "read-face-characters.h"

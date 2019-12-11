@@ -8,7 +8,10 @@
 
 class GlobalPublicKey: public PublicKey {
 public:
-  GlobalPublicKey(const std::vector<unsigned char> &publicKeyBytes): PublicKey(publicKeyBytes)
+  GlobalPublicKey(
+    const std::vector<unsigned char> &publicKeyBytes,
+    const std::string &keyDerivationOptionsJson
+  ): PublicKey(publicKeyBytes, keyDerivationOptionsJson)
   {}
 
 };

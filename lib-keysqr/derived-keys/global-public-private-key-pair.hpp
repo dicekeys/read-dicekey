@@ -3,10 +3,11 @@
 #include <cassert>
 #include <sodium.h>
 
-#include "../keysqr.h"
+#include "../keysqr.hpp"
 #include "derived-key.hpp"
 #include "public-key.hpp"
 #include "global-public-key.hpp"
+#include "public-private-key-pair.hpp"
 #include "message-with-decryption-restrictions.hpp"
 
 class GlobalPublicPrivateKeyPair : PublicPrivateKeyPair {
@@ -24,7 +25,7 @@ class GlobalPublicPrivateKeyPair : PublicPrivateKeyPair {
   ) const;
 
   const GlobalPublicKey getPublicKey() const {
-    return GlobalPublicKey(publicKeyBytes);
+    return GlobalPublicKey(publicKeyBytes, keyDerivationOptionsJson);
   }
 
 

@@ -5,7 +5,7 @@
 #include <cassert>
 #include <type_traits>
 #include <vector>
-#include "face.h"
+#include "face.hpp"
 
 const int NumberOfFaces = 25;
 

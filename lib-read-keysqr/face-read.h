@@ -9,8 +9,8 @@
 #include "graphics/geometry.h"
 
 #include "undoverline.h"
-#include "keysqr.h"
-#include "face.h"
+#include "keysqr.hpp"
+#include "face.hpp"
 #include "simple-ocr.h"
 
 class FaceUndoverlines {

@@ -1,7 +1,7 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 #include <vector>
 #include <cassert>
-#include "face.h"
+#include "face.hpp"
 
 // The face letter, an english capital letter other than 'Q', or '?' if unknown
 char Face::letter() const { return _letter; };

@@ -13,21 +13,3 @@ const std::vector<unsigned char> ScopedPublicKey::seal(
 ) const {
   return PublicKey::seal(message.data, message.length, publicKeyBytes);
 }
-
-ScopedPublicPrivateKeyPair::ScopedPublicPrivateKeyPair(
-  const KeySqr<Face> &keySqr,
-  const std::string &keyDerivationOptionsJson,
-  const std::string &clientsApplicationId
-) : PublicPrivateKeyPair(
-  keySqr,
-  keyDerivationOptionsJson,
-  clientsApplicationId, 
-  KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssages
-) {}
-
-const SodiumBuffer ScopedPublicPrivateKeyPair::unseal(
-  const unsigned char* ciphertext,
-  const size_t ciphertextLength
-) const {
-  return PublicPrivateKeyPair::unsealCiphertext(ciphertext, ciphertextLength);
-}

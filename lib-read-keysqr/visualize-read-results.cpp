@@ -6,7 +6,7 @@
 #include "graphics/cv.h"
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
-#include "keysqr.h"
+#include "keysqr.hpp"
 #include "read-faces.h"
 #include "visualize-read-results.h"
 #include "write-face-characters.h"

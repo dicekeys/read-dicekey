@@ -3,7 +3,7 @@
 #include <cassert>
 #include <sodium.h>
 
-#include "../keysqr.h"
+#include "../keysqr.hpp"
 #include "derived-key.hpp"
 
 
@@ -11,14 +11,21 @@
 class PublicKey {
 protected:
   const std::vector<unsigned char> publicKeyBytes;
+  const std::string keyDerivationOptionsJson;
 
-  PublicKey(const std::vector<unsigned char> publicKeyBytes) : publicKeyBytes(publicKeyBytes) {
-    if (publicKeyBytes.size() != crypto_box_PUBLICKEYBYTES) {
-      throw "Invalid key size exception";
-    }
-  }
+  PublicKey(
+    const std::vector<unsigned char> publicKeyBytes,
+    const std::string keyDerivationOptionsJson
+  );
+
+  PublicKey(std::string publicKeyAsJson);
   
 public:
+
+  const std::string toJson(
+    int indent = -1,
+    const char indent_char = ' '
+  ) const;
   
   static const std::vector<unsigned char> seal(
     const SodiumBuffer &message,
@@ -34,57 +41,8 @@ public:
   const std::vector<unsigned char> getPublicKeyBytes(
   ) const;
 
-};
-
-
-class PublicPrivateKeyPair {
-  protected:
-    class PublicKeySeed: KeySqrDerivedKey {
-      public:
-      PublicKeySeed(
-        const KeySqr<Face> &keySqr,
-        const std::string &keyDerivationOptionsJson,
-        const std::string &clientsApplicationId,
-        const KeyDerivationOptionsJson::Purpose mandatedPurpose
-      ) : KeySqrDerivedKey(keySqr, keyDerivationOptionsJson, clientsApplicationId, mandatedPurpose)
-      {}
-
-      const SodiumBuffer getSeed() const { return derivedKey; }
-    };
-
-  protected:
-  const SodiumBuffer sk;
-  const std::vector<unsigned char> publicKeyBytes;
-
-  PublicPrivateKeyPair(
-    const SodiumBuffer &sk,
-    const std::vector<unsigned char> pk
-  );
-
-  PublicPrivateKeyPair(
-    const PublicPrivateKeyPair & other
-  );
-
-  PublicPrivateKeyPair(
-    const KeySqr<Face> &keySqr,
-    const std::string &keyDerivationOptionsJson,
-    const std::string &clientsApplicationId,
-    const KeyDerivationOptionsJson::Purpose mandatedPurpose
-  );
-
-  static PublicPrivateKeyPair create(
-    const KeySqr<Face> &keySqr,
-    const std::string &keyDerivationOptionsJson,
-    const std::string &clientsApplicationId,
-    const KeyDerivationOptionsJson::Purpose mandatedPurpose
-  );
-  
-  protected:
-
-  const SodiumBuffer unsealCiphertext(
-    const unsigned char* ciphertext,
-    const size_t ciphertextLength
+  const std::string getPublicKeyBytesAsHexDigits(
   ) const;
 
-
 };
+

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <math.h>
 
-#include "keysqr.h"
+#include "keysqr.hpp"
 
 #include "utilities/vfunctional.h"
 #include "utilities/statistics.h"

@@ -1,5 +1,43 @@
 #include "public-key.hpp"
+#include "../../includes/json.hpp"
+#include "convert.hpp"
 
+namespace PublicKeyJsonFieldName {
+  const std::string publicKeyBytesAsHexDigits = "publicKeyBytesAsHexDigits";
+  const std::string keyDerivationOptionsJson = "keyDerivationOptionsJson";
+}
+
+PublicKey::PublicKey(
+    const std::vector<unsigned char> publicKeyBytes,
+    const std::string keyDerivationOptionsJson
+  ) : publicKeyBytes(publicKeyBytes), keyDerivationOptionsJson(keyDerivationOptionsJson) {
+    if (publicKeyBytes.size() != crypto_box_PUBLICKEYBYTES) {
+      throw "Invalid key size exception";
+    }
+  }
+
+PublicKey::PublicKey(std::string publicKeyAsJson) {
+  nlohmann::json jsonObject = nlohmann::json::parse(publicKeyAsJson);
+  const std::string publicKeyBytesAsHexDigits = jsonObject.value<std::string>(
+    PublicKeyJsonFieldName::publicKeyBytesAsHexDigits, "");
+  const std::vector<unsigned char> publicKeyBytes = hexStrToByteVector(publicKeyBytesAsHexDigits);
+  const std::string keyDerivationOptionsJson = jsonObject.value<std::string>(
+    PublicKeyJsonFieldName::keyDerivationOptionsJson, ""
+  );
+  PublicKey(publicKeyBytes, keyDerivationOptionsJson);
+}
+
+const std::string PublicKey::toJson(
+  int indent,
+  const char indent_char
+) const {
+	nlohmann::json asJson;  
+  asJson[PublicKeyJsonFieldName::publicKeyBytesAsHexDigits] =
+    getPublicKeyBytesAsHexDigits();
+  asJson[PublicKeyJsonFieldName::keyDerivationOptionsJson] =
+    keyDerivationOptionsJson;
+  return asJson.dump(indent, indent_char);
+};
 
 
 const std::vector<unsigned char> PublicKey::seal(
@@ -41,54 +79,7 @@ const std::vector<unsigned char> PublicKey::getPublicKeyBytes(
   return publicKeyBytes;
 }
 
-PublicPrivateKeyPair::PublicPrivateKeyPair(
-  const SodiumBuffer &sk,
-  const std::vector<unsigned char> pk
-) : publicKeyBytes(pk), sk(sk) {}
-
-PublicPrivateKeyPair::PublicPrivateKeyPair(
-  const PublicPrivateKeyPair & other
-) : publicKeyBytes(other.publicKeyBytes), sk(other.sk) {}
-
-PublicPrivateKeyPair::PublicPrivateKeyPair(
-  const KeySqr<Face> &keySqr,
-  const std::string &keyDerivationOptionsJson,
-  const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::Purpose mandatedPurpose
-): PublicPrivateKeyPair(PublicPrivateKeyPair::create(
-  keySqr, keyDerivationOptionsJson, clientsApplicationId, mandatedPurpose
-)) {}
-
-
-PublicPrivateKeyPair PublicPrivateKeyPair::create(
-  const KeySqr<Face> &keySqr,
-  const std::string &keyDerivationOptionsJson,
-  const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::Purpose mandatedPurpose
-) {
-  const PublicKeySeed seed(keySqr, keyDerivationOptionsJson, clientsApplicationId, mandatedPurpose);
-  SodiumBuffer secretKey(crypto_box_SECRETKEYBYTES);
-  std::vector<unsigned char> publicKey(crypto_box_PUBLICKEYBYTES);
-  crypto_box_seed_keypair(publicKey.data(), secretKey.data, seed.getSeed().data);
-  return PublicPrivateKeyPair(secretKey, publicKey);
-}
-
-
-const SodiumBuffer PublicPrivateKeyPair::unsealCiphertext(
-  const unsigned char* ciphertext,
-  const size_t ciphertextLength
+const std::string PublicKey::getPublicKeyBytesAsHexDigits(
 ) const {
-  if (ciphertextLength <= crypto_box_SEALBYTES) {
-    throw "Invalid message length";
-  }
-  SodiumBuffer plaintext(ciphertextLength -crypto_box_SEALBYTES);
-
-  crypto_box_seal_open(
-    plaintext.data,
-    ciphertext,
-    ciphertextLength,
-    publicKeyBytes.data(),
-    sk.data
-  );
-  return plaintext;
+  return toHexStr(publicKeyBytes);
 }

@@ -6,23 +6,34 @@
 #include "sodium-initializer.hpp"
 #include "derived-key.hpp"
 
+// KeySqrDerivedKey::KeySqrDerivedKey(
+//   const KeySqr<Face> &keySqr,
+//   const KeyDerivationOptions &keyDerivationOptions,
+//   const std::string &clientsApplicationId,
+//   const KeyDerivationOptionsJson::Purpose mandatedPurpose,
+//   size_t keyLengthInBytes
+// ) :
+//   keyDerivationOptions(keyDerivationOptions),
+//   keyDerivationOptionsJson(keyDerivationOptions.toJson()),
+//   derivedKey(
+//     validateAndGenerateKey(
+//       keySqr,
+//       keyDerivationOptions,
+//       clientsApplicationId,
+//       mandatedPurpose,
+//       keyLengthInBytes > 0 ? keyLengthInBytes : keyDerivationOptions.keyLengthInBytes
+//     )
+//   ) {}
+
+
 KeySqrDerivedKey::KeySqrDerivedKey(
-  const KeySqr<Face> &keySqr,
-  const KeyDerivationOptions &keyDerivationOptions,
-  const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::Purpose mandatedPurpose,
-  size_t keyLengthInBytes
+  const SodiumBuffer &derivedKey,
+  const std::string &keyDerivationOptionsJson
 ) :
-  keyDerivationOptions(keyDerivationOptions),
-  derivedKey(
-    validateAndGenerateKey(
-      keySqr,
-      keyDerivationOptions,
-      clientsApplicationId,
-      mandatedPurpose,
-      keyLengthInBytes > 0 ? keyLengthInBytes : keyDerivationOptions.keyLengthInBytes
-    )
-  ) {}
+  derivedKey(derivedKey),
+  keyDerivationOptionsJson(keyDerivationOptionsJson)
+{}
+
 
 KeySqrDerivedKey::KeySqrDerivedKey(
   const KeySqr<Face> &keySqr,
@@ -30,12 +41,17 @@ KeySqrDerivedKey::KeySqrDerivedKey(
   const std::string &clientsApplicationId,
   const KeyDerivationOptionsJson::Purpose mandatedPurpose,
   size_t keyLengthInBytes
-) : KeySqrDerivedKey(
-  keySqr,
-  KeyDerivationOptions(keyDerivationOptionsJson),
-  clientsApplicationId, mandatedPurpose, keyLengthInBytes
-) {}
-
+) :
+  keyDerivationOptionsJson(keyDerivationOptionsJson),
+  derivedKey(
+    validateAndGenerateKey(
+      keySqr,
+      keyDerivationOptionsJson,
+      clientsApplicationId,
+      mandatedPurpose,
+      keyLengthInBytes
+    )
+  ) {}
 
 
 void KeySqrDerivedKey::generateKey(
@@ -97,11 +113,12 @@ void KeySqrDerivedKey::generateKey(
 // class instance can treat the key as a constant.
 const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
   const KeySqr<Face> &keySqr,
-  const KeyDerivationOptions &keyDerivationOptions,
+  const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId,
   const KeyDerivationOptionsJson::Purpose mandatedPurpose,
   size_t keyLengthInBytes
 ) {
+  const KeyDerivationOptions keyDerivationOptions(keyDerivationOptionsJson);
   // Ensure that the purpose in the key derivation options matches
   // the actual purpose
   if (
@@ -124,7 +141,12 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
     }
   }
 
-  SodiumBuffer derivedKey(crypto_secretbox_KEYBYTES);
+  if (keyLengthInBytes == 0) {
+    keyLengthInBytes = keyDerivationOptions.keyLengthInBytes;
+  } else if (keyLengthInBytes != keyDerivationOptions.keyLengthInBytes) {
+    throw "Incorrect key length in bytes";
+  }
+  SodiumBuffer derivedKey(keyLengthInBytes);
 
   // Generate the key into the key array allocated above
   KeySqrDerivedKey::generateKey(
@@ -135,3 +157,8 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
   );
   return derivedKey;
 }
+
+const KeyDerivationOptions KeySqrDerivedKey::getKeyDerivationOptions() const {
+  return KeyDerivationOptions(keyDerivationOptionsJson);
+}
+

@@ -4,7 +4,10 @@
 
 class ScopedPublicKey : public PublicKey {
 public:
-  ScopedPublicKey(const std::vector<unsigned char> &publicKeyBytes): PublicKey(publicKeyBytes)
+  ScopedPublicKey(
+    const std::vector<unsigned char> &publicKeyBytes,
+    const std::string &keyDerivationOptionsJson
+  ): PublicKey(publicKeyBytes, keyDerivationOptionsJson)
   {}
 
   const std::vector<unsigned char> seal(
@@ -14,26 +17,6 @@ public:
 
   const std::vector<unsigned char> seal(
     const SodiumBuffer& message
-  ) const;
-
-};
-
-class ScopedPublicPrivateKeyPair : public PublicPrivateKeyPair {
-
-  public:
-  ScopedPublicPrivateKeyPair(
-    const KeySqr<Face> &keySqr,
-    const std::string &keyDerivationOptionsJson,
-    const std::string &clientsApplicationId = ""
-  );
-
-  const ScopedPublicKey getPublicKey() const {
-    return ScopedPublicKey(publicKeyBytes);
-  }
-
-  const SodiumBuffer unseal(
-    const unsigned char* ciphertext,
-    const size_t ciphertextLength
   ) const;
 
 };

@@ -6,5 +6,7 @@
 #include "symmetric-key.hpp"
 #include "public-key.hpp"
 #include "scoped-public-key.hpp"
+#include "scoped-public-private-key-pair.hpp"
 #include "message-with-decryption-restrictions.hpp"
 #include "global-public-key.hpp"
+#include "global-public-private-key-pair.hpp"

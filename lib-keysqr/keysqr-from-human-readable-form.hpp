@@ -4,8 +4,8 @@
 
 #include <vector>
 #include <cassert>
-#include "face.h"
-#include "keysqr.h"
+#include "face.hpp"
+#include "keysqr.hpp"
 
 /**
  * This class represents a KeySqr that has been read by scanning one or more images.
