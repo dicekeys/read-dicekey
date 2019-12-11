@@ -32,8 +32,6 @@ public:
     size_t keyLengthInBytes = 0
   );
 
-  ~KeySqrDerivedKey();
-
   const KeyDerivationOptions getKeyDerivationOptions() const;
 
   static void generateKey(

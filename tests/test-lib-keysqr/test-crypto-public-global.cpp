@@ -14,5 +14,6 @@ TEST(PublicGlobal, GetsPublicKey) {
 	// KeyDerivationOptions kgo = KeyDerivationOptions(keyDerivationOptionsJson);
 	const GlobalPublicPrivateKeyPair gsk(orderedTestKey, keyDerivationOptionsJson);
 	const auto gpk = gsk.getPublicKey();
-	ASSERT_EQ(gpk.)
+	ASSERT_EQ(gpk.getPublicKeyBytesAsHexDigits().length(), 64);
 }
+
