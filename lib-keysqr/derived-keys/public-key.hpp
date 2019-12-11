@@ -6,8 +6,6 @@
 #include "../keysqr.hpp"
 #include "derived-key.hpp"
 
-
-
 class PublicKey {
 protected:
   const std::vector<unsigned char> publicKeyBytes;

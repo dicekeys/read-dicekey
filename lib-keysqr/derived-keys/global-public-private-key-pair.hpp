@@ -7,10 +7,10 @@
 #include "derived-key.hpp"
 #include "public-key.hpp"
 #include "global-public-key.hpp"
-#include "public-private-key-pair.hpp"
+#include "derived-public-private-key-pair.hpp"
 #include "message-with-decryption-restrictions.hpp"
 
-class GlobalPublicPrivateKeyPair : PublicPrivateKeyPair {
+class GlobalPublicPrivateKeyPair : public DerivedPublicPrivateKeyPair {
   
   public:
   GlobalPublicPrivateKeyPair(

@@ -24,11 +24,12 @@ inline unsigned char parseHexChar(char c) {
   } else if (c >= 'A' && c <= 'F') {
     return 10 + (c - 'A');
   }
+  throw "Invalid hex char";
 }
 
 std::vector<unsigned char> hexStrToByteVector(const std::string hexStr)
 {
-  if (hexStr.length >= 2 && hexStr[1] = 'x' && hexStr[0] == '0') {
+  if (hexStr.length() >= 2 && hexStr[1] == 'x' && hexStr[0] == '0') {
     // Ignore prefix '0x'
     return hexStrToByteVector(hexStr.substr(2));
   }

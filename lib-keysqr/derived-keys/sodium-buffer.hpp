@@ -17,8 +17,6 @@ class SodiumBuffer {
     }
   }
 
-
-
   SodiumBuffer(const SodiumBuffer &other): length(other.length) {
     ensureSodiumInitialized();
     data = (unsigned char*) sodium_malloc(length);

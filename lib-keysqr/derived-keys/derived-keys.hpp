@@ -1,3 +1,5 @@
+#pragma once
+
 #include "sodium-buffer.hpp"
 #include "hash-functions.hpp"
 #include "key-derivation-options.hpp"

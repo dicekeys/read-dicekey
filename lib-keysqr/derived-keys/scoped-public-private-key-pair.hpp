@@ -1,7 +1,7 @@
 #include "scoped-public-key.hpp"
-#include "public-private-key-pair.hpp"
+#include "derived-public-private-key-pair.hpp"
 
-class ScopedPublicPrivateKeyPair : public PublicPrivateKeyPair {
+class ScopedPublicPrivateKeyPair : public DerivedPublicPrivateKeyPair {
 
   public:
   ScopedPublicPrivateKeyPair(
@@ -10,9 +10,7 @@ class ScopedPublicPrivateKeyPair : public PublicPrivateKeyPair {
     const std::string &clientsApplicationId = ""
   );
 
-  const ScopedPublicKey getPublicKey() const {
-    return ScopedPublicKey(publicKeyBytes, keyDerivationOptionsJson);
-  }
+  const ScopedPublicKey getPublicKey() const;
 
   const SodiumBuffer unseal(
     const unsigned char* ciphertext,

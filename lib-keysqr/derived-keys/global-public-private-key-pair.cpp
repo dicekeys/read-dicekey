@@ -4,7 +4,7 @@ GlobalPublicPrivateKeyPair::GlobalPublicPrivateKeyPair(
   const KeySqr<Face> &keySqr,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId
-) : PublicPrivateKeyPair (
+) : DerivedPublicPrivateKeyPair (
   keySqr,
   keyDerivationOptionsJson,
   clientsApplicationId, 

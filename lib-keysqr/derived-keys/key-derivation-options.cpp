@@ -1,12 +1,12 @@
 #include <cassert>
 #include "sodium.h"
 
-#include "keysqr.hpp"
+#include "../keysqr.hpp"
 #include "hash-functions.hpp"
 
 #include "../../includes/json.hpp"
 // Must come after json.hpp
-#include "externally-generated/key-derivation-parameters.hpp"
+#include "../externally-generated/key-derivation-parameters.hpp"
 
 #include "key-derivation-options.hpp"
 
