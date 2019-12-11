@@ -1,5 +1,5 @@
 #include <cassert>
-#include "../includes/json.hpp"
+#include "../../includes/json.hpp"
 // Must come after json.hpp
 #include "externally-generated/key-derivation-parameters.hpp"
 

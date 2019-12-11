@@ -3,7 +3,7 @@
 
 #include <sodium.h>
 
-#include "../sodium-initializer.hpp"
+#include "sodium-initializer.hpp"
 #include "derived-key.hpp"
 
 KeySqrDerivedKey::KeySqrDerivedKey(

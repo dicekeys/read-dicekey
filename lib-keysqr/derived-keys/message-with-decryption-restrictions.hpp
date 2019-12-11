@@ -6,8 +6,8 @@
 #include "../keysqr.h"
 #include "derived-key.hpp"
 #include "public-key.hpp"
-#include "../decryption-restrictions.hpp"
-#include "../sodium-initializer.hpp"
+#include "decryption-restrictions.hpp"
+#include "sodium-initializer.hpp"
 #include "global-public-key.hpp"
 
 

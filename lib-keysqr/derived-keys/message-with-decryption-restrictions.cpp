@@ -1,4 +1,6 @@
+#define __STDC_WANT_LIB_EXT1__ 1
 #include "message-with-decryption-restrictions.hpp"
+#include <string.h>
 
 MessageWithDecryptionRestrictions::MessageWithDecryptionRestrictions(
   const SodiumBuffer &buffer
@@ -10,14 +12,12 @@ MessageWithDecryptionRestrictions::MessageWithDecryptionRestrictions(
 ):
   SodiumBuffer(decryptionRestrictionsJson.size() + 1 + message.length) 
 {
-  memcpy_s(
-    data, length,
-    decryptionRestrictionsJson.data(), decryptionRestrictionsJson.size()
+  memcpy(
+    data, decryptionRestrictionsJson.data(), decryptionRestrictionsJson.size()
   );
   data[decryptionRestrictionsJson.size()] = 0;
-  memcpy_s(
+  memcpy(
     data + decryptionRestrictionsJson.size() + 1,
-    length - (decryptionRestrictionsJson.size() + 1),
     message.data,
     message.length
   );
