@@ -3,7 +3,7 @@
 #include <iostream>
 #include "utilities/vfunctional.h"
 #include "graphics/cv.h"
-#include "keysqr.h"
+#include "keysqr.hpp"
 #include "read-faces.h"
 #include "read-keysqr.h"
 #include "validate-faces-read.h"

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "key-derivation-options.hpp"
+#include "lib-keysqr.hpp"
 
 
 TEST(KeyDerivationOptions, GeneratesDefaults) {

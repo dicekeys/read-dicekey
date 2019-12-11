@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "keysqr-from-human-readable-form.h"
+#include "keysqr-from-human-readable-form.hpp"
 
 
 TEST(face, Inits) {

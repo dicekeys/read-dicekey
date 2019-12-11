@@ -8,7 +8,7 @@
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
 #include "keysqr-face-specification.h"
-#include "keysqr.h"
+#include "keysqr.hpp"
 #include "find-undoverlines.h"
 #include "find-faces.h"
 #include "assemble-keysqr.h"

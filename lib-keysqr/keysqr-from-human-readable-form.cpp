@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <cassert>
-#include "keysqr-from-human-readable-form.h"
+#include "keysqr-from-human-readable-form.hpp"
 
 
 const std::vector<Face> humanReadableFormToFaces(const std::string humanReadableForm) {

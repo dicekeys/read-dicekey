@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////
 // KeyDerivationOptions JSON Specification
-// - Automatically-generated file - NOT TO BE MODIFIED DIRECTLY)
+// - Automatically-generated file - NOT TO BE MODIFIED DIRECTLY
 //////////////////////////////////////////////////////////////////
 //
 // This c++ header file specifies the JSON parameter names
@@ -85,4 +85,12 @@ namespace Argoin2idDefaults {
 	const unsigned long long opslimit = 2;
 	const size_t memlimit = 67108864;
 }
+
+namespace DecryptionRestrictionsJson {
+	namespace FieldNames {
+		const std::string clientApplicationIdMustHavePrefix = "clientApplicationIdMustHavePrefix";
+		const std::string userMustAcknowledgeThisMessage = "userMustAcknowledgeThisMessage";
+	}
+};
+
 

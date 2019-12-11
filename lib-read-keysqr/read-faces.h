@@ -8,7 +8,7 @@
 #include <chrono>
 
 #include "undoverline.h"
-#include "keysqr.h"
+#include "keysqr.hpp"
 #include "face-read.h"
 #include "simple-ocr.h"
 

@@ -1,12 +1,12 @@
 #include <cassert>
 #include "sodium.h"
 
-#include "keysqr.h"
+#include "../keysqr.hpp"
 #include "hash-functions.hpp"
 
-#include "../includes/json.hpp"
+#include "../../includes/json.hpp"
 // Must come after json.hpp
-#include "externally-generated/key-derivation-parameters.hpp"
+#include "../externally-generated/key-derivation-parameters.hpp"
 
 #include "key-derivation-options.hpp"
 
@@ -16,15 +16,17 @@ KeyDerivationOptions::~KeyDerivationOptions() {
   }
 }
 
-KeyDerivationOptions::KeyDerivationOptions(const std::string &keyDerivationOptionsJson):
-  keyDerivationOptionsJsonString(keyDerivationOptionsJson)
+KeyDerivationOptions::KeyDerivationOptions(
+  const std::string &keyDerivationOptionsJson
+):
+  keyDerivationOptionsJson(keyDerivationOptionsJson)
 {
   // Use the nlohmann::json library to read the JSON-encoded
   // key generation options.
   // We make heavy use of the library's enum conversion, as documented at:
   //   https://github.com/nlohmann/json#specializing-enum-conversion
   nlohmann::json keyDerivationOptionsObject =
-    nlohmann::json::parse(keyDerivationOptionsJsonString);
+    nlohmann::json::parse(keyDerivationOptionsJson);
 
   //
   // purpose (the purpose of the key to be generated)
@@ -193,6 +195,34 @@ KeyDerivationOptions::KeyDerivationOptions(const std::string &keyDerivationOptio
   }
 
 };
+
+
+const void KeyDerivationOptions::validate(
+  const std::string applicationId,
+  const KeyDerivationOptionsJson::Purpose mandatePurpose
+) const {
+  if (
+    mandatePurpose != KeyDerivationOptionsJson::_INVALID_PURPOSE_ &&
+    mandatePurpose != purpose  
+  ) {
+    throw ("Key generation options must have purpose " + std::to_string(mandatePurpose));
+  }
+  if (restictToClientApplicationsIdPrefixes.size() > 0) {
+    bool prefixFound = false;
+    for (const std::string prefix : restictToClientApplicationsIdPrefixes) {
+      if (applicationId.substr(0, prefix.length()) == prefix) {
+        prefixFound = true;
+        break;
+      }
+    }
+    if (!prefixFound) {
+      throw ("The client application is not allowed to use this key");
+    }
+    bool noneMatched = true;
+  }
+}
+
+
 
 const std::string KeyDerivationOptions::jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(
   int indent,
