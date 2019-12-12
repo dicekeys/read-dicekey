@@ -51,8 +51,8 @@ KeyDerivationOptions::KeyDerivationOptions(
         // For symmetric crypto, default to XSalsa20Poly1305
         KeyDerivationOptionsJson::KeyType::XSalsa20Poly1305 :
     (	
-      purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssages ||
-      purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption
+      purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMessages ||
+      purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption
     ) ?
       // For public key crypto, default to X25519
       KeyDerivationOptionsJson::KeyType::X25519 :
@@ -69,8 +69,8 @@ KeyDerivationOptions::KeyDerivationOptions(
   }
 
   if ( (	
-        purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssages ||
-        purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption
+        purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMessages ||
+        purpose == KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption
       ) &&
       keyType != KeyDerivationOptionsJson::KeyType::X25519
   ) {

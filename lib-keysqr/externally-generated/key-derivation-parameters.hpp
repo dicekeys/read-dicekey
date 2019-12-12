@@ -24,15 +24,15 @@ namespace KeyDerivationOptionsJson {
 		_INVALID_PURPOSE_ = 0,
 		ForApplicationUse,
 		ForSymmetricKeySealedMessages,
-		ForPublicKeySealedMesssages,
-		ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption
+		ForPublicKeySealedMessages,
+		ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( Purpose, {
 		{Purpose::_INVALID_PURPOSE_, nullptr},
 		{Purpose::ForApplicationUse, "ForApplicationUse"},
 		{Purpose::ForSymmetricKeySealedMessages, "ForSymmetricKeySealedMessages"},
-		{Purpose::ForPublicKeySealedMesssages, "ForPublicKeySealedMesssages"},
-		{Purpose::ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption, "ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption"}
+		{Purpose::ForPublicKeySealedMessages, "ForPublicKeySealedMessages"},
+		{Purpose::ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption, "ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption"}
 	})
 	
 
