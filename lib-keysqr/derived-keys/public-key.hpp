@@ -45,7 +45,7 @@ public:
   }
 
 protected:
-  static PublicKey PublicKey::create(std::string publicKeyAsJson);
+  static PublicKey create(std::string publicKeyAsJson);
 
 };
 
