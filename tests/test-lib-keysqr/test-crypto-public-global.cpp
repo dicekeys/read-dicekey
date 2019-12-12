@@ -6,7 +6,7 @@ const std::string orderedKeySqrHrf =
 	"A1tB2rC3bD4lE5tF6bG1tH1tI1tJ1tK1tL1tM1tN1tO1tP1tR1tS1tT1tU1tV1tW1tX1tY1tZ1t";
 KeySqrFromString orderedTestKey = KeySqrFromString(orderedKeySqrHrf);
 std::string defaultTestKeyDerivationOptionsJson = R"KGO({
-	"purpose": "ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption",
+	"purpose": "ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption",
 	"additionalSalt": "1"
 })KGO";
 

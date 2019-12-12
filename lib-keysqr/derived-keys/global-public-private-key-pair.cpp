@@ -8,7 +8,7 @@ GlobalPublicPrivateKeyPair::GlobalPublicPrivateKeyPair(
   keySqr,
   keyDerivationOptionsJson,
   clientsApplicationId, 
-  KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssagesWithRestrictionsEnforcedPostDecryption
+  KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption
 ) {}
 
 const MessageWithDecryptionRestrictions GlobalPublicPrivateKeyPair::unseal(

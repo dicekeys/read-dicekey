@@ -8,7 +8,7 @@ ScopedPublicPrivateKeyPair::ScopedPublicPrivateKeyPair(
   keySqr,
   keyDerivationOptionsJson,
   clientsApplicationId, 
-  KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMesssages
+  KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMessages
 ) {}
 
 const SodiumBuffer ScopedPublicPrivateKeyPair::unseal(
