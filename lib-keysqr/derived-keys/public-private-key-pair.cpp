@@ -35,12 +35,15 @@ const SodiumBuffer PublicPrivateKeyPair::unsealCiphertext(
   }
   SodiumBuffer plaintext(ciphertextLength -crypto_box_SEALBYTES);
 
-  crypto_box_seal_open(
+  const int result = crypto_box_seal_open(
     plaintext.data,
     ciphertext,
     ciphertextLength,
     publicKeyBytes.data(),
     secretKey.data
   );
+  if (result != 0) {
+    throw "crypto_box_seal_open failed";
+  }
   return plaintext;
 }

@@ -49,13 +49,16 @@ const SodiumBuffer SymmetricKey::unseal(
   const unsigned char* noncePtr = compositeCiphertext;
   const unsigned char* secretBoxStartPtr = noncePtr + crypto_secretbox_NONCEBYTES;
 
-  crypto_secretbox_open_easy(
-    plaintextBuffer.data,
-    secretBoxStartPtr,
-    compositeCiphertextLength,
-    noncePtr,
-    derivedKey.data
-  );
+  const int result = crypto_secretbox_open_easy(
+        plaintextBuffer.data,
+        secretBoxStartPtr,
+        compositeCiphertextLength,
+        noncePtr,
+        derivedKey.data
+      );
+   if (result == -1) {
+     throw "crypto_secretbox_open_easy failed";
+   }
 
   return plaintextBuffer;
 };

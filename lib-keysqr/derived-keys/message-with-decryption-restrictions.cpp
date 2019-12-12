@@ -2,6 +2,12 @@
 #include "message-with-decryption-restrictions.hpp"
 #include <string.h>
 
+size_t safeStrLength(const unsigned char *str, size_t maxLength) {
+  size_t i = 0;
+  while (i < maxLength && str[i] != '\0') i++;
+  return i;
+}
+
 MessageWithDecryptionRestrictions::MessageWithDecryptionRestrictions(
   const SodiumBuffer &buffer
 ): SodiumBuffer(buffer) {}
@@ -45,7 +51,7 @@ MessageWithDecryptionRestrictions::MessageWithDecryptionRestrictions(
 {}
 
 const std::string MessageWithDecryptionRestrictions::getDecryptionRestrictionsJson() const {
-  const size_t jsonLength = strnlen_s((const char*)data, length); 
+  const size_t jsonLength = safeStrLength(data, length);
   return std::string( (const char*)data, jsonLength );
 }
 
@@ -74,7 +80,7 @@ const std::vector<unsigned char> MessageWithDecryptionRestrictions::seal(
 }
 
 const SodiumBuffer MessageWithDecryptionRestrictions::getPlaintext() const {
-  const size_t prefixLength = strnlen_s((const char*)data, length)  + 1;
+  const size_t prefixLength = safeStrLength(data, length)  + 1;
   const  size_t plaintextLength = prefixLength > length ? 0 : length - prefixLength;
   return SodiumBuffer(plaintextLength, data + length - plaintextLength);
 };
