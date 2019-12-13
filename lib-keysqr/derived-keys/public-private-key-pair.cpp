@@ -43,7 +43,7 @@ const SodiumBuffer PublicPrivateKeyPair::unsealCiphertext(
     secretKey.data
   );
   if (result != 0) {
-    throw "crypto_box_seal_open failed";
+    throw "crypto_box_seal_open failed.  message forged or corrupted.";
   }
   return plaintext;
 }

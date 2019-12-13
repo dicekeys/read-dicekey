@@ -56,8 +56,8 @@ const SodiumBuffer SymmetricKey::unseal(
         noncePtr,
         derivedKey.data
       );
-   if (result == -1) {
-     throw "crypto_secretbox_open_easy failed";
+   if (result != 0) {
+     throw "crypto_secretbox_open_easy failed. message forged or corrupted";
    }
 
   return plaintextBuffer;
