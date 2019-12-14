@@ -10,34 +10,34 @@ std::string defaultTestKeyDerivationOptionsJson = R"KGO({
 	"additionalSalt": "1"
 })KGO";
 
-TEST(PublicGlobal, DecryptionRestrictionsThowsOnInvalidJson) {
+TEST(PublicGlobal, PostDecryptionInstructionsThowsOnInvalidJson) {
 	ASSERT_ANY_THROW(
-		MessageWithDecryptionRestrictions(SodiumBuffer(4, (unsigned char*)"test"), DecryptionRestrictions("badjson")).getPlaintext()
+		Message(SodiumBuffer(4, (unsigned char*)"test"), PostDecryptionInstructions("badjson")).getPlaintext()
 	);
 }
 
-TEST(PublicGlobal, DecryptionRestrictionsHandlesEmptyJson) {
+TEST(PublicGlobal, PostDecryptionInstructionsHandlesEmptyJson) {
 	ASSERT_STREQ(
-		(char*)MessageWithDecryptionRestrictions(
+		(char*)Message(
 			SodiumBuffer(5, (unsigned char*)"test"),
-			DecryptionRestrictions("{}")).getPlaintext().data,
+			PostDecryptionInstructions("{}")).getPlaintext().data,
 		"test"
 	);
 }
 
 
-TEST(PublicGlobal, DecryptionRestrictionsHandlesRestrictions) {
-	DecryptionRestrictions dr(
+TEST(PublicGlobal, PostDecryptionInstructionsHandlesRestrictions) {
+	PostDecryptionInstructions dr(
 		R"MYJSON(
 			{
 				"userMustAcknowledgeThisMessage": "yolo",
 				"clientApplicationIdMustHavePrefix": ["myprefix"]
 			}
 		)MYJSON");
-	const auto message = MessageWithDecryptionRestrictions(
+	const auto message = Message(
 		SodiumBuffer(5, (unsigned char*)"test"), dr);
-	ASSERT_STREQ(message.getDecryptionRestrictions().userMustAcknowledgeThisMessage.c_str(), "yolo");
-	ASSERT_STREQ(message.getDecryptionRestrictions().clientApplicationIdMustHavePrefix[0].c_str(), "myprefix");
+	ASSERT_STREQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage.c_str(), "yolo");
+	ASSERT_STREQ(message.getPostDecryptionInstructions().clientApplicationIdMustHavePrefix[0].c_str(), "myprefix");
 	ASSERT_FALSE(dr.isApplicationIdAllowed("doesnotstartwithmyprefix"));
 	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefixisthestartofthisid"));
 	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefix"));
@@ -67,8 +67,8 @@ TEST(PublicGlobal, EncryptsAndDecrypts) {
 
 	std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
 	SodiumBuffer messageBuffer(messageVector);
-	MessageWithDecryptionRestrictions message(messageBuffer, DecryptionRestrictions("{}"));
-	ASSERT_EQ(message.getDecryptionRestrictions().userMustAcknowledgeThisMessage, "");
+	Message message(messageBuffer, PostDecryptionInstructions("{}"));
+	ASSERT_EQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "");
 	const auto sealedMessage = message.seal(testGlobalPublicKey);
 	const auto unsealedMessage = testGlobalPublicPrivateKeyPair.unseal(sealedMessage);
 	const auto unsealedPlaintext = unsealedMessage.getPlaintext().toVector();

@@ -11,17 +11,17 @@ GlobalPublicPrivateKeyPair::GlobalPublicPrivateKeyPair(
   KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption
 ) {}
 
-const MessageWithDecryptionRestrictions GlobalPublicPrivateKeyPair::unseal(
+const Message GlobalPublicPrivateKeyPair::unseal(
   const unsigned char* ciphertext,
   const size_t ciphertextLength
 ) const {
-  return MessageWithDecryptionRestrictions(PublicPrivateKeyPair::unsealCiphertext(ciphertext, ciphertextLength));
+  return Message::reconstituteFromEncodedBuffer(PublicPrivateKeyPair::unsealCiphertext(ciphertext, ciphertextLength));
 }
 
-const MessageWithDecryptionRestrictions GlobalPublicPrivateKeyPair::unseal(
+const Message GlobalPublicPrivateKeyPair::unseal(
   const std::vector<unsigned char> &ciphertext
 ) const {
-  return MessageWithDecryptionRestrictions(PublicPrivateKeyPair::unsealCiphertext(ciphertext.data(), ciphertext.size()));
+  return Message::reconstituteFromEncodedBuffer(PublicPrivateKeyPair::unsealCiphertext(ciphertext.data(), ciphertext.size()));
 }
 
 const GlobalPublicKey GlobalPublicPrivateKeyPair::getPublicKey() const {

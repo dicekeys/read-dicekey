@@ -86,7 +86,7 @@ namespace Argoin2idDefaults {
 	const size_t memlimit = 67108864;
 }
 
-namespace DecryptionRestrictionsJson {
+namespace PostDecryptionInstructionsJson {
 	namespace FieldNames {
 		const std::string clientApplicationIdMustHavePrefix = "clientApplicationIdMustHavePrefix";
 		const std::string userMustAcknowledgeThisMessage = "userMustAcknowledgeThisMessage";

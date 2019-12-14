@@ -10,21 +10,21 @@
  * This class represents key generation options,
  * provided in JSON format, as an immutable class.
  */
-class DecryptionRestrictions {
+class PostDecryptionInstructions {
 
 public:
 	std::vector<std::string> clientApplicationIdMustHavePrefix;
 	std::string userMustAcknowledgeThisMessage;
 
   /**
-   * Create a DecryptionRestrictions class from the JSON representation
+   * Create a PostDecryptionInstructions class from the JSON representation
    * of the key generation options.
    **/
-  DecryptionRestrictions(
-		const std::string &decryptionRestrictionsJson
+  PostDecryptionInstructions(
+		const std::string &postDecryptionInstructionsJson
 	);
 
-	DecryptionRestrictions(
+	PostDecryptionInstructions(
 		std::vector<std::string> clientApplicationIdMustHavePrefix,
 		std::string userMustAcknowledgeThisMessage = ""
 	);
