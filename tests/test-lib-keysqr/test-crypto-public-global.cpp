@@ -12,7 +12,7 @@ std::string defaultTestKeyDerivationOptionsJson = R"KGO({
 
 TEST(PublicGlobal, PostDecryptionInstructionsThowsOnInvalidJson) {
 	ASSERT_ANY_THROW(
-		Message(SodiumBuffer(4, (unsigned char*)"test"), PostDecryptionInstructions("badjson")).getPlaintext()
+		Message(SodiumBuffer(4, (unsigned char*)"test"), "badjson").getPostDecryptionInstructions()
 	);
 }
 
@@ -20,24 +20,24 @@ TEST(PublicGlobal, PostDecryptionInstructionsHandlesEmptyJson) {
 	ASSERT_STREQ(
 		(char*)Message(
 			SodiumBuffer(5, (unsigned char*)"test"),
-			PostDecryptionInstructions("{}")).getPlaintext().data,
+			"{}").getPlaintext().data,
 		"test"
 	);
 }
 
-
 TEST(PublicGlobal, PostDecryptionInstructionsHandlesRestrictions) {
-	PostDecryptionInstructions dr(
+	std::string postDecryptionInstructionsJson =
 		R"MYJSON(
 			{
 				"userMustAcknowledgeThisMessage": "yolo",
 				"clientApplicationIdMustHavePrefix": ["myprefix"]
 			}
-		)MYJSON");
+		)MYJSON";
 	const auto message = Message(
-		SodiumBuffer(5, (unsigned char*)"test"), dr);
-	ASSERT_STREQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage.c_str(), "yolo");
-	ASSERT_STREQ(message.getPostDecryptionInstructions().clientApplicationIdMustHavePrefix[0].c_str(), "myprefix");
+		SodiumBuffer(5, (unsigned char*)"test"), postDecryptionInstructionsJson);
+	const auto dr = message.getPostDecryptionInstructions();
+	ASSERT_STREQ(dr.userMustAcknowledgeThisMessage.c_str(), "yolo");
+	ASSERT_STREQ(dr.clientApplicationIdMustHavePrefix[0].c_str(), "myprefix");
 	ASSERT_FALSE(dr.isApplicationIdAllowed("doesnotstartwithmyprefix"));
 	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefixisthestartofthisid"));
 	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefix"));
@@ -45,29 +45,29 @@ TEST(PublicGlobal, PostDecryptionInstructionsHandlesRestrictions) {
 }
 
 TEST(PublicGlobal, GetsPublicKey) {
-	const GlobalPublicPrivateKeyPair testGlobalPublicPrivateKeyPair(orderedTestKey, defaultTestKeyDerivationOptionsJson);
-	const GlobalPublicKey testGlobalPublicKey = testGlobalPublicPrivateKeyPair.getPublicKey();
+	const PublicPrivateKeyPair testGlobalPublicPrivateKeyPair(orderedTestKey, defaultTestKeyDerivationOptionsJson);
+	const PublicKey testGlobalPublicKey = testGlobalPublicPrivateKeyPair.getPublicKey();
 
 	ASSERT_EQ(testGlobalPublicKey.getPublicKeyBytesAsHexDigits().length(), 64);
 }
 
 TEST(PublicGlobal, ConvertsPublicKeyToJsonAndBack) {
-	const GlobalPublicPrivateKeyPair testGlobalPublicPrivateKeyPair(orderedTestKey, defaultTestKeyDerivationOptionsJson);
-	const GlobalPublicKey testGlobalPublicKey = testGlobalPublicPrivateKeyPair.getPublicKey();
+	const PublicPrivateKeyPair testGlobalPublicPrivateKeyPair(orderedTestKey, defaultTestKeyDerivationOptionsJson);
+	const PublicKey testGlobalPublicKey = testGlobalPublicPrivateKeyPair.getPublicKey();
 
 	const std::string gpkJson = testGlobalPublicKey.toJson(1, '\t');
-	const GlobalPublicKey gpk2(gpkJson);
+	const PublicKey gpk2(gpkJson);
 	ASSERT_EQ(gpk2.getKeyDerivationOptionsJson(), defaultTestKeyDerivationOptionsJson);
 	ASSERT_EQ(gpk2.getPublicKeyBytesAsHexDigits(), testGlobalPublicKey.getPublicKeyBytesAsHexDigits());
 }
 
 TEST(PublicGlobal, EncryptsAndDecrypts) {
-	const GlobalPublicPrivateKeyPair testGlobalPublicPrivateKeyPair(orderedTestKey, defaultTestKeyDerivationOptionsJson);
-	const GlobalPublicKey testGlobalPublicKey = testGlobalPublicPrivateKeyPair.getPublicKey();
+	const PublicPrivateKeyPair testGlobalPublicPrivateKeyPair(orderedTestKey, defaultTestKeyDerivationOptionsJson);
+	const PublicKey testGlobalPublicKey = testGlobalPublicPrivateKeyPair.getPublicKey();
 
 	std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
 	SodiumBuffer messageBuffer(messageVector);
-	Message message(messageBuffer, PostDecryptionInstructions("{}"));
+	Message message(messageBuffer, "{}");
 	ASSERT_EQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "");
 	const auto sealedMessage = message.seal(testGlobalPublicKey);
 	const auto unsealedMessage = testGlobalPublicPrivateKeyPair.unseal(sealedMessage);

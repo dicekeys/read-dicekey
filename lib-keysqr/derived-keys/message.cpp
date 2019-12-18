@@ -2,6 +2,8 @@
 #include "message.hpp"
 #include <string.h>
 
+const std::string jsonStringEmbedded = "\"embedded\"";
+
 size_t safeStrLength(const unsigned char *str, size_t maxLength) {
   size_t i = 0;
   while (i < maxLength && str[i] != '\0') i++;
@@ -10,98 +12,120 @@ size_t safeStrLength(const unsigned char *str, size_t maxLength) {
 
 Message::Message(
   const Message &other
-) : SodiumBuffer(other) {}
+) :
+  contents(other.contents),
+  postDecryptionInstructionsJson(other.postDecryptionInstructionsJson)
+  {}
 
 Message::Message(
-  const SodiumBuffer &buffer,
-  const bool isAlreadyEncoded
-): SodiumBuffer(
-  isAlreadyEncoded ?
-  // We're just copying in a buffer here
-  buffer:
-  // We need to prepend the buffer to be copied in with 1 to indicate
-  // that there are no post-decryption instructions
-  SodiumBuffer(buffer.length + 1)  
+  const SodiumBuffer &contents,
+  const std::string &postDecryptionInstructionsJson
+) :
+  contents(contents),
+  postDecryptionInstructionsJson(postDecryptionInstructionsJson)
+  {}
+
+Message::Message(
+  const unsigned char* message,
+  const size_t messagelength,
+  const std::string &postDecryptionInstructionsJson
+) :
+  contents(messagelength, message),
+  postDecryptionInstructionsJson(postDecryptionInstructionsJson)
+  {}
+
+const Message Message::embedPostDecryptionInstructions(
 ) {
-  if (!isAlreadyEncoded) {
-    // Encode a 0 at the first byte to indicate there are
-    // no post-decryption instructions
-    data[0] = '\0';
-    memcpy(data + 1, buffer.data, buffer.length);
+  SodiumBuffer newContents(
+    contents.length + 1 + postDecryptionInstructionsJson.length()
+  );
+  // Copy the JSON instrucions at the start of the embedded content
+  memcpy(
+    newContents.data,
+    postDecryptionInstructionsJson.c_str(),
+    postDecryptionInstructionsJson.length()
+  );
+  // null terminate the instructions
+  newContents.data[postDecryptionInstructionsJson.length()] = '\0';
+  // Concatenated the old contents to the ned of hte new buffer
+  memcpy(
+    newContents.data + postDecryptionInstructionsJson.length() + 1,
+    contents.data,
+    contents.length
+  );
+  return Message(newContents, jsonStringEmbedded);
+}
+
+const Message Message::unembedPostDecryptionInstructions() {
+  // If this message doesn't have embedded instructions,
+  // there's no need to unembded them.  Just return itself.
+  if (postDecryptionInstructionsJson != jsonStringEmbedded) {
+    return *this;
+  }
+
+  const size_t nullCharIndex = safeStrLength(contents.data, contents.length);
+  if (nullCharIndex == contents.length) {
+    throw "Null string terminator missing from embedded instructions json";
+  }
+  const std::string extractedPostDecryptionInstructionsJson(
+    (const char*) contents.data,
+    nullCharIndex
+  );  
+  const SodiumBuffer extractedContents(
+    contents.length - (nullCharIndex + 1),
+    contents.data + (nullCharIndex + 1)
+  );
+  return Message(extractedContents, extractedPostDecryptionInstructionsJson);
+}
+
+const Message Message::createAndRemoveAnyEmbedding(
+  const SodiumBuffer &contents,
+  const std::string &postDecryptionInstructionsJson
+) {
+  if (Message::arePostDecryptionInstructionsEmbedded(postDecryptionInstructionsJson)) {
+    return Message(contents, postDecryptionInstructionsJson).unembedPostDecryptionInstructions();
+  } else {
+    return Message(contents, postDecryptionInstructionsJson);
   }
 }
 
-
-const Message Message::reconstituteFromEncodedBuffer(
-  const SodiumBuffer &buffer
-) {
-  return Message(buffer, true);
-};
-
-const Message Message::createFromPlaintextBuffer(
-  const SodiumBuffer &buffer
-) {
-  return Message(buffer, false);
-};
-
-Message::Message(
-  const SodiumBuffer &message,
-  const std::string &postDecryptionInstructionsJson
-):
-  SodiumBuffer(postDecryptionInstructionsJson.size() + 1 + message.length) 
-{
-  memcpy(
-    data, postDecryptionInstructionsJson.data(), postDecryptionInstructionsJson.size()
-  );
-  data[postDecryptionInstructionsJson.size()] = 0;
-  memcpy(
-    data + postDecryptionInstructionsJson.size() + 1,
-    message.data,
-    message.length
-  );
+bool Message::arePostDecryptionInstructionsEmbedded() const {
+  return Message::arePostDecryptionInstructionsEmbedded(postDecryptionInstructionsJson);
 }
 
-Message::Message(
-  const SodiumBuffer &message,
-  const PostDecryptionInstructions &postDecryptionInstructions
-): Message(message, postDecryptionInstructions.toJson())
-{}
-
-
-Message::Message(
-  const unsigned char* message,
-  const size_t messageLength,
-  const std::string &postDecryptionInstructionsJson
-): Message(SodiumBuffer(messageLength, message), postDecryptionInstructionsJson)
-{}
-
-Message::Message(
-  const unsigned char* message,
-  const size_t messageLength,
-  const PostDecryptionInstructions &postDecryptionInstructions
-): Message(SodiumBuffer(messageLength, message), postDecryptionInstructions.toJson())
-{}
+bool Message::arePostDecryptionInstructionsEmbedded(
+  const std::string &postDecryptionInstructionsJson     
+) {
+  return postDecryptionInstructionsJson == jsonStringEmbedded;
+}
 
 const std::string Message::getPostDecryptionInstructionsJson() const {
-  const size_t jsonLength = safeStrLength(data, length);
-  return std::string( (const char*)data, jsonLength );
-}
-
-const bool Message::hasPostDecryptionInstructions() const {
-  return length >= 1 && data[0] != '\0';
+  return postDecryptionInstructionsJson;
 }
 
 const PostDecryptionInstructions Message::getPostDecryptionInstructions() const {
+  if (arePostDecryptionInstructionsEmbedded()) {
+    throw "Post-decryption instructions must be extracted first.";
+  }
   return PostDecryptionInstructions(getPostDecryptionInstructionsJson());
 }
 
+const bool Message::hasPostDecryptionInstructions() const {
+  return (postDecryptionInstructionsJson.length() > 0);
+}
+
+const SodiumBuffer Message::getPlaintext() const {
+  return contents;
+}
+
+
 const std::vector<unsigned char> Message::seal(
-  const GlobalPublicKey &publicKey
+  const PublicKey &publicKey
 ) const {
   return PublicKey::seal(
-    data,
-    length,
-    publicKey.getPublicKeyBytes()
+    contents,
+    publicKey.getPublicKeyBytes(),
+    postDecryptionInstructionsJson
   );
 };
 
@@ -109,14 +133,8 @@ const std::vector<unsigned char> Message::seal(
   const std::vector<unsigned char> &publicKeyBytes
 ) const {
   return PublicKey::seal(
-    data,
-    length,
-    publicKeyBytes
+    contents,
+    publicKeyBytes,
+    postDecryptionInstructionsJson
   );
 }
-
-const SodiumBuffer Message::getPlaintext() const {
-  const size_t prefixLength = safeStrLength(data, length)  + 1;
-  const  size_t plaintextLength = prefixLength > length ? 0 : length - prefixLength;
-  return SodiumBuffer(plaintextLength, data + length - plaintextLength);
-};

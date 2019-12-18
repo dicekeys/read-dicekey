@@ -3,58 +3,32 @@
 #include <cassert>
 #include <sodium.h>
 
-#include "../keysqr.hpp"s
+#include "sodium-buffer.hpp"
+#include "../keysqr.hpp"
 #include "derived-key.hpp"
 #include "public-key.hpp"
 #include "post-decryption-instructions.hpp"
 #include "sodium-initializer.hpp"
-#include "global-public-key.hpp"
+#include "public-key.hpp"
 
 
+// Post decryption instructions
+//   starts with "{": string is utf8 json string encoding the post-decryption instructions
+//   is "\"prepended\"": encryptions are prepended to plaintext as null-terminated utf8 string
+//   "": there are no post-decryption instructions
 
-// 1 byte: type/version, 24 json length
-// '\0', no json instructions plain text
-// '{', json instructions/restrictions inline, followed by null terminator
-// 1, 32 byte hash of instructions follows
-
-// message with decryption restrictions -> message with instructions
-// 1, json instructions/restrictions separate, 32-byte hash follows, followed by plaintext
-
-class Message: SodiumBuffer
+class Message
 {
-  protected:
-    Message(
-      const SodiumBuffer &buffer,
-      const bool isAlreadyEncoded
-    );
-
   public:
+    const SodiumBuffer contents;
+    const std::string postDecryptionInstructionsJson;
 
-    Message(
+    Message::Message(
       const Message &other
     );
 
-    static const Message reconstituteFromEncodedBuffer(
-      const SodiumBuffer &buffer
-    );
-
-    static const Message createFromPlaintextBuffer(
-      const SodiumBuffer &plaintext
-    );
-
     Message(
-      const SodiumBuffer &message,
-      const PostDecryptionInstructions &postDecryptionInstructions
-    );
-
-    Message(
-      const unsigned char* message,
-      const size_t messagelength,
-      const PostDecryptionInstructions &postDecryptionInstructions
-    );
-
-    Message(
-      const SodiumBuffer &message,
+      const SodiumBuffer &contents,
       const std::string &postDecryptionInstructionsJson
     );
 
@@ -63,17 +37,31 @@ class Message: SodiumBuffer
       const size_t messagelength,
       const std::string &postDecryptionInstructionsJson
     );
+
+    const Message embedPostDecryptionInstructions();
+
+    const Message unembedPostDecryptionInstructions();
+
+    static const Message createAndRemoveAnyEmbedding(
+      const SodiumBuffer &contents,
+      const std::string &postDecryptionInstructionsJson
+    );
+
+    static bool arePostDecryptionInstructionsEmbedded(
+      const std::string &postDecryptionInstructionsJson     
+    );
+    bool arePostDecryptionInstructionsEmbedded() const;
 
     const std::string getPostDecryptionInstructionsJson() const;
 
-    const bool hasPostDecryptionInstructions() const;
-
     const PostDecryptionInstructions getPostDecryptionInstructions() const;
+
+    const bool hasPostDecryptionInstructions() const;
 
     const SodiumBuffer getPlaintext() const;
 
     const std::vector<unsigned char> seal(
-      const GlobalPublicKey &publicKey
+      const PublicKey &publicKey
     ) const;
 
     const std::vector<unsigned char> seal(

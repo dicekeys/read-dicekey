@@ -3,7 +3,7 @@
 #include "sodium-initializer.hpp"
 #include <sodium.h>
 #include <memory.h>
-
+#include <vector>
 
 class SodiumBuffer {
   public:

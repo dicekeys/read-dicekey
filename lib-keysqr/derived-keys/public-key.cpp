@@ -1,5 +1,6 @@
 #include "public-key.hpp"
 #include "../../includes/json.hpp"
+#include "crypto_box_seal_salted.h"
 #include "convert.hpp"
 
 namespace PublicKeyJsonFieldName {
@@ -46,7 +47,8 @@ const std::string PublicKey::toJson(
 const std::vector<unsigned char> PublicKey::seal(
   const unsigned char* message,
   const size_t messageLength,
-  const std::vector<unsigned char> &publicKey
+  const std::vector<unsigned char> &publicKey,
+  const std::string &postDecryptionInstructionsJson
 ) {
   if (publicKey.size() != crypto_box_PUBLICKEYBYTES) {
     throw "Invalid key size exception";
@@ -58,24 +60,43 @@ const std::vector<unsigned char> PublicKey::seal(
     messageLength + crypto_box_SEALBYTES;
   std::vector<unsigned char> ciphertext(ciphertextLength);
 
-  crypto_box_seal(
+  crypto_box_salted_seal(
     ciphertext.data(),
     message,
     messageLength,
-    publicKey.data()
+    publicKey.data(),
+    postDecryptionInstructionsJson.c_str(),
+    postDecryptionInstructionsJson.length()
   );
 
   return ciphertext;
 }
 
-const std::vector<unsigned char> seal(
+const std::vector<unsigned char> PublicKey::seal(
   const SodiumBuffer &message,
-  const std::vector<unsigned char> &publicKey
+  const std::vector<unsigned char> &publicKey,
+  const std::string &postDecryptionInstructionsJson
 ) {
   return PublicKey::seal(
-    message.data, message.length, publicKey
+    message.data, message.length, publicKey, postDecryptionInstructionsJson
   );
 }
+
+const std::vector<unsigned char> PublicKey::seal(
+  const unsigned char* message,
+  const size_t messageLength,
+  const std::string &postDecryptionInstructionsJson
+) const {
+  return PublicKey::seal(message, messageLength, publicKeyBytes, postDecryptionInstructionsJson);
+}
+
+const std::vector<unsigned char> PublicKey::seal(
+  const SodiumBuffer& message,
+  const std::string &postDecryptionInstructionsJson
+) const {
+  return PublicKey::seal(message.data, message.length, publicKeyBytes, postDecryptionInstructionsJson);
+}
+
 
 const std::vector<unsigned char> PublicKey::getPublicKeyBytes(
 ) const {

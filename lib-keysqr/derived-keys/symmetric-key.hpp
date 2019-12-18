@@ -24,12 +24,14 @@ class SymmetricKey : KeySqrDerivedKey {
    */
   const std::vector<unsigned char> seal(
     const unsigned char* message,
-    const size_t messageLength
+    const size_t messageLength,
+    std::string postDecryptionInstructionsJson = ""
   ) const;
 
   const SodiumBuffer unseal(
     const unsigned char* compositeCiphertext,
-    const size_t compositeCiphertextLength
+    const size_t compositeCiphertextLength,
+    std::string postDecryptionInstructionsJson = ""
   ) const;
 
 };

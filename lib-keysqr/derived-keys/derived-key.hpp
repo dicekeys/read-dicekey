@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../keysqr.hpp"
-#include "key-derivation-options.hpp"
 #include "sodium-buffer.hpp"
+#include "key-derivation-options.hpp"
 
 class KeySqrDerivedKey {
 protected:
@@ -40,9 +40,6 @@ public:
     const KeySqr<Face> &keySqr,
     const KeyDerivationOptions &keyDerivationOptions
   );
-
-  
-  protected:
 
   // We call this function to generate and write the key into memory so that the
   // class instance can treat the key as a constant.
