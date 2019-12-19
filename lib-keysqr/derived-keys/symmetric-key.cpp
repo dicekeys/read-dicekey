@@ -1,3 +1,4 @@
+#include <exception>
 #include "symmetric-key.hpp"
 
 void _crypto_secretbox_nonce_salted(
@@ -37,7 +38,7 @@ const std::vector<unsigned char> SymmetricKey::seal(
   std::string postDecryptionInstructionsJson
 ) const {
   if (messageLength <= 0) {
-    throw "Invalid message length";
+    throw std::exception("Invalid message length");
   }
   const size_t compositeCiphertextLength =
     crypto_secretbox_NONCEBYTES + messageLength + crypto_secretbox_MACBYTES;
@@ -68,7 +69,7 @@ const SodiumBuffer SymmetricKey::unseal(
   std::string postDecryptionInstructionsJson
 ) const {
   if (compositeCiphertextLength <= (crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES)) {
-    throw "Invalid message length";
+    throw std::exception("Invalid message length");
   }
   SodiumBuffer plaintextBuffer(compositeCiphertextLength - (crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES));
   const unsigned char* noncePtr = compositeCiphertext;
@@ -82,7 +83,7 @@ const SodiumBuffer SymmetricKey::unseal(
         derivedKey.data
       );
    if (result != 0) {
-     throw "Failed to unseal data because either the message or post-decryption instructions were modified or corrupted.";
+     throw std::exception("Failed to unseal data because either the message or post-decryption instructions were modified or corrupted.");
    }
 
   // Recalculate nonce to validate that the provided
@@ -93,7 +94,7 @@ const SodiumBuffer SymmetricKey::unseal(
     postDecryptionInstructionsJson.c_str(), postDecryptionInstructionsJson.length()
   );
   if (memcmp(recalculatedNonce, noncePtr, crypto_secretbox_NONCEBYTES) != 0) {
-     throw "Failed to unseal data because either the message or post-decryption instructions were modified or corrupted.";
+     throw std::exception("Failed to unseal data because either the message or post-decryption instructions were modified or corrupted.");
   }
 
   return plaintextBuffer;

@@ -7,7 +7,7 @@ PublicPrivateKeyPair:: PublicPrivateKeyPair(
   const std::vector<unsigned char> &publicKeyBytes,
   const std::string &KeyDerivationOptionsJson
 ) :
-  PublicKey(publicKeyBytes, keyDerivationOptionsJson),
+  PublicKey(publicKeyBytes, KeyDerivationOptionsJson),
   secretKey(secretKey)
   {}
 
@@ -50,7 +50,7 @@ const Message PublicPrivateKeyPair::unseal(
   const std::string &postDecryptionInstructionsJson
 ) const {
   if (ciphertextLength <= crypto_box_SEALBYTES) {
-    throw "Invalid message length";
+    throw std::exception("Invalid message length");
   }
   SodiumBuffer plaintext(ciphertextLength -crypto_box_SEALBYTES);
 
@@ -64,7 +64,7 @@ const Message PublicPrivateKeyPair::unseal(
     postDecryptionInstructionsJson.length()
   );
   if (result != 0) {
-    throw "crypto_box_seal_open failed.  message forged or corrupted.";
+    throw std::exception("crypto_box_seal_open failed.  message forged or corrupted.");
   }
   return Message::createAndRemoveAnyEmbedding(plaintext, postDecryptionInstructionsJson);
 }
@@ -73,7 +73,8 @@ const Message PublicPrivateKeyPair::unseal(
   const std::vector<unsigned char> ciphertext,
   const std::string& postDecryptionInstructionsJson
 ) const {
-  return unseal(ciphertext.data(), ciphertext.size());
+  return unseal(ciphertext.data(), ciphertext.size(), postDecryptionInstructionsJson
+  );
 };
 
 const PublicKey PublicPrivateKeyPair::getPublicKey() const {

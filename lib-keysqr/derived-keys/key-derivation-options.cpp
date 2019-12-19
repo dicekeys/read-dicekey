@@ -1,5 +1,7 @@
 #include <cassert>
+#include <exception>
 #include "sodium.h"
+#pragma warning( disable : 26812 )
 
 #include "../keysqr.hpp"
 #include "hash-functions.hpp"
@@ -37,7 +39,7 @@ KeyDerivationOptions::KeyDerivationOptions(
     );
 
   if (purpose == KeyDerivationOptionsJson::Purpose::_INVALID_PURPOSE_) {
-    throw "Invalid purpose in KeyDerivationOptions";
+    throw std::exception("Invalid purpose in KeyDerivationOptions");
   }
   keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::purpose] = purpose;
 
@@ -65,7 +67,7 @@ KeyDerivationOptions::KeyDerivationOptions(
   if (purpose == KeyDerivationOptionsJson::Purpose::ForSymmetricKeySealedMessages &&
       keyType != KeyDerivationOptionsJson::KeyType::XSalsa20Poly1305
   ) {
-    throw "Invalid key type for symmetric key cryptography";
+    throw std::exception("Invalid key type for symmetric key cryptography");
   }
 
   if ( (	
@@ -74,7 +76,7 @@ KeyDerivationOptions::KeyDerivationOptions(
       ) &&
       keyType != KeyDerivationOptionsJson::KeyType::X25519
   ) {
-    throw "Invalid key type for public key cryptography";
+    throw std::exception("Invalid key type for public key cryptography");
   }
 
   if (keyType != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
@@ -100,15 +102,15 @@ KeyDerivationOptions::KeyDerivationOptions(
     keyType == KeyDerivationOptionsJson::KeyType::X25519
     && keyLengthInBytes != crypto_box_SEEDBYTES
   ) {
-    throw "X25519 public key cryptography must use keyLengthInBytes of " +
-      std::to_string(crypto_box_SEEDBYTES);
+    throw std::exception( ("X25519 public key cryptography must use keyLengthInBytes of " +
+      std::to_string(crypto_box_SEEDBYTES)).c_str() );
   }
   if (
     keyType == KeyDerivationOptionsJson::KeyType::XSalsa20Poly1305 &&
     keyLengthInBytes != crypto_stream_xsalsa20_KEYBYTES
   ) {
-    throw "XSalsa20Poly1305 symmetric cryptography must use keyLengthInBytes of " +
-      std::to_string(crypto_stream_xsalsa20_KEYBYTES) ;
+    throw std::exception( ("XSalsa20Poly1305 symmetric cryptography must use keyLengthInBytes of " +
+      std::to_string(crypto_stream_xsalsa20_KEYBYTES)).c_str() );
   }
 
 	if (keyType == KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
@@ -161,7 +163,7 @@ KeyDerivationOptions::KeyDerivationOptions(
       } else if (algorithm == HashAlgorithmJson::Algorithm::Scrypt) {
         hashFunction = new HashFunctionScrypt(keyLengthInBytes, opslimit, memlimit);
       } else {
-        throw "Invalid hashFunction";
+        throw std::exception("Invalid hashFunction");
       }
       keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::hashFunction] = {
         {HashAlgorithmJson::FieldNames::algorithm, algorithm},
@@ -169,7 +171,7 @@ KeyDerivationOptions::KeyDerivationOptions(
         {HashAlgorithmJson::FieldNames::opsLimit, opslimit}
       };
     } else {
-      throw "Invalid hashFunction";
+      throw std::exception("Invalid hashFunction");
     }
   }
 
@@ -205,7 +207,7 @@ const void KeyDerivationOptions::validate(
     mandatePurpose != KeyDerivationOptionsJson::_INVALID_PURPOSE_ &&
     mandatePurpose != purpose  
   ) {
-    throw ("Key generation options must have purpose " + std::to_string(mandatePurpose));
+    throw std::exception( ("Key generation options must have purpose " + std::to_string(mandatePurpose)).c_str() );
   }
   if (restictToClientApplicationsIdPrefixes.size() > 0) {
     bool prefixFound = false;

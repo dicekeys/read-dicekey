@@ -13,11 +13,11 @@ protected:
   
 public:
   PublicKey(
-    const std::vector<unsigned char> publicKeyBytes,
-    const std::string keyDerivationOptionsJson
+    const std::vector<unsigned char> &publicKeyBytes,
+    const std::string &keyDerivationOptionsJson
   );
 
-  PublicKey(std::string publicKeyAsJson);
+  PublicKey(const std::string &publicKeyAsJson);
 
   const std::string toJson(
     int indent = -1,
@@ -57,7 +57,7 @@ public:
   }
 
 protected:
-  static PublicKey create(std::string publicKeyAsJson);
+  static PublicKey create(const std::string &publicKeyAsJson);
 
 };
 

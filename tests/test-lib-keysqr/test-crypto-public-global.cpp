@@ -1,12 +1,13 @@
 #include "gtest/gtest.h"
 #include <string>
+#include <iostream>
 #include "lib-keysqr.hpp"
 
 const std::string orderedKeySqrHrf =
 	"A1tB2rC3bD4lE5tF6bG1tH1tI1tJ1tK1tL1tM1tN1tO1tP1tR1tS1tT1tU1tV1tW1tX1tY1tZ1t";
 KeySqrFromString orderedTestKey = KeySqrFromString(orderedKeySqrHrf);
 std::string defaultTestKeyDerivationOptionsJson = R"KGO({
-	"purpose": "ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption",
+	"purpose": "ForPublicKeySealedMessages",
 	"additionalSalt": "1"
 })KGO";
 
@@ -65,12 +66,13 @@ TEST(PublicGlobal, EncryptsAndDecrypts) {
 	const PublicPrivateKeyPair testGlobalPublicPrivateKeyPair(orderedTestKey, defaultTestKeyDerivationOptionsJson);
 	const PublicKey testGlobalPublicKey = testGlobalPublicPrivateKeyPair.getPublicKey();
 
-	std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
+	const std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
+	const std::string postDecryptionInstructionsJson = "{}";
 	SodiumBuffer messageBuffer(messageVector);
-	Message message(messageBuffer, "{}");
+	Message message(messageBuffer, postDecryptionInstructionsJson);
 	ASSERT_EQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "");
 	const auto sealedMessage = message.seal(testGlobalPublicKey);
-	const auto unsealedMessage = testGlobalPublicPrivateKeyPair.unseal(sealedMessage);
+	const auto unsealedMessage = testGlobalPublicPrivateKeyPair.unseal(sealedMessage, postDecryptionInstructionsJson);
 	const auto unsealedPlaintext = unsealedMessage.getPlaintext().toVector();
 	ASSERT_EQ(messageVector, unsealedPlaintext);
 }

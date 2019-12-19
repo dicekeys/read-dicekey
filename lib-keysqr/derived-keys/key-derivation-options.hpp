@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma warning( disable : 26812 )
 #include <cassert>
 #include "hash-functions.hpp"
 #include "../../includes/json.hpp"

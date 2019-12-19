@@ -9,18 +9,18 @@ namespace PublicKeyJsonFieldName {
 }
 
 PublicKey::PublicKey(
-    const std::vector<unsigned char> publicKeyBytes,
-    const std::string keyDerivationOptionsJson
+    const std::vector<unsigned char> &publicKeyBytes,
+    const std::string &keyDerivationOptionsJson
   ) : publicKeyBytes(publicKeyBytes), keyDerivationOptionsJson(keyDerivationOptionsJson) {
     if (publicKeyBytes.size() != crypto_box_PUBLICKEYBYTES) {
-      throw "Invalid key size exception";
+      throw std::exception("Invalid key size exception");
     }
   }
 
-PublicKey::PublicKey(std::string publicKeyAsJson) :
+PublicKey::PublicKey(const std::string &publicKeyAsJson) :
   PublicKey(create(publicKeyAsJson)) {}
 
-PublicKey PublicKey::create(std::string publicKeyAsJson) {
+PublicKey PublicKey::create(const std::string &publicKeyAsJson) {
   nlohmann::json jsonObject = nlohmann::json::parse(publicKeyAsJson);
   const std::string publicKeyBytesAsHexDigits = jsonObject.value<std::string>(
     PublicKeyJsonFieldName::publicKeyBytesAsHexDigits, "");
@@ -51,10 +51,10 @@ const std::vector<unsigned char> PublicKey::seal(
   const std::string &postDecryptionInstructionsJson
 ) {
   if (publicKey.size() != crypto_box_PUBLICKEYBYTES) {
-    throw "Invalid key size exception";
+    throw std::exception("Invalid key size exception");
   }
   if (messageLength <= 0) {
-    throw "Invalid message length";
+    throw std::exception("Invalid message length");
   }
   const size_t ciphertextLength =
     messageLength + crypto_box_SEALBYTES;

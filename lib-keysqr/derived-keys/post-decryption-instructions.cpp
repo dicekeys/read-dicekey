@@ -1,4 +1,5 @@
 #include <cassert>
+#include <exception>
 #include "../../includes/json.hpp"
 // Must come after json.hpp
 #include "../externally-generated/key-derivation-parameters.hpp"
@@ -70,6 +71,6 @@ bool PostDecryptionInstructions::isApplicationIdAllowed(const std::string &appli
 
 void PostDecryptionInstructions::validateApplicationId(const std::string &applicationId) const {
   if (!isApplicationIdAllowed(applicationId)) {
-    throw "Invalid application ID: " + applicationId;
+    throw std::exception( ("Invalid application ID: " + applicationId).c_str() );
   }
 }

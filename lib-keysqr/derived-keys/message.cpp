@@ -1,6 +1,8 @@
 #define __STDC_WANT_LIB_EXT1__ 1
 #include "message.hpp"
 #include <string.h>
+#include <exception>
+
 
 const std::string jsonStringEmbedded = "\"embedded\"";
 
@@ -65,7 +67,7 @@ const Message Message::unembedPostDecryptionInstructions() {
 
   const size_t nullCharIndex = safeStrLength(contents.data, contents.length);
   if (nullCharIndex == contents.length) {
-    throw "Null string terminator missing from embedded instructions json";
+    throw std::exception("Null string terminator missing from embedded instructions json");
   }
   const std::string extractedPostDecryptionInstructionsJson(
     (const char*) contents.data,
@@ -105,7 +107,7 @@ const std::string Message::getPostDecryptionInstructionsJson() const {
 
 const PostDecryptionInstructions Message::getPostDecryptionInstructions() const {
   if (arePostDecryptionInstructionsEmbedded()) {
-    throw "Post-decryption instructions must be extracted first.";
+    throw std::exception("Post-decryption instructions must be extracted first.");
   }
   return PostDecryptionInstructions(getPostDecryptionInstructionsJson());
 }
