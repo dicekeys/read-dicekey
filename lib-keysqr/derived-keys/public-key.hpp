@@ -5,6 +5,7 @@
 
 #include "../keysqr.hpp"
 #include "derived-key.hpp"
+#include "message.hpp"
 
 class PublicKey {
 protected:
@@ -44,8 +45,12 @@ public:
   ) const;
 
   const std::vector<unsigned char> seal(
-    const SodiumBuffer& message,
+    const SodiumBuffer &message,
     const std::string &postDecryptionInstructionsJson = ""
+  ) const;
+
+  const std::vector<unsigned char> seal(
+    const Message &message
   ) const;
 
   const std::vector<unsigned char> getPublicKeyBytes() const;

@@ -35,7 +35,7 @@ SymmetricKey::SymmetricKey(
 const std::vector<unsigned char> SymmetricKey::seal(
   const unsigned char* message,
   const size_t messageLength,
-  std::string postDecryptionInstructionsJson
+  const std::string &postDecryptionInstructionsJson
 ) const {
   if (messageLength <= 0) {
     throw std::exception("Invalid message length");
@@ -63,10 +63,27 @@ const std::vector<unsigned char> SymmetricKey::seal(
   return compositeCiphertext;
 }
 
-const SodiumBuffer SymmetricKey::unseal(
+const std::vector<unsigned char> SymmetricKey::seal(
+  const SodiumBuffer &message,
+  const std::string &postDecryptionInstructionsJson
+) const {
+  return seal(message.data, message.length, postDecryptionInstructionsJson);
+}
+
+
+const std::vector<unsigned char> SymmetricKey::seal(
+  const Message &message
+) const {
+  return SymmetricKey::seal(
+    message.contents,
+    message.postDecryptionInstructionsJson
+  );
+};
+
+const Message SymmetricKey::unseal(
   const unsigned char* compositeCiphertext,
   const size_t compositeCiphertextLength,
-  std::string postDecryptionInstructionsJson
+  const std::string &postDecryptionInstructionsJson
 ) const {
   if (compositeCiphertextLength <= (crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES)) {
     throw std::exception("Invalid message length");
@@ -97,5 +114,12 @@ const SodiumBuffer SymmetricKey::unseal(
      throw std::exception("Failed to unseal data because either the message or post-decryption instructions were modified or corrupted.");
   }
 
-  return plaintextBuffer;
+  return Message::createAndRemoveAnyEmbedding(plaintextBuffer, postDecryptionInstructionsJson);
 };
+
+const Message SymmetricKey::unseal(
+  const std::vector<unsigned char> &compositeCiphertext,
+  const std::string &postDecryptionInstructionsJson
+) const {
+  return unseal(compositeCiphertext.data(), compositeCiphertext.size(), postDecryptionInstructionsJson);
+}

@@ -120,23 +120,3 @@ const SodiumBuffer Message::getPlaintext() const {
   return contents;
 }
 
-
-const std::vector<unsigned char> Message::seal(
-  const PublicKey &publicKey
-) const {
-  return PublicKey::seal(
-    contents,
-    publicKey.getPublicKeyBytes(),
-    postDecryptionInstructionsJson
-  );
-};
-
-const std::vector<unsigned char> Message::seal(
-  const std::vector<unsigned char> &publicKeyBytes
-) const {
-  return PublicKey::seal(
-    contents,
-    publicKeyBytes,
-    postDecryptionInstructionsJson
-  );
-}

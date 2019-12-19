@@ -1,5 +1,6 @@
 #pragma once
 #include "derived-key.hpp"
+#include "message.hpp"
 
 class SymmetricKey : KeySqrDerivedKey {
   public:
@@ -25,13 +26,27 @@ class SymmetricKey : KeySqrDerivedKey {
   const std::vector<unsigned char> seal(
     const unsigned char* message,
     const size_t messageLength,
-    std::string postDecryptionInstructionsJson = ""
+    const std::string &postDecryptionInstructionsJson = ""
   ) const;
 
-  const SodiumBuffer unseal(
+  const std::vector<unsigned char> seal(
+    const SodiumBuffer &message,
+    const std::string &postDecryptionInstructionsJson = ""
+  ) const;
+  
+  const std::vector<unsigned char> seal(
+    const Message &message
+  ) const;
+
+  const Message unseal(
     const unsigned char* compositeCiphertext,
     const size_t compositeCiphertextLength,
-    std::string postDecryptionInstructionsJson = ""
+    const std::string &postDecryptionInstructionsJson = ""
+  ) const;
+
+  const Message unseal(
+    const std::vector<unsigned char> &compositeCiphertext,
+    const std::string& postDecryptionInstructionsJson = ""
   ) const;
 
 };
