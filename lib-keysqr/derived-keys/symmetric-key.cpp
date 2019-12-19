@@ -40,10 +40,10 @@ const std::vector<unsigned char> SymmetricKey::seal(
   if (messageLength <= 0) {
     throw std::exception("Invalid message length");
   }
-  const size_t compositeCiphertextLength =
+  const size_t ciphertextLength =
     crypto_secretbox_NONCEBYTES + messageLength + crypto_secretbox_MACBYTES;
-  std::vector<unsigned char> compositeCiphertext(compositeCiphertextLength);
-  unsigned char* noncePtr = compositeCiphertext.data();
+  std::vector<unsigned char> ciphertext(ciphertextLength);
+  unsigned char* noncePtr = ciphertext.data();
   unsigned char* secretBoxStartPtr = noncePtr + crypto_secretbox_NONCEBYTES;
 
   // Write a nonce derived from the message and symmeetric key
@@ -60,7 +60,7 @@ const std::vector<unsigned char> SymmetricKey::seal(
     derivedKey.data
   );
 
-  return compositeCiphertext;
+  return ciphertext;
 }
 
 const std::vector<unsigned char> SymmetricKey::seal(
@@ -80,22 +80,22 @@ const std::vector<unsigned char> SymmetricKey::seal(
   );
 };
 
-const Message SymmetricKey::unseal(
-  const unsigned char* compositeCiphertext,
-  const size_t compositeCiphertextLength,
+const SodiumBuffer SymmetricKey::unsealMessageContents(
+  const unsigned char* ciphertext,
+  const size_t ciphertextLength,
   const std::string &postDecryptionInstructionsJson
 ) const {
-  if (compositeCiphertextLength <= (crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES)) {
+  if (ciphertextLength <= (crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES)) {
     throw std::exception("Invalid message length");
   }
-  SodiumBuffer plaintextBuffer(compositeCiphertextLength - (crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES));
-  const unsigned char* noncePtr = compositeCiphertext;
+  SodiumBuffer plaintextBuffer(ciphertextLength - (crypto_secretbox_MACBYTES + crypto_secretbox_NONCEBYTES));
+  const unsigned char* noncePtr = ciphertext;
   const unsigned char* secretBoxStartPtr = noncePtr + crypto_secretbox_NONCEBYTES;
 
   const int result = crypto_secretbox_open_easy(
         plaintextBuffer.data,
         secretBoxStartPtr,
-        compositeCiphertextLength,
+        ciphertextLength - crypto_secretbox_NONCEBYTES,
         noncePtr,
         derivedKey.data
       );
@@ -114,12 +114,28 @@ const Message SymmetricKey::unseal(
      throw std::exception("Failed to unseal data because either the message or post-decryption instructions were modified or corrupted.");
   }
 
-  return Message::createAndRemoveAnyEmbedding(plaintextBuffer, postDecryptionInstructionsJson);
+  return plaintextBuffer;
+}
+
+const Message SymmetricKey::unseal(
+  const unsigned char* ciphertext,
+  const size_t ciphertextLength,
+  const std::string &postDecryptionInstructionsJson
+) const {
+  return Message::createAndRemoveAnyEmbedding(
+    unsealMessageContents(ciphertext, ciphertextLength, postDecryptionInstructionsJson),
+    postDecryptionInstructionsJson);
 };
 
 const Message SymmetricKey::unseal(
-  const std::vector<unsigned char> &compositeCiphertext,
+  const std::vector<unsigned char> &ciphertext,
   const std::string &postDecryptionInstructionsJson
 ) const {
-  return unseal(compositeCiphertext.data(), compositeCiphertext.size(), postDecryptionInstructionsJson);
+  return unseal(ciphertext.data(), ciphertext.size(), postDecryptionInstructionsJson);
+}
+
+const SodiumBuffer SymmetricKey::unseal(
+  const std::vector<unsigned char>& ciphertext
+) const {
+    return unsealMessageContents(ciphertext.data(), ciphertext.size(), "");
 }

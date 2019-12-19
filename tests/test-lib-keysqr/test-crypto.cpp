@@ -91,16 +91,48 @@ TEST(PublicKey, EncryptsAndDecrypts) {
 }
 
 
-TEST(SymmetricKey, EncryptsAndDecrypts) {
+TEST(SymmetricKey, EncryptsAndDecryptsWithoutPostDecryptionInstructions) {
 	const SymmetricKey testSymmetricKey(orderedTestKey, defaultTestSymmetricKeyDerivationOptionsJson);
-	
+
 	const std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
 	const std::string postDecryptionInstructionsJson = "";
 	SodiumBuffer messageBuffer(messageVector);
-	Message message(messageBuffer, postDecryptionInstructionsJson);
-	ASSERT_EQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "");
-	const auto sealedMessage = testSymmetricKey.seal(message);
+	const auto sealedMessage = testSymmetricKey.seal(messageBuffer);
+	const auto unsealedMessage = testSymmetricKey.unseal(sealedMessage);
+	const auto unsealedPlaintext = unsealedMessage.toVector();
+	ASSERT_EQ(messageVector, unsealedPlaintext);
+}
+
+
+
+TEST(SymmetricKey, EncryptsAndDecrypts) {
+	const SymmetricKey testSymmetricKey(orderedTestKey, defaultTestSymmetricKeyDerivationOptionsJson);
+
+	const std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
+	const std::string postDecryptionInstructionsJson = "{\"userMustAcknowledgeThisMessage\": \"yoto mofo\"}";
+	SodiumBuffer messageBuffer(messageVector);
+	
+	const auto sealedMessage = testSymmetricKey.seal(messageBuffer, postDecryptionInstructionsJson);
 	const auto unsealedMessage = testSymmetricKey.unseal(sealedMessage, postDecryptionInstructionsJson);
+	ASSERT_EQ(unsealedMessage.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "yoto mofo");
+	const auto unsealedPlaintext = unsealedMessage.getPlaintext().toVector();
+	ASSERT_EQ(messageVector, unsealedPlaintext);
+}
+
+
+TEST(SymmetricKey, EncrypsUsingMessageAndDecrypts) {
+	const SymmetricKey testSymmetricKey(orderedTestKey, defaultTestSymmetricKeyDerivationOptionsJson);
+	
+	const std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
+	const std::string postDecryptionInstructionsJson = "{\"userMustAcknowledgeThisMessage\": \"yoto mofo\"}";
+	SodiumBuffer messageBuffer(messageVector);
+	Message message(messageBuffer, postDecryptionInstructionsJson);
+	ASSERT_EQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "yoto mofo");
+
+	const auto sealedMessage = testSymmetricKey.seal(messageBuffer);
+	const auto unsealedMessage = testSymmetricKey.unseal(sealedMessage, postDecryptionInstructionsJson);
+	ASSERT_EQ(unsealedMessage.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "yoto mofo");
+
 	const auto unsealedPlaintext = unsealedMessage.getPlaintext().toVector();
 	ASSERT_EQ(messageVector, unsealedPlaintext);
 }

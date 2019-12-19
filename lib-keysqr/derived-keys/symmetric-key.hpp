@@ -26,27 +26,46 @@ class SymmetricKey : KeySqrDerivedKey {
   const std::vector<unsigned char> seal(
     const unsigned char* message,
     const size_t messageLength,
-    const std::string &postDecryptionInstructionsJson = ""
+    const std::string &postDecryptionInstructionsJson
   ) const;
 
   const std::vector<unsigned char> seal(
     const SodiumBuffer &message,
-    const std::string &postDecryptionInstructionsJson = ""
+    const std::string &postDecryptionInstructionsJson
   ) const;
   
   const std::vector<unsigned char> seal(
-    const Message &message
+    const unsigned char* message,
+    const size_t messageLength
+  ) const {
+    return seal(message, messageLength, "");
+  }
+
+  const std::vector<unsigned char> seal(
+    const Message& message
   ) const;
 
   const Message unseal(
-    const unsigned char* compositeCiphertext,
-    const size_t compositeCiphertextLength,
+    const unsigned char* ciphertext,
+    const size_t ciphertextLength,
+    const std::string &postDecryptionInstructionsJson
+  ) const;
+
+  const Message unseal(
+    const std::vector<unsigned char> &ciphertext,
+    const std::string& postDecryptionInstructionsJson
+  ) const;
+
+  const SodiumBuffer unseal(
+    const std::vector<unsigned char> &ciphertext
+  ) const;
+
+protected:
+  
+  const SodiumBuffer unsealMessageContents(
+    const unsigned char* ciphertext,
+    const size_t ciphertextLength,
     const std::string &postDecryptionInstructionsJson = ""
-  ) const;
-
-  const Message unseal(
-    const std::vector<unsigned char> &compositeCiphertext,
-    const std::string& postDecryptionInstructionsJson = ""
   ) const;
 
 };

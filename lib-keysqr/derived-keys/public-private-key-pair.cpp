@@ -43,6 +43,31 @@ PublicPrivateKeyPair PublicPrivateKeyPair::create(
   return PublicPrivateKeyPair(secretKey, publicKey, keyDerivationOptionsJson);
 }
 
+const SodiumBuffer PublicPrivateKeyPair::unsealMessageContents(
+  const unsigned char* ciphertext,
+  const size_t ciphertextLength,
+  const std::string &postDecryptionInstructionsJson
+) const {
+  if (ciphertextLength <= crypto_box_SEALBYTES) {
+    throw std::exception("Invalid message length");
+  }
+  SodiumBuffer plaintext(ciphertextLength -crypto_box_SEALBYTES);
+
+  const int result = crypto_box_salted_seal_open(
+    plaintext.data,
+    ciphertext,
+    ciphertextLength,
+    publicKeyBytes.data(),
+    secretKey.data,
+    postDecryptionInstructionsJson.c_str(),
+    postDecryptionInstructionsJson.length()
+  );
+  if (result != 0) {
+    throw std::exception("crypto_box_seal_open failed.  message forged or corrupted.");
+  }
+  return plaintext;
+}
+
 
 const Message PublicPrivateKeyPair::unseal(
   const unsigned char* ciphertext,
@@ -66,16 +91,24 @@ const Message PublicPrivateKeyPair::unseal(
   if (result != 0) {
     throw std::exception("crypto_box_seal_open failed.  message forged or corrupted.");
   }
-  return Message::createAndRemoveAnyEmbedding(plaintext, postDecryptionInstructionsJson);
+  return Message::createAndRemoveAnyEmbedding(
+    unsealMessageContents(ciphertext, ciphertextLength, postDecryptionInstructionsJson),
+    postDecryptionInstructionsJson);
 }
 
 const Message PublicPrivateKeyPair::unseal(
-  const std::vector<unsigned char> ciphertext,
+  const std::vector<unsigned char> &ciphertext,
   const std::string& postDecryptionInstructionsJson
 ) const {
   return unseal(ciphertext.data(), ciphertext.size(), postDecryptionInstructionsJson
   );
 };
+
+const SodiumBuffer PublicPrivateKeyPair::unseal(
+  const std::vector<unsigned char> &ciphertext
+) const {
+  return unseal(ciphertext.data(), ciphertext.size(), "").contents;
+}
 
 const PublicKey PublicPrivateKeyPair::getPublicKey() const {
   return PublicKey(publicKeyBytes, keyDerivationOptionsJson);

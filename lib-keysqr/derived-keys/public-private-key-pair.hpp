@@ -31,14 +31,25 @@ public:
   const Message unseal(
     const unsigned char* ciphertext,
     const size_t ciphertextLength,
-    const std::string &postDecryptionInstructionsJson = ""
+    const std::string &postDecryptionInstructionsJson
   ) const;
 
   const Message unseal(
-    const std::vector<unsigned char> ciphertext,
-    const std::string& postDecryptionInstructionsJson = ""
+    const std::vector<unsigned char> &ciphertext,
+    const std::string& postDecryptionInstructionsJson
   ) const;
 
+  const SodiumBuffer unseal(
+    const std::vector<unsigned char> &ciphertext
+  ) const;
+
+protected:
+  const SodiumBuffer unsealMessageContents(
+    const unsigned char* ciphertext,
+    const size_t ciphertextLength,
+    const std::string& postDecryptionInstructionsJson
+  ) const;
+  
 private:
   static PublicPrivateKeyPair PublicPrivateKeyPair::create(
     const KeySqr<Face> &keySqr,
