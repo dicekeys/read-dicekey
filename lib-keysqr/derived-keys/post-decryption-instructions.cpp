@@ -1,17 +1,22 @@
 #include <cassert>
+#include <exception>
 #include "../../includes/json.hpp"
 // Must come after json.hpp
 #include "../externally-generated/key-derivation-parameters.hpp"
 
-#include "decryption-restrictions.hpp"
+#include "post-decryption-instructions.hpp"
 
-DecryptionRestrictions::DecryptionRestrictions(
-  const std::string &decryptionRestrictionsJson
+PostDecryptionInstructions::PostDecryptionInstructions(
+  const std::string &postDecryptionInstructionsJson
 ) {
+  if (postDecryptionInstructionsJson.size() == 0) {
+    // Empty post-decryption instructions
+    return;
+  }
   // Use the nlohmann::json library to read the JSON-encoded
   // key generation options.
   nlohmann::json decryptionOptionsObject =
-    nlohmann::json::parse(decryptionRestrictionsJson);
+    nlohmann::json::parse(postDecryptionInstructionsJson);
 
   clientApplicationIdMustHavePrefix =
     decryptionOptionsObject.value<const std::vector<std::string>>(
@@ -28,7 +33,7 @@ DecryptionRestrictions::DecryptionRestrictions(
     );
 }
 
-DecryptionRestrictions::DecryptionRestrictions(
+PostDecryptionInstructions::PostDecryptionInstructions(
 		std::vector<std::string> clientApplicationIdMustHavePrefix,
 		std::string userMustAcknowledgeThisMessage
 ) :
@@ -36,7 +41,7 @@ DecryptionRestrictions::DecryptionRestrictions(
   userMustAcknowledgeThisMessage(userMustAcknowledgeThisMessage)
   {}
 
-std::string	DecryptionRestrictions::toJson(int indent,
+std::string	PostDecryptionInstructions::toJson(int indent,
   const char indent_char
 ) const {
 	nlohmann::json asJson;  
@@ -47,7 +52,7 @@ std::string	DecryptionRestrictions::toJson(int indent,
   return asJson.dump(indent, indent_char);
 }
 
-bool DecryptionRestrictions::isApplicationIdAllowed(const std::string &applicationId) const {
+bool PostDecryptionInstructions::isApplicationIdAllowed(const std::string &applicationId) const {
   if (clientApplicationIdMustHavePrefix.size() == 0) {
     // The applicationId is not required to match a prefix 
     return true;
@@ -64,8 +69,8 @@ bool DecryptionRestrictions::isApplicationIdAllowed(const std::string &applicati
   return false;
 }
 
-void DecryptionRestrictions::validateApplicationId(const std::string &applicationId) const {
+void PostDecryptionInstructions::validateApplicationId(const std::string &applicationId) const {
   if (!isApplicationIdAllowed(applicationId)) {
-    throw "Invalid application ID: " + applicationId;
+    throw std::exception( ("Invalid application ID: " + applicationId).c_str() );
   }
 }

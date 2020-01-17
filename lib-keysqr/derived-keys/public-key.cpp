@@ -1,5 +1,6 @@
 #include "public-key.hpp"
 #include "../../includes/json.hpp"
+#include "crypto_box_seal_salted.h"
 #include "convert.hpp"
 
 namespace PublicKeyJsonFieldName {
@@ -8,18 +9,18 @@ namespace PublicKeyJsonFieldName {
 }
 
 PublicKey::PublicKey(
-    const std::vector<unsigned char> publicKeyBytes,
-    const std::string keyDerivationOptionsJson
+    const std::vector<unsigned char> &publicKeyBytes,
+    const std::string &keyDerivationOptionsJson
   ) : publicKeyBytes(publicKeyBytes), keyDerivationOptionsJson(keyDerivationOptionsJson) {
     if (publicKeyBytes.size() != crypto_box_PUBLICKEYBYTES) {
-      throw "Invalid key size exception";
+      throw std::exception("Invalid key size exception");
     }
   }
 
-PublicKey::PublicKey(std::string publicKeyAsJson) :
+PublicKey::PublicKey(const std::string &publicKeyAsJson) :
   PublicKey(create(publicKeyAsJson)) {}
 
-PublicKey PublicKey::create(std::string publicKeyAsJson) {
+PublicKey PublicKey::create(const std::string &publicKeyAsJson) {
   nlohmann::json jsonObject = nlohmann::json::parse(publicKeyAsJson);
   const std::string publicKeyBytesAsHexDigits = jsonObject.value<std::string>(
     PublicKeyJsonFieldName::publicKeyBytesAsHexDigits, "");
@@ -46,36 +47,65 @@ const std::string PublicKey::toJson(
 const std::vector<unsigned char> PublicKey::seal(
   const unsigned char* message,
   const size_t messageLength,
-  const std::vector<unsigned char> &publicKey
+  const std::vector<unsigned char> &publicKey,
+  const std::string &postDecryptionInstructionsJson
 ) {
   if (publicKey.size() != crypto_box_PUBLICKEYBYTES) {
-    throw "Invalid key size exception";
+    throw std::exception("Invalid key size exception");
   }
   if (messageLength <= 0) {
-    throw "Invalid message length";
+    throw std::exception("Invalid message length");
   }
   const size_t ciphertextLength =
     messageLength + crypto_box_SEALBYTES;
   std::vector<unsigned char> ciphertext(ciphertextLength);
 
-  crypto_box_seal(
+  crypto_box_salted_seal(
     ciphertext.data(),
     message,
     messageLength,
-    publicKey.data()
+    publicKey.data(),
+    postDecryptionInstructionsJson.c_str(),
+    postDecryptionInstructionsJson.length()
   );
 
   return ciphertext;
 }
 
-const std::vector<unsigned char> seal(
+const std::vector<unsigned char> PublicKey::seal(
   const SodiumBuffer &message,
-  const std::vector<unsigned char> &publicKey
+  const std::vector<unsigned char> &publicKey,
+  const std::string &postDecryptionInstructionsJson
 ) {
   return PublicKey::seal(
-    message.data, message.length, publicKey
+    message.data, message.length, publicKey, postDecryptionInstructionsJson
   );
 }
+
+const std::vector<unsigned char> PublicKey::seal(
+  const unsigned char* message,
+  const size_t messageLength,
+  const std::string &postDecryptionInstructionsJson
+) const {
+  return PublicKey::seal(message, messageLength, publicKeyBytes, postDecryptionInstructionsJson);
+}
+
+const std::vector<unsigned char> PublicKey::seal(
+  const SodiumBuffer& message,
+  const std::string &postDecryptionInstructionsJson
+) const {
+  return seal(message.data, message.length, postDecryptionInstructionsJson);
+}
+
+const std::vector<unsigned char> PublicKey::seal(
+  const Message &message
+) const {
+  return seal(
+    message.contents,
+    message.postDecryptionInstructionsJson
+  );
+};
+
 
 const std::vector<unsigned char> PublicKey::getPublicKeyBytes(
 ) const {

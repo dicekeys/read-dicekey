@@ -23,10 +23,10 @@ target_include_directories(
         ${libsodium_SOURCE_DIR}/libsodium/src/libsodium/include
 )
 
-package_add_test(test-crypto-public-global test-crypto-public-global.cpp lib-keysqr)
+package_add_test(test-crypto test-crypto.cpp lib-keysqr)
 
 target_include_directories(
-    test-crypto-public-global
+    test-crypto
         PRIVATE
         ${PROJECT_SOURCE_DIR}/lib-keysqr
         ${libsodium_SOURCE_DIR}/libsodium/src/libsodium/include

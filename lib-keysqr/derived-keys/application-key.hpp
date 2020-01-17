@@ -12,7 +12,7 @@ class ApplicationKey : KeySqrDerivedKey {
     keySqr,
     keyDerivationOptionsJson,
     clientsApplicationId, 
-    KeyDerivationOptionsJson::Purpose::ForApplicationUse
+    KeyDerivationOptionsJson::KeyType::Seed
   ) {}
 
   const SodiumBuffer reveal(

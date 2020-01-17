@@ -1,4 +1,5 @@
 #include <cassert>
+#include <exception>
 #include <vector>
 
 #include <sodium.h>
@@ -39,7 +40,7 @@ KeySqrDerivedKey::KeySqrDerivedKey(
   const KeySqr<Face> &keySqr,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::Purpose mandatedPurpose,
+  const KeyDerivationOptionsJson::KeyType mandatedKeyType,
   size_t keyLengthInBytes
 ) :
   keyDerivationOptionsJson(keyDerivationOptionsJson),
@@ -48,7 +49,7 @@ KeySqrDerivedKey::KeySqrDerivedKey(
       keySqr,
       keyDerivationOptionsJson,
       clientsApplicationId,
-      mandatedPurpose,
+      mandatedKeyType,
       keyLengthInBytes
     )
   ) {}
@@ -62,7 +63,7 @@ void KeySqrDerivedKey::generateKey(
 ) {
   ensureSodiumInitialized();
   if(keyDerivationOutputLengthInBytes != keyDerivationOptions.keyLengthInBytes) {
-    throw "Invalid length of key to generate";
+    throw std::exception("Invalid length of key to generate");
   };
   std::string keySqrInHumanReadableForm =
     keySqr.toHumanReadableForm(keyDerivationOptions.includeOrientationOfFacesInKey);
@@ -77,7 +78,7 @@ void KeySqrDerivedKey::generateKey(
 
   unsigned char *slowHashPreimage = (unsigned char*)sodium_malloc(slowHashPreimageLength);
   if (slowHashPreimage == NULL) {
-    throw "Insufficient memory";
+    throw std::exception("Insufficient memory");
   }
 
   memcpy(
@@ -103,7 +104,7 @@ void KeySqrDerivedKey::generateKey(
   sodium_free(slowHashPreimage);
 
   if (nonZeroHashResultMeansOutOfMemoryError != 0) {
-    throw "Insufficient memory";
+    throw std::exception("Insufficient memory");
   }
 
 };
@@ -115,17 +116,17 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
   const KeySqr<Face> &keySqr,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::Purpose mandatedPurpose,
+  const KeyDerivationOptionsJson::KeyType mandatedKeyType,
   size_t keyLengthInBytes
 ) {
   const KeyDerivationOptions keyDerivationOptions(keyDerivationOptionsJson);
   // Ensure that the purpose in the key derivation options matches
   // the actual purpose
   if (
-    mandatedPurpose != KeyDerivationOptionsJson::_INVALID_PURPOSE_ &&
-    mandatedPurpose != keyDerivationOptions.purpose  
+    mandatedKeyType != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_ &&
+    mandatedKeyType != keyDerivationOptions.keyType  
   ) {
-    throw ("Key generation options must have purpose " + std::to_string(mandatedPurpose));
+    throw std::exception( ("Key generation options must have key type " + std::to_string(mandatedKeyType)).c_str() );
   }
   // Ensure that the application ID matches one of the prefixes
   if (keyDerivationOptions.restictToClientApplicationsIdPrefixes.size() > 0) {
@@ -137,14 +138,14 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
       }
     }
     if (!prefixFound) {
-      throw ("The client application is not allowed to use this key");
+      throw std::exception("The client application is not allowed to use this key");
     }
   }
 
   if (keyLengthInBytes == 0) {
     keyLengthInBytes = keyDerivationOptions.keyLengthInBytes;
   } else if (keyLengthInBytes != keyDerivationOptions.keyLengthInBytes) {
-    throw "Incorrect key length in bytes";
+    throw std::exception("Incorrect key length in bytes");
   }
   SodiumBuffer derivedKey(keyLengthInBytes);
 

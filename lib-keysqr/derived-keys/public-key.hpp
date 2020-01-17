@@ -5,20 +5,20 @@
 
 #include "../keysqr.hpp"
 #include "derived-key.hpp"
+#include "message.hpp"
 
 class PublicKey {
 protected:
   const std::vector<unsigned char> publicKeyBytes;
   const std::string keyDerivationOptionsJson;
-
-  PublicKey(
-    const std::vector<unsigned char> publicKeyBytes,
-    const std::string keyDerivationOptionsJson
-  );
-
-  PublicKey(std::string publicKeyAsJson);
   
 public:
+  PublicKey(
+    const std::vector<unsigned char> &publicKeyBytes,
+    const std::string &keyDerivationOptionsJson
+  );
+
+  PublicKey(const std::string &publicKeyAsJson);
 
   const std::string toJson(
     int indent = -1,
@@ -27,14 +27,42 @@ public:
   
   static const std::vector<unsigned char> seal(
     const SodiumBuffer &message,
-    const std::vector<unsigned char> &publicKey
+    const std::vector<unsigned char> &publicKey,
+    const std::string &postDecryptionInstructionsJson = ""
   );
 
   static const std::vector<unsigned char> seal(
     const unsigned char* message,
     const size_t messageLength,
-    const std::vector<unsigned char> &publicKey
+    const std::vector<unsigned char> &publicKey,
+    const std::string &postDecryptionInstructionsJson = ""
   );
+
+  const std::vector<unsigned char> seal(
+    const unsigned char* message,
+    const size_t messageLength,
+    const std::string &postDecryptionInstructionsJson
+  ) const;
+
+  const std::vector<unsigned char> seal(
+    const unsigned char* message,
+    const size_t messageLength
+  ) const {
+    return seal(message, messageLength, "");
+  };
+
+  const std::vector<unsigned char> seal(
+    const SodiumBuffer &message,
+    const std::string &postDecryptionInstructionsJson
+  ) const;
+
+  const std::vector<unsigned char> seal(
+    const SodiumBuffer& message
+  ) const;
+
+  const std::vector<unsigned char> seal(
+    const Message &message
+  ) const;
 
   const std::vector<unsigned char> getPublicKeyBytes() const;
 
@@ -45,7 +73,7 @@ public:
   }
 
 protected:
-  static PublicKey create(std::string publicKeyAsJson);
+  static PublicKey create(const std::string &publicKeyAsJson);
 
 };
 

@@ -1,4 +1,5 @@
 #include "convert.hpp"
+#include <exception>
 
 constexpr char hexDigits[] = {
   '0', '1', '2', '3', '4', '5', '6', '7',
@@ -24,7 +25,7 @@ inline unsigned char parseHexChar(char c) {
   } else if (c >= 'A' && c <= 'F') {
     return 10 + (c - 'A');
   }
-  throw "Invalid hex char";
+  throw std::exception("Invalid hex char");
 }
 
 std::vector<unsigned char> hexStrToByteVector(const std::string hexStr)
@@ -34,7 +35,7 @@ std::vector<unsigned char> hexStrToByteVector(const std::string hexStr)
     return hexStrToByteVector(hexStr.substr(2));
   }
   if (hexStr.length() % 2 == 1) {
-    throw "Invalid hex string length";
+    throw std::exception("Invalid hex string length");
   }
   std::vector<unsigned char> byteVector(hexStr.length() / 2);
   for (size_t i = 0; i < byteVector.size(); i++) {
