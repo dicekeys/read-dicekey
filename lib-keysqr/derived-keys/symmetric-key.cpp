@@ -10,13 +10,12 @@ void _crypto_secretbox_nonce_salted(
   const size_t salt_length
 ) {
     crypto_generichash_state st;
-
-    crypto_generichash_init(&st, NULL, 0U, crypto_box_NONCEBYTES);
-    crypto_generichash_update(&st, secret_key, crypto_box_PUBLICKEYBYTES);
-    crypto_generichash_update(&st, message, message_length);
+    crypto_generichash_init(&st, secret_key, crypto_box_SECRETKEYBYTES, crypto_box_NONCEBYTES);
+//    crypto_generichash_update(&st, secret_key, crypto_box_SECRETKEYBYTES);
     if (salt_length > 0) {
       crypto_generichash_update(&st, (const unsigned char*) salt, salt_length);
     }
+    crypto_generichash_update(&st, message, message_length);
     crypto_generichash_final(&st, nonce, crypto_box_NONCEBYTES);
 }
 
