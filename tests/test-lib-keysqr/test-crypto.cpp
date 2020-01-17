@@ -129,7 +129,7 @@ TEST(SymmetricKey, EncrypsUsingMessageAndDecrypts) {
 	Message message(messageBuffer, postDecryptionInstructionsJson);
 	ASSERT_EQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "yoto mofo");
 
-	const auto sealedMessage = testSymmetricKey.seal(messageBuffer);
+	const auto sealedMessage = testSymmetricKey.seal(message);
 	const auto unsealedMessage = testSymmetricKey.unseal(sealedMessage, postDecryptionInstructionsJson);
 	ASSERT_EQ(unsealedMessage.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "yoto mofo");
 
