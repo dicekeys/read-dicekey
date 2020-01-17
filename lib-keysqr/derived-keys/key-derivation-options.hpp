@@ -17,8 +17,8 @@ private:
 	nlohmann::json keyDerivationOptionsExplicit;
 public:
 	const std::string keyDerivationOptionsJson;
-	KeyDerivationOptionsJson::Purpose purpose;
 	KeyDerivationOptionsJson::KeyType keyType;
+	KeyDerivationOptionsJson::Algorithm algorithm;
   unsigned int keyLengthInBytes;
 	std::vector<std::string> restictToClientApplicationsIdPrefixes;
 	HashFunction *hashFunction;
@@ -36,15 +36,15 @@ public:
 
 	const void validate(
 		const std::string applicationId,
-		const KeyDerivationOptionsJson::Purpose mandatePurpose = KeyDerivationOptionsJson::Purpose::_INVALID_PURPOSE_
+		const KeyDerivationOptionsJson::KeyType mandateKeyType = KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_
 	) const;
 
 	KeyDerivationOptions(
 		const std::string &keyDerivationOptionsJson,
 		const std::string applicationId,
-		const KeyDerivationOptionsJson::Purpose mandatePurpose = KeyDerivationOptionsJson::Purpose::_INVALID_PURPOSE_
+		const KeyDerivationOptionsJson::KeyType mandateKeyType = KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_
 	) : KeyDerivationOptions(keyDerivationOptionsJson) {
-		validate(applicationId, mandatePurpose);
+		validate(applicationId, mandateKeyType);
 	}
 
 

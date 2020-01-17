@@ -34,7 +34,7 @@ PublicPrivateKeyPair PublicPrivateKeyPair::create(
 ) {
   const SodiumBuffer derivedKey = KeySqrDerivedKey::validateAndGenerateKey(
     keySqr, keyDerivationOptionsJson, clientsApplicationId,
-    KeyDerivationOptionsJson::Purpose::ForPublicKeySealedMessages,
+    KeyDerivationOptionsJson::KeyType::Public,
     crypto_box_SEEDBYTES
   );
   SodiumBuffer secretKey(crypto_box_SECRETKEYBYTES);

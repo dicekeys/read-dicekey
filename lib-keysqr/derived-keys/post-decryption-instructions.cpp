@@ -20,14 +20,14 @@ PostDecryptionInstructions::PostDecryptionInstructions(
 
   clientApplicationIdMustHavePrefix =
     decryptionOptionsObject.value<const std::vector<std::string>>(
-      PostDecryptionInstructionsJson::FieldNames::clientApplicationIdMustHavePrefix,
+      DecryptionRestrictionsJson::FieldNames::clientApplicationIdMustHavePrefix,
       // Default to empty list containing the empty string, which is a prefix of all strings
       {""}
     );
 
   userMustAcknowledgeThisMessage =
     decryptionOptionsObject.value<std::string>(
-      PostDecryptionInstructionsJson::FieldNames::userMustAcknowledgeThisMessage,
+      DecryptionRestrictionsJson::FieldNames::userMustAcknowledgeThisMessage,
       // Default to empty list containing the empty string, which is a prefix of all strings
       ""
     );
@@ -45,9 +45,9 @@ std::string	PostDecryptionInstructions::toJson(int indent,
   const char indent_char
 ) const {
 	nlohmann::json asJson;  
-  asJson[PostDecryptionInstructionsJson::FieldNames::userMustAcknowledgeThisMessage] =
+  asJson[DecryptionRestrictionsJson::FieldNames::userMustAcknowledgeThisMessage] =
     userMustAcknowledgeThisMessage;
-  asJson[PostDecryptionInstructionsJson::FieldNames::clientApplicationIdMustHavePrefix] =
+  asJson[DecryptionRestrictionsJson::FieldNames::clientApplicationIdMustHavePrefix] =
     clientApplicationIdMustHavePrefix;
   return asJson.dump(indent, indent_char);
 }

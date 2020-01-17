@@ -40,7 +40,7 @@ KeySqrDerivedKey::KeySqrDerivedKey(
   const KeySqr<Face> &keySqr,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::Purpose mandatedPurpose,
+  const KeyDerivationOptionsJson::KeyType mandatedKeyType,
   size_t keyLengthInBytes
 ) :
   keyDerivationOptionsJson(keyDerivationOptionsJson),
@@ -49,7 +49,7 @@ KeySqrDerivedKey::KeySqrDerivedKey(
       keySqr,
       keyDerivationOptionsJson,
       clientsApplicationId,
-      mandatedPurpose,
+      mandatedKeyType,
       keyLengthInBytes
     )
   ) {}
@@ -116,17 +116,17 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
   const KeySqr<Face> &keySqr,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::Purpose mandatedPurpose,
+  const KeyDerivationOptionsJson::KeyType mandatedKeyType,
   size_t keyLengthInBytes
 ) {
   const KeyDerivationOptions keyDerivationOptions(keyDerivationOptionsJson);
   // Ensure that the purpose in the key derivation options matches
   // the actual purpose
   if (
-    mandatedPurpose != KeyDerivationOptionsJson::_INVALID_PURPOSE_ &&
-    mandatedPurpose != keyDerivationOptions.purpose  
+    mandatedKeyType != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_ &&
+    mandatedKeyType != keyDerivationOptions.keyType  
   ) {
-    throw std::exception( ("Key generation options must have purpose " + std::to_string(mandatedPurpose)).c_str() );
+    throw std::exception( ("Key generation options must have key type " + std::to_string(mandatedKeyType)).c_str() );
   }
   // Ensure that the application ID matches one of the prefixes
   if (keyDerivationOptions.restictToClientApplicationsIdPrefixes.size() > 0) {

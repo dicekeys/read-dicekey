@@ -27,7 +27,7 @@ SymmetricKey::SymmetricKey(
   keySqr,
   keyDerivationOptionsJson,
   clientsApplicationId, 
-  KeyDerivationOptionsJson::Purpose::ForSymmetricKeySealedMessages, 
+  KeyDerivationOptionsJson::KeyType::Symmetric, 
   crypto_secretbox_KEYBYTES
 ) {}
 

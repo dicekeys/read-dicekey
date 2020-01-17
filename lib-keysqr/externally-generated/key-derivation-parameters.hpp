@@ -15,36 +15,34 @@ namespace KeyDerivationOptionsJson {
 		const std::string hashFunction = "hashFunction";
 		const std::string includeOrientationOfFacesInKey = "includeOrientationOfFacesInKey";
 		const std::string keyLengthInBytes = "keyLengthInBytes";
+		const std::string algorithm = "algorithm";
 		const std::string keyType = "keyType";
-		const std::string purpose = "purpose";
 		const std::string restictToClientApplicationsIdPrefixes = "restictToClientApplicationsIdPrefixes";
 	}
 
-	enum Purpose {
-		_INVALID_PURPOSE_ = 0,
-		ForApplicationUse,
-		ForSymmetricKeySealedMessages,
-		ForPublicKeySealedMessages,
-		ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption
-	};
-	NLOHMANN_JSON_SERIALIZE_ENUM( Purpose, {
-		{Purpose::_INVALID_PURPOSE_, nullptr},
-		{Purpose::ForApplicationUse, "ForApplicationUse"},
-		{Purpose::ForSymmetricKeySealedMessages, "ForSymmetricKeySealedMessages"},
-		{Purpose::ForPublicKeySealedMessages, "ForPublicKeySealedMessages"},
-		{Purpose::ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption, "ForPublicKeySealedMessagesWithRestrictionsEnforcedPostDecryption"}
-	})
-	
-
 	enum KeyType {
 		_INVALID_KEYTYPE_ = 0,
-		XSalsa20Poly1305,
-		X25519
+		Seed,
+		Symmetric,
+		Public
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( KeyType, {
 		{KeyType::_INVALID_KEYTYPE_, nullptr},
-		{KeyType::XSalsa20Poly1305, "XSalsa20Poly1305"},
-		{KeyType::X25519, "X25519"}
+		{KeyType::Seed, "Seed"},
+		{KeyType::Symmetric, "Symmetric"},
+		{KeyType::Public, "Public"}
+	})
+	
+
+	enum Algorithm {
+		_INVALID_ALGORITHM_ = 0,
+		XSalsa20Poly1305,
+		X25519
+	};
+	NLOHMANN_JSON_SERIALIZE_ENUM( Algorithm, {
+		{Algorithm::_INVALID_ALGORITHM_, nullptr},
+		{Algorithm::XSalsa20Poly1305, "XSalsa20Poly1305"},
+		{Algorithm::X25519, "X25519"}
 	})
 	
 
@@ -86,7 +84,7 @@ namespace Argoin2idDefaults {
 	const size_t memlimit = 67108864;
 }
 
-namespace PostDecryptionInstructionsJson {
+namespace DecryptionRestrictionsJson {
 	namespace FieldNames {
 		const std::string clientApplicationIdMustHavePrefix = "clientApplicationIdMustHavePrefix";
 		const std::string userMustAcknowledgeThisMessage = "userMustAcknowledgeThisMessage";

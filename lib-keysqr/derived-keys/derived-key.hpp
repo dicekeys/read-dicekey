@@ -11,14 +11,6 @@ protected:
 public:
   const std::string keyDerivationOptionsJson;
 
-  // KeySqrDerivedKey(
-  //   const KeySqr<Face> &keySqr,
-  //   const KeyDerivationOptions &keyDerivationOptions,
-  //   const std::string &clientsApplicationId = "",
-  //   const KeyDerivationOptionsJson::Purpose mandatedPurpose = KeyDerivationOptionsJson::Purpose::_INVALID_PURPOSE_,
-  //   size_t keyLengthInBytes = 0
-  // );
-
   KeySqrDerivedKey(
     const SodiumBuffer &derivedKey,
     const std::string &keyDerivationOptionsJson
@@ -28,7 +20,7 @@ public:
     const KeySqr<Face> &keySqr,
     const std::string &keyDerivationOptionsJson,
     const std::string &clientsApplicationId = "",
-    const KeyDerivationOptionsJson::Purpose mandatedPurpose = KeyDerivationOptionsJson::Purpose::_INVALID_PURPOSE_,
+    const KeyDerivationOptionsJson::KeyType mandatedKeyType = KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_,
     size_t keyLengthInBytes = 0
   );
 
@@ -47,7 +39,7 @@ public:
     const KeySqr<Face> &keySqr,
     const std::string &keyDerivationOptionsJson,
     const std::string &clientsApplicationId,
-    const KeyDerivationOptionsJson::Purpose mandatedPurpose,
+    const KeyDerivationOptionsJson::KeyType mandatedKeyType,
     size_t keyLengthInBytes
   );
 };
