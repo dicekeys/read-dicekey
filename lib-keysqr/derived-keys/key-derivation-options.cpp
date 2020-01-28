@@ -76,6 +76,10 @@ KeyDerivationOptions::KeyDerivationOptions(
     keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::keyType] = keyType;
   }
 
+  if (algorithm != KeyDerivationOptionsJson::Algorithm::_INVALID_ALGORITHM_) {
+    keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::algorithm] = algorithm;
+  }
+
   //
   // keyLengthInBytes
   //
@@ -106,7 +110,7 @@ KeyDerivationOptions::KeyDerivationOptions(
       std::to_string(crypto_stream_xsalsa20_KEYBYTES)).c_str() );
   }
 
-	if (keyType == KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
+	if (keyType == KeyDerivationOptionsJson::KeyType::Seed) {
 		keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::keyLengthInBytes] = keyLengthInBytes;
 	}
 
