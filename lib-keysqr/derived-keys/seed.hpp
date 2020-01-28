@@ -2,9 +2,9 @@
 
 #include "derived-key.hpp"
 
-class ApplicationKey : KeySqrDerivedKey {
+class Seed : KeySqrDerivedKey {
   public:
-  ApplicationKey(
+  Seed(
     const KeySqr<Face> &keySqr,
     const std::string &keyDerivationOptionsJson,
     const std::string &clientsApplicationId = ""

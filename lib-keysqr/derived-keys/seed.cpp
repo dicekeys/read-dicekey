@@ -1,6 +1,6 @@
 #include "./application-key.hpp"
 
-const SodiumBuffer ApplicationKey::reveal(
+const SodiumBuffer Seed::reveal(
 ) const {
   return derivedKey;
 };

@@ -5,6 +5,7 @@
 #include "key-derivation-options.hpp"
 #include "post-decryption-instructions.hpp"
 #include "derived-key.hpp"
+#include "seed.hpp"
 #include "symmetric-key.hpp"
 #include "message.hpp"
 #include "public-key.hpp"

@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include "lib-keysqr.hpp"
+#include "../lib-keysqr/derived-keys/convert.hpp"
 
 const std::string orderedKeySqrHrf =
 	"A1tB2rC3bD4lE5tF6bG1tH1tI1tJ1tK1tL1tM1tN1tO1tP1tR1tS1tT1tU1tV1tW1tX1tY1tZ1t";
@@ -14,6 +15,28 @@ std::string defaultTestSymmetricKeyDerivationOptionsJson = R"KGO({
 	"keyType": "Symmetric",
 	"additionalSalt": "1"
 })KGO";
+
+
+TEST(SeedGeneration, FidoUseCase) {
+	std::string kdo = R"KDO({
+	"keyType": "Seed",
+	"keyLengthInBytes": 96,
+	"hashFunction": {"algorithm": "Argon2id"},
+	"restictToClientApplicationsIdPrefixes": ["com.dicekeys.fido"]
+})KDO";
+	Seed seed(
+		orderedTestKey,
+		kdo,
+		"com.dicekeys.fido"
+	);
+	const std::string seedAsHex = toHexStr(seed.reveal().toVector());
+	ASSERT_EQ(
+		seedAsHex,
+		"b5c1555057994f34487b164d7ab84e3a097476bfe975fee8878b05357886e9b4495ab47ffa4aa89d30b33fcbff0b0209"
+		"c924aeaf983251255d6e89946d466fd610c7c17a38897b0b5e3c9efec75be87600e2709b5537b6ec9b90c4f6b816f5af"
+	);
+}
+
 
 TEST(PostDecryptionInstructions, ThowsOnInvalidJson) {
 	ASSERT_ANY_THROW(
