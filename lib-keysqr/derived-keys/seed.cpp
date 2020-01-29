@@ -1,4 +1,4 @@
-#include "./application-key.hpp"
+#include "./seed.hpp"
 
 const SodiumBuffer Seed::reveal(
 ) const {

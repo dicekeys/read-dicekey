@@ -63,7 +63,7 @@ void KeySqrDerivedKey::generateKey(
 ) {
   ensureSodiumInitialized();
   if(keyDerivationOutputLengthInBytes != keyDerivationOptions.keyLengthInBytes) {
-    throw std::exception("Invalid length of key to generate");
+    throw std::bad_alloc();
   };
   std::string keySqrInHumanReadableForm =
     keySqr.toHumanReadableForm(keyDerivationOptions.includeOrientationOfFacesInKey);
@@ -78,7 +78,7 @@ void KeySqrDerivedKey::generateKey(
 
   unsigned char *slowHashPreimage = (unsigned char*)sodium_malloc(slowHashPreimageLength);
   if (slowHashPreimage == NULL) {
-    throw std::exception("Insufficient memory");
+    throw std::bad_alloc();
   }
 
   memcpy(
@@ -104,7 +104,7 @@ void KeySqrDerivedKey::generateKey(
   sodium_free(slowHashPreimage);
 
   if (nonZeroHashResultMeansOutOfMemoryError != 0) {
-    throw std::exception("Insufficient memory");
+    throw std::bad_alloc();
   }
 
 };
@@ -126,7 +126,7 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
     mandatedKeyType != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_ &&
     mandatedKeyType != keyDerivationOptions.keyType  
   ) {
-    throw std::exception( ("Key generation options must have key type " + std::to_string(mandatedKeyType)).c_str() );
+    throw std::invalid_argument( ("Key generation options must have key type " + std::to_string(mandatedKeyType)).c_str() );
   }
   // Ensure that the application ID matches one of the prefixes
   if (keyDerivationOptions.restictToClientApplicationsIdPrefixes.size() > 0) {
@@ -138,14 +138,14 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
       }
     }
     if (!prefixFound) {
-      throw std::exception("The client application is not allowed to use this key");
+      throw std::invalid_argument("The client application is not allowed to use this key");
     }
   }
 
   if (keyLengthInBytes == 0) {
     keyLengthInBytes = keyDerivationOptions.keyLengthInBytes;
   } else if (keyLengthInBytes != keyDerivationOptions.keyLengthInBytes) {
-    throw std::exception("Incorrect key length in bytes");
+    throw std::invalid_argument("Incorrect key length in bytes");
   }
   SodiumBuffer derivedKey(keyLengthInBytes);
 

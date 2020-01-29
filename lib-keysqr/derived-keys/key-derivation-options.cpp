@@ -39,7 +39,7 @@ KeyDerivationOptions::KeyDerivationOptions(
     );
 
   if (keyType == KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
-    throw std::exception("Invalid  key type in KeyDerivationOptions");
+    throw std::invalid_argument("Invalid key type in KeyDerivationOptions");
   }
   keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::keyType] = keyType;
 
@@ -63,13 +63,13 @@ KeyDerivationOptions::KeyDerivationOptions(
   if (keyType == KeyDerivationOptionsJson::KeyType::Symmetric &&
       algorithm != KeyDerivationOptionsJson::Algorithm::XSalsa20Poly1305
   ) {
-    throw std::exception("Invalid key type for symmetric key cryptography");
+    throw std::invalid_argument("Invalid key type for symmetric key cryptography");
   }
 
   if ( keyType == KeyDerivationOptionsJson::KeyType::Public &&
       algorithm != KeyDerivationOptionsJson::Algorithm::X25519
   ) {
-    throw std::exception("Invalid key type for public key cryptography");
+    throw std::invalid_argument("Invalid key type for public key cryptography");
   }
 
   if (keyType != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
@@ -86,9 +86,9 @@ KeyDerivationOptions::KeyDerivationOptions(
   keyLengthInBytes =
     keyDerivationOptionsObject.value<unsigned int>(
       KeyDerivationOptionsJson::FieldNames::keyLengthInBytes,
-      keyType == KeyDerivationOptionsJson::Algorithm::X25519 ?
+      algorithm == KeyDerivationOptionsJson::Algorithm::X25519 ?
         crypto_box_SEEDBYTES :
-      keyType == KeyDerivationOptionsJson::Algorithm::XSalsa20Poly1305 ?
+      algorithm == KeyDerivationOptionsJson::Algorithm::XSalsa20Poly1305 ?
         // When a 256-bit (32 byte) key is needed, default to 32 bytes
         crypto_stream_xsalsa20_KEYBYTES :
         // When the key type is not defined, default to 32 bytes. 
@@ -99,14 +99,14 @@ KeyDerivationOptions::KeyDerivationOptions(
     algorithm == KeyDerivationOptionsJson::Algorithm::X25519
     && keyLengthInBytes != crypto_box_SEEDBYTES
   ) {
-    throw std::exception( ("X25519 public key cryptography must use keyLengthInBytes of " +
+    throw std::invalid_argument( ("X25519 public key cryptography must use keyLengthInBytes of " +
       std::to_string(crypto_box_SEEDBYTES)).c_str() );
   }
   if (
     algorithm == KeyDerivationOptionsJson::Algorithm::XSalsa20Poly1305 &&
     keyLengthInBytes != crypto_stream_xsalsa20_KEYBYTES
   ) {
-    throw std::exception( ("XSalsa20Poly1305 symmetric cryptography must use keyLengthInBytes of " +
+    throw std::invalid_argument( ("XSalsa20Poly1305 symmetric cryptography must use keyLengthInBytes of " +
       std::to_string(crypto_stream_xsalsa20_KEYBYTES)).c_str() );
   }
 
@@ -160,7 +160,7 @@ KeyDerivationOptions::KeyDerivationOptions(
       } else if (algorithm == HashAlgorithmJson::Algorithm::Scrypt) {
         hashFunction = new HashFunctionScrypt(keyLengthInBytes, opslimit, memlimit);
       } else {
-        throw std::exception("Invalid hashFunction");
+        std::invalid_argument("Invalid hashFunction");
       }
       keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::hashFunction] = {
         {HashAlgorithmJson::FieldNames::algorithm, algorithm},
@@ -168,7 +168,7 @@ KeyDerivationOptions::KeyDerivationOptions(
         {HashAlgorithmJson::FieldNames::opsLimit, opslimit}
       };
     } else {
-      throw std::exception("Invalid hashFunction");
+      std::invalid_argument("Invalid hashFunction");
     }
   }
 
@@ -204,7 +204,7 @@ const void KeyDerivationOptions::validate(
     mandateKeyType != KeyDerivationOptionsJson::_INVALID_KEYTYPE_ &&
     mandateKeyType != keyType  
   ) {
-    throw std::exception( ("Key generation options must have key type " + std::to_string(mandateKeyType)).c_str() );
+    throw std::invalid_argument( ("Key generation options must have key type " + std::to_string(mandateKeyType)).c_str() );
   }
   if (restictToClientApplicationsIdPrefixes.size() > 0) {
     bool prefixFound = false;

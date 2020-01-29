@@ -71,6 +71,6 @@ bool PostDecryptionInstructions::isApplicationIdAllowed(const std::string &appli
 
 void PostDecryptionInstructions::validateApplicationId(const std::string &applicationId) const {
   if (!isApplicationIdAllowed(applicationId)) {
-    throw std::exception( ("Invalid application ID: " + applicationId).c_str() );
+    throw std::invalid_argument( ("Invalid application ID: " + applicationId).c_str() );
   }
 }

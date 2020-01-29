@@ -13,7 +13,7 @@ PublicKey::PublicKey(
     const std::string &keyDerivationOptionsJson
   ) : publicKeyBytes(publicKeyBytes), keyDerivationOptionsJson(keyDerivationOptionsJson) {
     if (publicKeyBytes.size() != crypto_box_PUBLICKEYBYTES) {
-      throw std::exception("Invalid key size exception");
+      throw std::invalid_argument("Invalid key size exception");
     }
   }
 
@@ -51,10 +51,10 @@ const std::vector<unsigned char> PublicKey::seal(
   const std::string &postDecryptionInstructionsJson
 ) {
   if (publicKey.size() != crypto_box_PUBLICKEYBYTES) {
-    throw std::exception("Invalid key size exception");
+    throw std::invalid_argument("Invalid key size");
   }
   if (messageLength <= 0) {
-    throw std::exception("Invalid message length");
+    throw std::invalid_argument("Invalid message length");
   }
   const size_t ciphertextLength =
     messageLength + crypto_box_SEALBYTES;

@@ -67,7 +67,7 @@ const Message Message::unembedPostDecryptionInstructions() {
 
   const size_t nullCharIndex = safeStrLength(contents.data, contents.length);
   if (nullCharIndex == contents.length) {
-    throw std::exception("Null string terminator missing from embedded instructions json");
+    throw std::invalid_argument("Null string terminator missing from embedded instructions json");
   }
   const std::string extractedPostDecryptionInstructionsJson(
     (const char*) contents.data,
@@ -107,7 +107,7 @@ const std::string Message::getPostDecryptionInstructionsJson() const {
 
 const PostDecryptionInstructions Message::getPostDecryptionInstructions() const {
   if (arePostDecryptionInstructionsEmbedded()) {
-    throw std::exception("Post-decryption instructions must be extracted first.");
+    throw std::invalid_argument("Post-decryption instructions must be extracted first.");
   }
   return PostDecryptionInstructions(getPostDecryptionInstructionsJson());
 }

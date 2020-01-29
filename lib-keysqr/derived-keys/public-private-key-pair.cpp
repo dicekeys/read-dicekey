@@ -3,18 +3,18 @@
 #include "key-derivation-options.hpp"
 
 PublicPrivateKeyPair:: PublicPrivateKeyPair(
-  const SodiumBuffer &secretKey,
-  const std::vector<unsigned char> &publicKeyBytes,
-  const std::string &KeyDerivationOptionsJson
+  const SodiumBuffer &_secretKey,
+  const std::vector<unsigned char> &_publicKeyBytes,
+  const std::string &_keyDerivationOptionsJson
 ) :
-  PublicKey(publicKeyBytes, KeyDerivationOptionsJson),
-  secretKey(secretKey)
+  PublicKey(_publicKeyBytes, _keyDerivationOptionsJson),
+  secretKey(_secretKey)
   {}
 
 PublicPrivateKeyPair::PublicPrivateKeyPair(
   const PublicPrivateKeyPair &other
 ):
-  PublicKey(publicKeyBytes, keyDerivationOptionsJson),
+  PublicKey(other.publicKeyBytes, other.keyDerivationOptionsJson),
   secretKey(other.secretKey)
   {}
 
@@ -49,7 +49,7 @@ const SodiumBuffer PublicPrivateKeyPair::unsealMessageContents(
   const std::string &postDecryptionInstructionsJson
 ) const {
   if (ciphertextLength <= crypto_box_SEALBYTES) {
-    throw std::exception("Invalid message length");
+    throw std::invalid_argument("Invalid message length");
   }
   SodiumBuffer plaintext(ciphertextLength -crypto_box_SEALBYTES);
 
@@ -63,7 +63,7 @@ const SodiumBuffer PublicPrivateKeyPair::unsealMessageContents(
     postDecryptionInstructionsJson.length()
   );
   if (result != 0) {
-    throw std::exception("crypto_box_seal_open failed.  message forged or corrupted.");
+    throw std::invalid_argument("crypto_box_seal_open failed.  message forged or corrupted.");
   }
   return plaintext;
 }
@@ -75,7 +75,7 @@ const Message PublicPrivateKeyPair::unseal(
   const std::string &postDecryptionInstructionsJson
 ) const {
   if (ciphertextLength <= crypto_box_SEALBYTES) {
-    throw std::exception("Invalid message length");
+    throw std::invalid_argument("Invalid message length");
   }
   SodiumBuffer plaintext(ciphertextLength -crypto_box_SEALBYTES);
 
@@ -89,7 +89,7 @@ const Message PublicPrivateKeyPair::unseal(
     postDecryptionInstructionsJson.length()
   );
   if (result != 0) {
-    throw std::exception("crypto_box_seal_open failed.  message forged or corrupted.");
+    throw std::invalid_argument("crypto_box_seal_open failed.  message forged or corrupted.");
   }
   return Message::createAndRemoveAnyEmbedding(
     unsealMessageContents(ciphertext, ciphertextLength, postDecryptionInstructionsJson),

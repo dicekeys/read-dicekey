@@ -20,7 +20,7 @@ class Message
     const SodiumBuffer contents;
     const std::string postDecryptionInstructionsJson;
 
-    Message::Message(
+    Message(
       const Message &other
     );
 

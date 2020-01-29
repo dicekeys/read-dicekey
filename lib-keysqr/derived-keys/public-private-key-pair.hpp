@@ -51,7 +51,7 @@ protected:
   ) const;
   
 private:
-  static PublicPrivateKeyPair PublicPrivateKeyPair::create(
+  static PublicPrivateKeyPair create(
     const KeySqr<Face> &keySqr,
     const std::string &keyDerivationOptionsJson,
     const std::string &clientsApplicationId
