@@ -126,7 +126,9 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
     mandatedKeyType != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_ &&
     mandatedKeyType != keyDerivationOptions.keyType  
   ) {
-    throw std::invalid_argument( ("Key generation options must have key type " + std::to_string(mandatedKeyType)).c_str() );
+    throw InvalidKeyDerivationOptionValueException( (
+      "Key generation options must have field " + std::to_string(mandatedKeyType)
+    ).c_str() );
   }
   // Ensure that the application ID matches one of the prefixes
   if (keyDerivationOptions.restictToClientApplicationsIdPrefixes.size() > 0) {
@@ -138,14 +140,18 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
       }
     }
     if (!prefixFound) {
-      throw std::invalid_argument("The client application is not allowed to use this key");
+      throw ClientNotAuthorizedException();
     }
   }
 
   if (keyLengthInBytes == 0) {
     keyLengthInBytes = keyDerivationOptions.keyLengthInBytes;
   } else if (keyLengthInBytes != keyDerivationOptions.keyLengthInBytes) {
-    throw std::invalid_argument("Incorrect key length in bytes");
+    throw InvalidKeyDerivationOptionValueException( (
+      "Key length in bytes for this keyType should be " + std::to_string(keyLengthInBytes) +
+       " but keyLengthInBytes field was set to " + std::to_string(keyDerivationOptions.keyLengthInBytes)
+      ).c_str()
+    );
   }
   SodiumBuffer derivedKey(keyLengthInBytes);
 

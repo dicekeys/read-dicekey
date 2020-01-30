@@ -18,12 +18,13 @@ std::string toHexStr(const std::vector<unsigned char> bytes)
   return hexString;
 }
 
-class InvalidHexCharacterException: public std::exception
+class InvalidHexCharacterException: public std::invalid_argument
 {
-    virtual const char* what() const throw()
-    {
-      return "Could not parse non-hex character";
-    }
+  public:
+  InvalidHexCharacterException(const char* what =
+    "Could not parse non-hex character"
+  ) :
+    std::invalid_argument(what) {}
 };
 
 inline unsigned char parseHexChar(char c) {

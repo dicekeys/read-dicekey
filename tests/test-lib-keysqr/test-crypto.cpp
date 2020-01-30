@@ -22,7 +22,7 @@ TEST(SeedGeneration, FidoUseCase) {
 	"keyType": "Seed",
 	"keyLengthInBytes": 96,
 	"hashFunction": {"algorithm": "Argon2id"},
-	"restictToClientApplicationsIdPrefixes": ["com.dicekeys.fido"]
+	"restrictToClientApplicationsIdPrefixes": ["com.dicekeys.fido"]
 })KDO";
 	Seed seed(
 		orderedTestKey,
@@ -32,8 +32,8 @@ TEST(SeedGeneration, FidoUseCase) {
 	const std::string seedAsHex = toHexStr(seed.reveal().toVector());
 	ASSERT_EQ(
 		seedAsHex,
-		"b5c1555057994f34487b164d7ab84e3a097476bfe975fee8878b05357886e9b4495ab47ffa4aa89d30b33fcbff0b0209"
-		"c924aeaf983251255d6e89946d466fd610c7c17a38897b0b5e3c9efec75be87600e2709b5537b6ec9b90c4f6b816f5af"
+		"1710c43587fa0b4a15c800f243efc9a23ce06eb767407d7c6a09233fcc65e6f8c834ca684456187d4ede3f0b5f6b293c"
+		"295371d2dd29236cc492ad0469c9e066f47aca87d65abefa96e25fd6950c3c7c83263f1b6683f69a07828808b0157712"
 	);
 }
 

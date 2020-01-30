@@ -8,6 +8,33 @@
 #include "../externally-generated/key-derivation-parameters.hpp"
 
 /**
+ * Exception classes for key derivation
+ */
+class ClientNotAuthorizedException: public std::exception
+{
+	public:
+	ClientNotAuthorizedException(const char* what =
+    "The client is not authorized to use this key"
+  ): std::exception(what) {};
+};
+
+class InvalidJsonKeyDerivationOptionsException: public std::invalid_argument
+{
+	public:
+	InvalidJsonKeyDerivationOptionsException(const char* what =
+		"Invalid JSON key derivation options"
+	):
+		std::invalid_argument(what) {};
+};
+class InvalidKeyDerivationOptionValueException: public std::invalid_argument
+{
+	public:
+	InvalidKeyDerivationOptionValueException(const char* what) :
+		std::invalid_argument(what) {};
+};
+
+
+/**
  * This class represents key generation options,
  * provided in JSON format, as an immutable class.
  */

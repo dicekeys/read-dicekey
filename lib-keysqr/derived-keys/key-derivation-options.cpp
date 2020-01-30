@@ -27,8 +27,14 @@ KeyDerivationOptions::KeyDerivationOptions(
   // key generation options.
   // We make heavy use of the library's enum conversion, as documented at:
   //   https://github.com/nlohmann/json#specializing-enum-conversion
-  nlohmann::json keyDerivationOptionsObject =
-    nlohmann::json::parse(keyDerivationOptionsJson);
+  nlohmann::json keyDerivationOptionsObject;
+  try {
+    keyDerivationOptionsObject = nlohmann::json::parse(keyDerivationOptionsJson);
+  } catch (std::exception e) {
+    throw InvalidJsonKeyDerivationOptionsException(e.what());
+  } catch (...) {
+    throw InvalidJsonKeyDerivationOptionsException();
+  }
 
   //
   // keyType
@@ -39,7 +45,7 @@ KeyDerivationOptions::KeyDerivationOptions(
     );
 
   if (keyType == KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
-    throw std::invalid_argument("Invalid key type in KeyDerivationOptions");
+    throw InvalidKeyDerivationOptionValueException("Invalid key type in KeyDerivationOptions");
   }
   keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::keyType] = keyType;
 
@@ -63,13 +69,17 @@ KeyDerivationOptions::KeyDerivationOptions(
   if (keyType == KeyDerivationOptionsJson::KeyType::Symmetric &&
       algorithm != KeyDerivationOptionsJson::Algorithm::XSalsa20Poly1305
   ) {
-    throw std::invalid_argument("Invalid key type for symmetric key cryptography");
+    throw InvalidKeyDerivationOptionValueException(
+      "Invalid algorithm type for symmetric key cryptography"
+    );
   }
 
   if ( keyType == KeyDerivationOptionsJson::KeyType::Public &&
       algorithm != KeyDerivationOptionsJson::Algorithm::X25519
   ) {
-    throw std::invalid_argument("Invalid key type for public key cryptography");
+    throw InvalidKeyDerivationOptionValueException(
+      "Invalid algorithm type for public key cryptography"
+    );
   }
 
   if (keyType != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
@@ -99,15 +109,19 @@ KeyDerivationOptions::KeyDerivationOptions(
     algorithm == KeyDerivationOptionsJson::Algorithm::X25519
     && keyLengthInBytes != crypto_box_SEEDBYTES
   ) {
-    throw std::invalid_argument( ("X25519 public key cryptography must use keyLengthInBytes of " +
-      std::to_string(crypto_box_SEEDBYTES)).c_str() );
+    throw InvalidKeyDerivationOptionValueException( (
+        "X25519 public key cryptography must use keyLengthInBytes of " +
+        std::to_string(crypto_box_SEEDBYTES)
+      ).c_str() );
   }
   if (
     algorithm == KeyDerivationOptionsJson::Algorithm::XSalsa20Poly1305 &&
     keyLengthInBytes != crypto_stream_xsalsa20_KEYBYTES
   ) {
-    throw std::invalid_argument( ("XSalsa20Poly1305 symmetric cryptography must use keyLengthInBytes of " +
-      std::to_string(crypto_stream_xsalsa20_KEYBYTES)).c_str() );
+    throw InvalidKeyDerivationOptionValueException( (
+        "XSalsa20Poly1305 symmetric cryptography must use keyLengthInBytes of " +
+        std::to_string(crypto_stream_xsalsa20_KEYBYTES)
+      ).c_str() );
   }
 
 	if (keyType == KeyDerivationOptionsJson::KeyType::Seed) {
@@ -160,7 +174,7 @@ KeyDerivationOptions::KeyDerivationOptions(
       } else if (algorithm == HashAlgorithmJson::Algorithm::Scrypt) {
         hashFunction = new HashFunctionScrypt(keyLengthInBytes, opslimit, memlimit);
       } else {
-        std::invalid_argument("Invalid hashFunction");
+        throw std::invalid_argument("Invalid hashFunction");
       }
       keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::hashFunction] = {
         {HashAlgorithmJson::FieldNames::algorithm, algorithm},
@@ -168,7 +182,7 @@ KeyDerivationOptions::KeyDerivationOptions(
         {HashAlgorithmJson::FieldNames::opsLimit, opslimit}
       };
     } else {
-      std::invalid_argument("Invalid hashFunction");
+      throw std::invalid_argument("Invalid hashFunction");
     }
   }
 
@@ -204,7 +218,9 @@ const void KeyDerivationOptions::validate(
     mandateKeyType != KeyDerivationOptionsJson::_INVALID_KEYTYPE_ &&
     mandateKeyType != keyType  
   ) {
-    throw std::invalid_argument( ("Key generation options must have key type " + std::to_string(mandateKeyType)).c_str() );
+    throw InvalidKeyDerivationOptionValueException( (
+      "Key generation options must have key type " + std::to_string(mandateKeyType)
+    ).c_str() );
   }
   if (restictToClientApplicationsIdPrefixes.size() > 0) {
     bool prefixFound = false;
@@ -215,7 +231,7 @@ const void KeyDerivationOptions::validate(
       }
     }
     if (!prefixFound) {
-      throw ("The client application is not allowed to use this key");
+      throw ClientNotAuthorizedException("The client application is not allowed to use this key");
     }
     bool noneMatched = true;
   }

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <type_traits>
 #include <vector>
+#include <stdexcept>
 #include "face.hpp"
 
 const int NumberOfFaces = 25;
@@ -32,7 +33,9 @@ class KeySqr {
 
     KeySqr(const std::vector<F> _faces) : faces(_faces) {
       if (_faces.size() != NumberOfFaces) {
-	    	throw std::string("A KeySqr must contain " + std::to_string(NumberOfFaces) + " faces but only has " + std::to_string(_faces.size()));
+	    	throw std::invalid_argument( (
+          "A KeySqr must contain " + std::to_string(NumberOfFaces) + " faces but only has " + std::to_string(_faces.size())
+        ).c_str() );
 	    }
       // faces = _faces;
     }
