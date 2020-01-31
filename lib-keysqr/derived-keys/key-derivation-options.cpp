@@ -30,7 +30,7 @@ KeyDerivationOptions::KeyDerivationOptions(
   nlohmann::json keyDerivationOptionsObject;
   try {
     keyDerivationOptionsObject = nlohmann::json::parse(keyDerivationOptionsJson);
-  } catch (std::exception e) {
+  } catch (nlohmann::json::exception e) {
     throw InvalidJsonKeyDerivationOptionsException(e.what());
   } catch (...) {
     throw InvalidJsonKeyDerivationOptionsException();
