@@ -28,7 +28,7 @@ PostDecryptionInstructions::PostDecryptionInstructions(
   userMustAcknowledgeThisMessage =
     decryptionOptionsObject.value<std::string>(
       DecryptionRestrictionsJson::FieldNames::userMustAcknowledgeThisMessage,
-      // Default to empty list containing the empty string, which is a prefix of all strings
+      // Default to empty string
       ""
     );
 }

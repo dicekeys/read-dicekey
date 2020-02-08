@@ -7,6 +7,5 @@
 #include "derived-key.hpp"
 #include "seed.hpp"
 #include "symmetric-key.hpp"
-#include "message.hpp"
 #include "public-key.hpp"
 #include "public-private-key-pair.hpp"

@@ -70,15 +70,6 @@ const std::vector<unsigned char> SymmetricKey::seal(
 }
 
 
-const std::vector<unsigned char> SymmetricKey::seal(
-  const Message &message
-) const {
-  return SymmetricKey::seal(
-    message.contents,
-    message.postDecryptionInstructionsJson
-  );
-};
-
 const SodiumBuffer SymmetricKey::unsealMessageContents(
   const unsigned char* ciphertext,
   const size_t ciphertextLength,
@@ -116,25 +107,17 @@ const SodiumBuffer SymmetricKey::unsealMessageContents(
   return plaintextBuffer;
 }
 
-const Message SymmetricKey::unseal(
+const SodiumBuffer SymmetricKey::unseal(
   const unsigned char* ciphertext,
   const size_t ciphertextLength,
   const std::string &postDecryptionInstructionsJson
 ) const {
-  return Message::createAndRemoveAnyEmbedding(
-    unsealMessageContents(ciphertext, ciphertextLength, postDecryptionInstructionsJson),
-    postDecryptionInstructionsJson);
+  return unsealMessageContents(ciphertext, ciphertextLength, postDecryptionInstructionsJson);
 };
 
-const Message SymmetricKey::unseal(
+const SodiumBuffer SymmetricKey::unseal(
   const std::vector<unsigned char> &ciphertext,
   const std::string &postDecryptionInstructionsJson
 ) const {
   return unseal(ciphertext.data(), ciphertext.size(), postDecryptionInstructionsJson);
-}
-
-const SodiumBuffer SymmetricKey::unseal(
-  const std::vector<unsigned char>& ciphertext
-) const {
-    return unsealMessageContents(ciphertext.data(), ciphertext.size(), "");
 }

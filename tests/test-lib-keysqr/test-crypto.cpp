@@ -40,25 +40,21 @@ TEST(SeedGeneration, FidoUseCase) {
 
 TEST(PostDecryptionInstructions, ThowsOnInvalidJson) {
 	ASSERT_ANY_THROW(
-		Message(SodiumBuffer(4, (unsigned char*)"test"), "badjson").getPostDecryptionInstructions()
+		PostDecryptionInstructions("badjson")
 	);
 }
 
 TEST(PostDecryptionInstructions, Handles0LengthJsonObject) {
 	ASSERT_STREQ(
-		(char*)Message(
-			SodiumBuffer(5, (unsigned char*)"test"),
-			"").getPlaintext().data,
-		"test"
+		PostDecryptionInstructions("").userMustAcknowledgeThisMessage.c_str(),
+		""
 	);
 }
 
 TEST(PostDecryptionInstructions, HandlesEmptyJsonObject) {
 	ASSERT_STREQ(
-		(char*)Message(
-			SodiumBuffer(5, (unsigned char*)"test"),
-			"{}").getPlaintext().data,
-		"test"
+		PostDecryptionInstructions("{}").userMustAcknowledgeThisMessage.c_str(),
+		""
 	);
 }
 
@@ -70,15 +66,12 @@ TEST(PostDecryptionInstructions, HandlesRestrictions) {
 				"clientApplicationIdMustHavePrefix": ["myprefix"]
 			}
 		)MYJSON";
-	const auto message = Message(
-		SodiumBuffer(5, (unsigned char*)"test"), postDecryptionInstructionsJson);
-	const auto dr = message.getPostDecryptionInstructions();
+	const auto dr = PostDecryptionInstructions(postDecryptionInstructionsJson);
 	ASSERT_STREQ(dr.userMustAcknowledgeThisMessage.c_str(), "yolo");
 	ASSERT_STREQ(dr.clientApplicationIdMustHavePrefix[0].c_str(), "myprefix");
 	ASSERT_FALSE(dr.isApplicationIdAllowed("doesnotstartwithmyprefix"));
 	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefixisthestartofthisid"));
 	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefix"));
-	ASSERT_STREQ( (char*) message.getPlaintext().data, "test");
 }
 
 TEST(PublicKey, GetsPublicKey) {
@@ -105,11 +98,9 @@ TEST(PublicKey, EncryptsAndDecrypts) {
 	const std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
 	const std::string postDecryptionInstructionsJson = "{}";
 	SodiumBuffer messageBuffer(messageVector);
-	Message message(messageBuffer, postDecryptionInstructionsJson);
-	ASSERT_EQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "");
-	const auto sealedMessage = testPublicKey.seal(message);
+	const auto sealedMessage = testPublicKey.seal(messageBuffer, postDecryptionInstructionsJson);
 	const auto unsealedMessage = testPublicPrivateKeyPair.unseal(sealedMessage, postDecryptionInstructionsJson);
-	const auto unsealedPlaintext = unsealedMessage.getPlaintext().toVector();
+	const auto unsealedPlaintext = unsealedMessage.toVector();
 	ASSERT_EQ(messageVector, unsealedPlaintext);
 }
 
@@ -137,8 +128,7 @@ TEST(SymmetricKey, EncryptsAndDecrypts) {
 	
 	const auto sealedMessage = testSymmetricKey.seal(messageBuffer, postDecryptionInstructionsJson);
 	const auto unsealedMessage = testSymmetricKey.unseal(sealedMessage, postDecryptionInstructionsJson);
-	ASSERT_EQ(unsealedMessage.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "yoto mofo");
-	const auto unsealedPlaintext = unsealedMessage.getPlaintext().toVector();
+	const std::vector<unsigned char> unsealedPlaintext = unsealedMessage.toVector();
 	ASSERT_EQ(messageVector, unsealedPlaintext);
 }
 
@@ -149,14 +139,11 @@ TEST(SymmetricKey, EncrypsUsingMessageAndDecrypts) {
 	const std::vector<unsigned char> messageVector = { 'y', 'o', 't', 'o' };
 	const std::string postDecryptionInstructionsJson = "{\"userMustAcknowledgeThisMessage\": \"yoto mofo\"}";
 	SodiumBuffer messageBuffer(messageVector);
-	Message message(messageBuffer, postDecryptionInstructionsJson);
-	ASSERT_EQ(message.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "yoto mofo");
 
-	const auto sealedMessage = testSymmetricKey.seal(message);
+	const auto sealedMessage = testSymmetricKey.seal(messageBuffer, postDecryptionInstructionsJson);
 	const auto unsealedMessage = testSymmetricKey.unseal(sealedMessage, postDecryptionInstructionsJson);
-	ASSERT_EQ(unsealedMessage.getPostDecryptionInstructions().userMustAcknowledgeThisMessage, "yoto mofo");
 
-	const auto unsealedPlaintext = unsealedMessage.getPlaintext().toVector();
+	const std::vector<unsigned char> unsealedPlaintext = unsealedMessage.toVector();
 	ASSERT_EQ(messageVector, unsealedPlaintext);
 }
 

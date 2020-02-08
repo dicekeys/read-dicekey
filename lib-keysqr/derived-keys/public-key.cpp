@@ -97,14 +97,6 @@ const std::vector<unsigned char> PublicKey::seal(
   return seal(message.data, message.length, postDecryptionInstructionsJson);
 }
 
-const std::vector<unsigned char> PublicKey::seal(
-  const Message &message
-) const {
-  return seal(
-    message.contents,
-    message.postDecryptionInstructionsJson
-  );
-};
 
 
 const std::vector<unsigned char> PublicKey::getPublicKeyBytes(
