@@ -19,7 +19,8 @@ KeyDerivationOptions::~KeyDerivationOptions() {
 }
 
 KeyDerivationOptions::KeyDerivationOptions(
-  const std::string &keyDerivationOptionsJson
+  const std::string &keyDerivationOptionsJson,
+  const const KeyDerivationOptionsJson::KeyType keyTypeExpected
 ):
   keyDerivationOptionsJson(keyDerivationOptionsJson)
 {
@@ -41,11 +42,19 @@ KeyDerivationOptions::KeyDerivationOptions(
   //
   keyType = keyDerivationOptionsObject.value<KeyDerivationOptionsJson::KeyType>(
       KeyDerivationOptionsJson::FieldNames::keyType,
-      KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_
+      keyTypeExpected
     );
 
+  if (keyTypeExpected != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_ &&
+      keyType != keyTypeExpected) {
+    // We were expecting keyType == keyTypeExpected since keyTypeExpected wasn't invalid,
+    // but the JSON specified a different key type
+    throw InvalidKeyDerivationOptionValueException("Unexpected keyType in KeyDerivationOptions");
+  }
+
   if (keyType == KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_) {
-    throw InvalidKeyDerivationOptionValueException("Invalid key type in KeyDerivationOptions");
+    // No valid keyType was specified
+    throw InvalidKeyDerivationOptionValueException("Invalid keyType in KeyDerivationOptions");
   }
   keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::keyType] = keyType;
 
@@ -211,17 +220,8 @@ KeyDerivationOptions::KeyDerivationOptions(
 
 
 const void KeyDerivationOptions::validate(
-  const std::string applicationId,
-  const KeyDerivationOptionsJson::KeyType mandateKeyType
+  const std::string applicationId
 ) const {
-  if (
-    mandateKeyType != KeyDerivationOptionsJson::_INVALID_KEYTYPE_ &&
-    mandateKeyType != keyType  
-  ) {
-    throw InvalidKeyDerivationOptionValueException( (
-      "Key generation options must have key type " + std::to_string(mandateKeyType)
-    ).c_str() );
-  }
   if (restictToClientApplicationsIdPrefixes.size() > 0) {
     bool prefixFound = false;
     for (const std::string prefix : restictToClientApplicationsIdPrefixes) {

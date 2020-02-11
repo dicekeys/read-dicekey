@@ -81,7 +81,14 @@ TEST(PublicKey, GetsPublicKey) {
 	ASSERT_EQ(testPublicKey.getPublicKeyBytesAsHexDigits().length(), 64);
 }
 
-TEST(PublicKey, ConvertsyToJsonAndBack) {
+TEST(PublicKey, GetsPublicKeyFromEmptyOptions) {
+	const PublicPrivateKeyPair testPublicPrivateKeyPair(orderedTestKey, "{}");
+	const PublicKey testPublicKey = testPublicPrivateKeyPair.getPublicKey();
+
+	ASSERT_EQ(testPublicKey.getPublicKeyBytesAsHexDigits().length(), 64);
+}
+
+TEST(PublicKey, ConvertsToJsonAndBack) {
 	const PublicPrivateKeyPair testPublicPrivateKeyPair(orderedTestKey, defaultTestKeyDerivationOptionsJson);
 	const PublicKey testPublicKey = testPublicPrivateKeyPair.getPublicKey();
 

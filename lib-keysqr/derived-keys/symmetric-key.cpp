@@ -26,8 +26,8 @@ SymmetricKey::SymmetricKey(
 ) : KeySqrDerivedKey(
   keySqr,
   keyDerivationOptionsJson,
-  clientsApplicationId, 
-  KeyDerivationOptionsJson::KeyType::Symmetric, 
+  KeyDerivationOptionsJson::KeyType::Symmetric,
+  clientsApplicationId,
   crypto_secretbox_KEYBYTES
 ) {}
 

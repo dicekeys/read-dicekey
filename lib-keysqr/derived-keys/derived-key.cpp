@@ -7,31 +7,13 @@
 #include "sodium-initializer.hpp"
 #include "derived-key.hpp"
 
-// KeySqrDerivedKey::KeySqrDerivedKey(
-//   const KeySqr<Face> &keySqr,
-//   const KeyDerivationOptions &keyDerivationOptions,
-//   const std::string &clientsApplicationId,
-//   const KeyDerivationOptionsJson::Purpose mandatedPurpose,
-//   size_t keyLengthInBytes
-// ) :
-//   keyDerivationOptions(keyDerivationOptions),
-//   keyDerivationOptionsJson(keyDerivationOptions.toJson()),
-//   derivedKey(
-//     validateAndGenerateKey(
-//       keySqr,
-//       keyDerivationOptions,
-//       clientsApplicationId,
-//       mandatedPurpose,
-//       keyLengthInBytes > 0 ? keyLengthInBytes : keyDerivationOptions.keyLengthInBytes
-//     )
-//   ) {}
-
-
 KeySqrDerivedKey::KeySqrDerivedKey(
   const SodiumBuffer &derivedKey,
-  const std::string &keyDerivationOptionsJson
+  const std::string &keyDerivationOptionsJson,
+  const KeyDerivationOptionsJson::KeyType keyType
 ) :
   derivedKey(derivedKey),
+  keyType(keyType),
   keyDerivationOptionsJson(keyDerivationOptionsJson)
 {}
 
@@ -39,17 +21,18 @@ KeySqrDerivedKey::KeySqrDerivedKey(
 KeySqrDerivedKey::KeySqrDerivedKey(
   const KeySqr<Face> &keySqr,
   const std::string &keyDerivationOptionsJson,
+  const KeyDerivationOptionsJson::KeyType keyTypeExpected,
   const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::KeyType mandatedKeyType,
   size_t keyLengthInBytes
 ) :
   keyDerivationOptionsJson(keyDerivationOptionsJson),
+  keyType(keyType),
   derivedKey(
     validateAndGenerateKey(
       keySqr,
       keyDerivationOptionsJson,
+      keyTypeExpected,
       clientsApplicationId,
-      mandatedKeyType,
       keyLengthInBytes
     )
   ) {}
@@ -115,19 +98,19 @@ void KeySqrDerivedKey::generateKey(
 const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
   const KeySqr<Face> &keySqr,
   const std::string &keyDerivationOptionsJson,
+  const KeyDerivationOptionsJson::KeyType keyTypeExpected,
   const std::string &clientsApplicationId,
-  const KeyDerivationOptionsJson::KeyType mandatedKeyType,
   size_t keyLengthInBytes
 ) {
-  const KeyDerivationOptions keyDerivationOptions(keyDerivationOptionsJson);
+  const KeyDerivationOptions keyDerivationOptions(keyDerivationOptionsJson, keyTypeExpected);
   // Ensure that the purpose in the key derivation options matches
   // the actual purpose
   if (
-    mandatedKeyType != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_ &&
-    mandatedKeyType != keyDerivationOptions.keyType  
+    keyTypeExpected != KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_ &&
+    keyTypeExpected != keyDerivationOptions.keyType  
   ) {
     throw InvalidKeyDerivationOptionValueException( (
-      "Key generation options must have field " + std::to_string(mandatedKeyType)
+      "Key generation options must have field " + std::to_string(keyTypeExpected)
     ).c_str() );
   }
   // Ensure that the application ID matches one of the prefixes
@@ -166,6 +149,6 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
 }
 
 const KeyDerivationOptions KeySqrDerivedKey::getKeyDerivationOptions() const {
-  return KeyDerivationOptions(keyDerivationOptionsJson);
+  return KeyDerivationOptions(keyDerivationOptionsJson, keyType);
 }
 

@@ -11,8 +11,8 @@ class Seed : KeySqrDerivedKey {
   ) : KeySqrDerivedKey(
     keySqr,
     keyDerivationOptionsJson,
-    clientsApplicationId, 
-    KeyDerivationOptionsJson::KeyType::Seed
+    KeyDerivationOptionsJson::KeyType::Seed,
+    clientsApplicationId
   ) {}
 
   const SodiumBuffer reveal(

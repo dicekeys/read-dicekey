@@ -5,7 +5,9 @@
 TEST(KeyDerivationOptions, GeneratesDefaults) {
 	KeyDerivationOptions kgo = KeyDerivationOptions(R"KGO({
 	"keyType": "Public"	
-})KGO");
+})KGO",
+	KeyDerivationOptionsJson::KeyType::Public
+);
 	ASSERT_EQ(
 		kgo.jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({
@@ -24,7 +26,9 @@ TEST(KeyDerivationOptions, FidoUseCase) {
 	"keyLengthInBytes": 96,
 	"hashFunction": {"algorithm": "Argon2id"},
 	"restictToClientApplicationsIdPrefixes": ["com.dicekeys.fido"]
-})KGO");
+})KGO",
+	KeyDerivationOptionsJson::KeyType::Seed
+);
 	ASSERT_EQ(
 		kgo.jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({
@@ -48,7 +52,9 @@ TEST(KeyDerivationOptions, InitsWithClientPrefixes) {
 	KeyDerivationOptions kgo = KeyDerivationOptions(R"KGO({
 	"keyType": "Public",
 	"restictToClientApplicationsIdPrefixes": ["com.dicekeys.client", "com.dicekeys.another"]
-})KGO");
+})KGO",
+	KeyDerivationOptionsJson::KeyType::Public
+);
 	ASSERT_EQ(
 		kgo.jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({

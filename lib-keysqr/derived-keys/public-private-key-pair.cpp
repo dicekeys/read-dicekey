@@ -33,8 +33,10 @@ PublicPrivateKeyPair PublicPrivateKeyPair::create(
   const std::string &clientsApplicationId
 ) {
   const SodiumBuffer derivedKey = KeySqrDerivedKey::validateAndGenerateKey(
-    keySqr, keyDerivationOptionsJson, clientsApplicationId,
+    keySqr,
+    keyDerivationOptionsJson,
     KeyDerivationOptionsJson::KeyType::Public,
+    clientsApplicationId,
     crypto_box_SEEDBYTES
   );
   SodiumBuffer secretKey(crypto_box_SECRETKEYBYTES);

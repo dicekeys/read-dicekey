@@ -58,20 +58,19 @@ public:
    * of the key generation options.
    **/
   KeyDerivationOptions(
-		const std::string &keyDerivationOptionsJson
+		const std::string &keyDerivationOptionsJson,
+		const KeyDerivationOptionsJson::KeyType keyTypeExpected =
+			KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_
 	);
 
-	const void validate(
-		const std::string applicationId,
-		const KeyDerivationOptionsJson::KeyType mandateKeyType = KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_
-	) const;
+	const void validate(const std::string applicationId) const;
 
 	KeyDerivationOptions(
 		const std::string &keyDerivationOptionsJson,
 		const std::string applicationId,
-		const KeyDerivationOptionsJson::KeyType mandateKeyType = KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_
-	) : KeyDerivationOptions(keyDerivationOptionsJson) {
-		validate(applicationId, mandateKeyType);
+		const KeyDerivationOptionsJson::KeyType keyTypeExpected = KeyDerivationOptionsJson::KeyType::_INVALID_KEYTYPE_
+	) : KeyDerivationOptions(keyDerivationOptionsJson, keyTypeExpected) {
+		validate(applicationId);
 	}
 
 
