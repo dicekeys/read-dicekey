@@ -30,7 +30,12 @@ KeyDerivationOptions::KeyDerivationOptions(
   //   https://github.com/nlohmann/json#specializing-enum-conversion
   nlohmann::json keyDerivationOptionsObject;
   try {
-    keyDerivationOptionsObject = nlohmann::json::parse(keyDerivationOptionsJson);
+    if (keyDerivationOptionsJson.size() > 0) {
+      keyDerivationOptionsObject = nlohmann::json::parse(keyDerivationOptionsJson);
+    } else {
+      // A zero length string should create a completely default set of key derivation options
+      keyDerivationOptionsObject = nlohmann::json::parse("{}");
+    }
   } catch (nlohmann::json::exception e) {
     throw InvalidJsonKeyDerivationOptionsException(e.what());
   } catch (...) {
@@ -137,15 +142,15 @@ KeyDerivationOptions::KeyDerivationOptions(
 		keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::keyLengthInBytes] = keyLengthInBytes;
 	}
 
-  restictToClientApplicationsIdPrefixes =
+  restrictToClientApplicationsIdPrefixes =
     keyDerivationOptionsObject.value<const std::vector<std::string>>(
-      KeyDerivationOptionsJson::FieldNames::restictToClientApplicationsIdPrefixes,
+      KeyDerivationOptionsJson::FieldNames::restrictToClientApplicationsIdPrefixes,
       // Default to empty list containing the empty string, which is a prefix of all strings
       {""}
     );
 
-	if (keyDerivationOptionsObject.contains(KeyDerivationOptionsJson::FieldNames::restictToClientApplicationsIdPrefixes)) {
-		keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::restictToClientApplicationsIdPrefixes] = restictToClientApplicationsIdPrefixes;
+	if (keyDerivationOptionsObject.contains(KeyDerivationOptionsJson::FieldNames::restrictToClientApplicationsIdPrefixes)) {
+		keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::restrictToClientApplicationsIdPrefixes] = restrictToClientApplicationsIdPrefixes;
 	}
 
 
@@ -222,9 +227,9 @@ KeyDerivationOptions::KeyDerivationOptions(
 const void KeyDerivationOptions::validate(
   const std::string applicationId
 ) const {
-  if (restictToClientApplicationsIdPrefixes.size() > 0) {
+  if (restrictToClientApplicationsIdPrefixes.size() > 0) {
     bool prefixFound = false;
-    for (const std::string prefix : restictToClientApplicationsIdPrefixes) {
+    for (const std::string prefix : restrictToClientApplicationsIdPrefixes) {
       if (applicationId.substr(0, prefix.length()) == prefix) {
         prefixFound = true;
         break;

@@ -114,9 +114,9 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
     ).c_str() );
   }
   // Ensure that the application ID matches one of the prefixes
-  if (keyDerivationOptions.restictToClientApplicationsIdPrefixes.size() > 0) {
+  if (keyDerivationOptions.restrictToClientApplicationsIdPrefixes.size() > 0) {
     bool prefixFound = false;
-    for (const std::string prefix : keyDerivationOptions.restictToClientApplicationsIdPrefixes) {
+    for (const std::string prefix : keyDerivationOptions.restrictToClientApplicationsIdPrefixes) {
       if (clientsApplicationId.substr(0, prefix.size()) == prefix) {
         prefixFound = true;
         break;

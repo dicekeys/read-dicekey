@@ -47,7 +47,7 @@ public:
 	KeyDerivationOptionsJson::KeyType keyType;
 	KeyDerivationOptionsJson::Algorithm algorithm;
   unsigned int keyLengthInBytes;
-	std::vector<std::string> restictToClientApplicationsIdPrefixes;
+	std::vector<std::string> restrictToClientApplicationsIdPrefixes;
 	HashFunction *hashFunction;
 	bool includeOrientationOfFacesInKey;
 

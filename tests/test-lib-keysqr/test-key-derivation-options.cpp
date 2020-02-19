@@ -25,7 +25,7 @@ TEST(KeyDerivationOptions, FidoUseCase) {
 	"keyType": "Seed",
 	"keyLengthInBytes": 96,
 	"hashFunction": {"algorithm": "Argon2id"},
-	"restictToClientApplicationsIdPrefixes": ["com.dicekeys.fido"]
+	"restrictToClientApplicationsIdPrefixes": ["com.dicekeys.fido"]
 })KGO",
 	KeyDerivationOptionsJson::KeyType::Seed
 );
@@ -40,7 +40,7 @@ TEST(KeyDerivationOptions, FidoUseCase) {
 	"includeOrientationOfFacesInKey": false,
 	"keyLengthInBytes": 96,
 	"keyType": "Seed",
-	"restictToClientApplicationsIdPrefixes": [
+	"restrictToClientApplicationsIdPrefixes": [
 		"com.dicekeys.fido"
 	]
 })KGO"
@@ -51,7 +51,7 @@ TEST(KeyDerivationOptions, FidoUseCase) {
 TEST(KeyDerivationOptions, InitsWithClientPrefixes) {
 	KeyDerivationOptions kgo = KeyDerivationOptions(R"KGO({
 	"keyType": "Public",
-	"restictToClientApplicationsIdPrefixes": ["com.dicekeys.client", "com.dicekeys.another"]
+	"restrictToClientApplicationsIdPrefixes": ["com.dicekeys.client", "com.dicekeys.another"]
 })KGO",
 	KeyDerivationOptionsJson::KeyType::Public
 );
@@ -62,7 +62,7 @@ TEST(KeyDerivationOptions, InitsWithClientPrefixes) {
 	"hashFunction": "SHA256",
 	"includeOrientationOfFacesInKey": false,
 	"keyType": "Public",
-	"restictToClientApplicationsIdPrefixes": [
+	"restrictToClientApplicationsIdPrefixes": [
 		"com.dicekeys.client",
 		"com.dicekeys.another"
 	]

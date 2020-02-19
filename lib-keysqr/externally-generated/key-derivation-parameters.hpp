@@ -17,7 +17,7 @@ namespace KeyDerivationOptionsJson {
 		const std::string keyLengthInBytes = "keyLengthInBytes";
 		const std::string algorithm = "algorithm";
 		const std::string keyType = "keyType";
-		const std::string restictToClientApplicationsIdPrefixes = "restictToClientApplicationsIdPrefixes";
+		const std::string restrictToClientApplicationsIdPrefixes = "restrictToClientApplicationsIdPrefixes";
 	}
 
 	enum KeyType {
