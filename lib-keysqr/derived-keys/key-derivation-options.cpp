@@ -20,7 +20,7 @@ KeyDerivationOptions::~KeyDerivationOptions() {
 
 KeyDerivationOptions::KeyDerivationOptions(
   const std::string &keyDerivationOptionsJson,
-  const const KeyDerivationOptionsJson::KeyType keyTypeExpected
+  const KeyDerivationOptionsJson::KeyType keyTypeExpected
 ):
   keyDerivationOptionsJson(keyDerivationOptionsJson)
 {
@@ -205,7 +205,7 @@ KeyDerivationOptions::KeyDerivationOptions(
   //
   includeOrientationOfFacesInKey = keyDerivationOptionsObject.value<bool>(
     KeyDerivationOptionsJson::FieldNames::includeOrientationOfFacesInKey,
-    false
+    true
   );
   keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::includeOrientationOfFacesInKey] =
     includeOrientationOfFacesInKey;
