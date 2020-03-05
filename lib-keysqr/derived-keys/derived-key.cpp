@@ -26,7 +26,7 @@ KeySqrDerivedKey::KeySqrDerivedKey(
   size_t keyLengthInBytes
 ) :
   keyDerivationOptionsJson(keyDerivationOptionsJson),
-  keyType(keyType),
+  keyType(keyTypeExpected),
   derivedKey(
     validateAndGenerateKey(
       keySqr,
