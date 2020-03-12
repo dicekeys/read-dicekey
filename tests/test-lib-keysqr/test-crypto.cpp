@@ -32,8 +32,7 @@ TEST(SeedGeneration, FidoUseCase) {
 	const std::string seedAsHex = toHexStr(seed.reveal().toVector());
 	ASSERT_EQ(
 		seedAsHex,
-		"1710c43587fa0b4a15c800f243efc9a23ce06eb767407d7c6a09233fcc65e6f8c834ca684456187d4ede3f0b5f6b293c"
-		"295371d2dd29236cc492ad0469c9e066f47aca87d65abefa96e25fd6950c3c7c83263f1b6683f69a07828808b0157712"
+		"a3f8dc26cd89f0376560bddb99af39f3705aa65137fa9e7323ce4c70cea8bbd4a4079f8d864c66ea35cb44bdec8b5f0dac91c1cde9b7be9b33a92c51406083345d6ee274adba947dd0a09532aee9ed36d36b47fc2b4d9807f63282129b93b447"
 	);
 }
 
