@@ -14,6 +14,7 @@ namespace KeyDerivationOptionsJson {
 		const std::string additionalSalt = "additionalSalt";
 		const std::string hashFunction = "hashFunction";
 		const std::string includeOrientationOfFacesInKey = "includeOrientationOfFacesInKey";
+		const std::string userEnteredSecret = "userEnteredSecret";
 		const std::string keyLengthInBytes = "keyLengthInBytes";
 		const std::string algorithm = "algorithm";
 		const std::string keyType = "keyType";
@@ -24,25 +25,29 @@ namespace KeyDerivationOptionsJson {
 		_INVALID_KEYTYPE_ = 0,
 		Seed,
 		Symmetric,
-		Public
+		Public,
+		Signing
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( KeyType, {
 		{KeyType::_INVALID_KEYTYPE_, nullptr},
 		{KeyType::Seed, "Seed"},
 		{KeyType::Symmetric, "Symmetric"},
-		{KeyType::Public, "Public"}
+		{KeyType::Public, "Public"},
+		{KeyType::Signing, "Signing"}
 	})
 	
 
 	enum Algorithm {
 		_INVALID_ALGORITHM_ = 0,
 		XSalsa20Poly1305,
-		X25519
+		X25519,
+		Ed25519
 	};
 	NLOHMANN_JSON_SERIALIZE_ENUM( Algorithm, {
 		{Algorithm::_INVALID_ALGORITHM_, nullptr},
 		{Algorithm::XSalsa20Poly1305, "XSalsa20Poly1305"},
-		{Algorithm::X25519, "X25519"}
+		{Algorithm::X25519, "X25519"},
+		{Algorithm::Ed25519, "Ed25519"}
 	})
 	
 
@@ -88,6 +93,9 @@ namespace DecryptionRestrictionsJson {
 	namespace FieldNames {
 		const std::string clientApplicationIdMustHavePrefix = "clientApplicationIdMustHavePrefix";
 		const std::string userMustAcknowledgeThisMessage = "userMustAcknowledgeThisMessage";
+		const std::string alsoPostToUrl = "alsoPostToUrl";
+		const std::string onlyPostToUrl = "onlyPostToUrl";
+		const std::string reEncryptWithPublicKey = "reEncryptWithPublicKey";
 	}
 };
 
