@@ -13,7 +13,7 @@ TEST(KeyDerivationOptions, GeneratesDefaults) {
 		R"KGO({
 	"algorithm": "X25519",
 	"hashFunction": "SHA256",
-	"includeOrientationOfFacesInKey": false,
+	"includeOrientationOfFacesInKey": true,
 	"keyType": "Public"
 })KGO"
 	);
@@ -37,7 +37,7 @@ TEST(KeyDerivationOptions, FidoUseCase) {
 		"memLimit": 67108864,
 		"opsLimit": 2
 	},
-	"includeOrientationOfFacesInKey": false,
+	"includeOrientationOfFacesInKey": true,
 	"keyLengthInBytes": 96,
 	"keyType": "Seed",
 	"restrictToClientApplicationsIdPrefixes": [
@@ -60,7 +60,7 @@ TEST(KeyDerivationOptions, InitsWithClientPrefixes) {
 		R"KGO({
 	"algorithm": "X25519",
 	"hashFunction": "SHA256",
-	"includeOrientationOfFacesInKey": false,
+	"includeOrientationOfFacesInKey": true,
 	"keyType": "Public",
 	"restrictToClientApplicationsIdPrefixes": [
 		"com.dicekeys.client",
