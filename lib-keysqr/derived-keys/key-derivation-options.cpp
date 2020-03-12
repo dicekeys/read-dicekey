@@ -75,6 +75,9 @@ KeyDerivationOptions::KeyDerivationOptions(
     (keyType == KeyDerivationOptionsJson::KeyType::Public) ?
       // For public key crypto, default to X25519
       KeyDerivationOptionsJson::Algorithm::X25519 :
+    (keyType == KeyDerivationOptionsJson::KeyType::Signing) ?
+      // For public key signing, default to Ed25519
+    KeyDerivationOptionsJson::Algorithm::Ed25519 :
       // Otherwise, the leave the key setting to invalid (we don't care about a specific key type)
       KeyDerivationOptionsJson::Algorithm::_INVALID_ALGORITHM_
   );
@@ -88,11 +91,18 @@ KeyDerivationOptions::KeyDerivationOptions(
     );
   }
 
-  if ( keyType == KeyDerivationOptionsJson::KeyType::Public &&
-      algorithm != KeyDerivationOptionsJson::Algorithm::X25519
-  ) {
+  if (keyType == KeyDerivationOptionsJson::KeyType::Public &&
+    algorithm != KeyDerivationOptionsJson::Algorithm::X25519
+    ) {
     throw InvalidKeyDerivationOptionValueException(
       "Invalid algorithm type for public key cryptography"
+    );
+  }
+  if (keyType == KeyDerivationOptionsJson::KeyType::Signing &&
+    algorithm != KeyDerivationOptionsJson::Algorithm::Ed25519
+    ) {
+    throw InvalidKeyDerivationOptionValueException(
+      "Invalid algorithm type for signing key"
     );
   }
 
@@ -127,6 +137,15 @@ KeyDerivationOptions::KeyDerivationOptions(
         "X25519 public key cryptography must use keyLengthInBytes of " +
         std::to_string(crypto_box_SEEDBYTES)
       ).c_str() );
+  }
+  if (
+    algorithm == KeyDerivationOptionsJson::Algorithm::Ed25519
+    && keyLengthInBytes != crypto_sign_SEEDBYTES
+    ) {
+    throw InvalidKeyDerivationOptionValueException((
+      "Ed25519 signing must use keyLengthInBytes of " +
+      std::to_string(crypto_sign_SEEDBYTES)
+      ).c_str());
   }
   if (
     algorithm == KeyDerivationOptionsJson::Algorithm::XSalsa20Poly1305 &&
