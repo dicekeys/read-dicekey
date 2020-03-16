@@ -9,3 +9,4 @@
 #include "symmetric-key.hpp"
 #include "public-key.hpp"
 #include "public-private-key-pair.hpp"
+#include "signing-key.hpp"

@@ -7,7 +7,7 @@ SigningKey::SigningKey(
   const std::string& _keyDerivationOptionsJson
 ) :
   keyDerivationOptionsJson(_keyDerivationOptionsJson),
-  signingKey(signingKey)
+  signingKey(_signingKey)
   {}
 
 SigningKey::SigningKey(

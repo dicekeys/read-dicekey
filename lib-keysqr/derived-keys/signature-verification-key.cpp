@@ -16,19 +16,19 @@ SignatureVerificationKey::SignatureVerificationKey(
     }
   }
 
-//SignatureVerificationKey::SignatureVerificationKey(const std::string &verificationKeyAsJson) :
-//  SignatureVerificationKey(create(verificationKeyAsJson)) {}
-//
-//SignatureVerificationKey SignatureVerificationKey::create(const std::string& verificationKeyAsJson) {
-//  nlohmann::json jsonObject = nlohmann::json::parse(publicKeyAsJson);
-//  const std::string verificationKeyBytesAsHexDigits = jsonObject.value<std::string>(
-//    SignatureVerificationKeyJsonFieldName::verificationKeyBytesAsHexDigits, "");
-//  const std::vector<unsigned char> verificationKeyBytes = hexStrToByteVector(verificationKeyBytesAsHexDigits);
-//  const std::string keyDerivationOptionsJson = jsonObject.value<std::string>(
-//    SignatureVerificationKeyJsonFieldName::keyDerivationOptionsJson, ""
-//    );
-//  return SignatureVerificationKey(verificationKeyBytes, keyDerivationOptionsJson);
-//}
+SignatureVerificationKey::SignatureVerificationKey(const std::string &verificationKeyAsJson) :
+ SignatureVerificationKey(create(verificationKeyAsJson)) {}
+
+SignatureVerificationKey SignatureVerificationKey::create(const std::string& signatureVerificationKeyAsJson) {
+ nlohmann::json jsonObject = nlohmann::json::parse(signatureVerificationKeyAsJson);
+ const std::string verificationKeyBytesAsHexDigits = jsonObject.value<std::string>(
+   SignatureVerificationKeyJsonFieldName::verificationKeyBytesAsHexDigits, "");
+ const std::vector<unsigned char> verificationKeyBytes = hexStrToByteVector(verificationKeyBytesAsHexDigits);
+ const std::string keyDerivationOptionsJson = jsonObject.value<std::string>(
+   SignatureVerificationKeyJsonFieldName::keyDerivationOptionsJson, ""
+   );
+ return SignatureVerificationKey(verificationKeyBytes, keyDerivationOptionsJson);
+}
 
 const std::string SignatureVerificationKey::toJson(
   int indent,
@@ -59,7 +59,6 @@ bool SignatureVerificationKey::verify(
   const size_t messageLength,
   const std::vector<unsigned char>& signature
 ) {
-  // FIXME -verify that comparing to 0 is the correct thing to do here
   return crypto_sign_verify_detached(signature.data(), message, messageLength, signatureVerificationKey.data()) == 0;
 }
 

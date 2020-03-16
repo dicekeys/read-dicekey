@@ -12,11 +12,11 @@ public:
   const std::string keyDerivationOptionsJson;
  
   SignatureVerificationKey(
-    const std::vector<unsigned char> &publicKeyBytes,
+    const std::vector<unsigned char> &keyBytes,
     const std::string &keyDerivationOptionsJson
   );
 
-  //SignatureVerificationKey(const std::string &publicKeyAsJson);
+  SignatureVerificationKey(const std::string &keyAsJson);
 
   const std::string toJson(
     int indent = -1,
@@ -56,5 +56,8 @@ public:
     return keyDerivationOptionsJson; 
   }
 
+  
+  protected:
+    static SignatureVerificationKey create(const std::string &signatureVerificationKeyAsJson);
 };
 
