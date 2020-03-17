@@ -52,6 +52,31 @@ const std::string SignatureVerificationKey::getKeyBytesAsHexDigits(
   return toHexStr(verificationKeyBytes);
 }
 
+bool SignatureVerificationKey::verify(
+  const unsigned char* signatureVerificationKey,
+  const unsigned char* message,
+  const size_t messageLength,
+  const unsigned char* signature
+) {
+  return crypto_sign_verify_detached(signature, message, messageLength, signatureVerificationKey) == 0;
+}
+
+bool SignatureVerificationKey::verify(
+  const unsigned char* signatureVerificationKey,
+  const size_t signatureVerificationKeyLength,
+  const unsigned char* message,
+  const size_t messageLength,
+  const unsigned char* signature,
+  const size_t signatureLength
+) {
+  if (signatureVerificationKeyLength != crypto_sign_PUBLICKEYBYTES) {
+    throw std::invalid_argument("Invalid signature-verification key size");
+  }
+  if (signatureLength != crypto_sign_BYTES) {
+    throw std::invalid_argument("Invalid signature size");
+  }
+  return crypto_sign_verify_detached(signature, message, messageLength, signatureVerificationKey) == 0;
+}
 
 bool SignatureVerificationKey::verify(
   const std::vector<unsigned char>& signatureVerificationKey,
@@ -59,7 +84,11 @@ bool SignatureVerificationKey::verify(
   const size_t messageLength,
   const std::vector<unsigned char>& signature
 ) {
-  return crypto_sign_verify_detached(signature.data(), message, messageLength, signatureVerificationKey.data()) == 0;
+  return verify(
+    signatureVerificationKey.data(), signatureVerificationKey.size(),
+    message, messageLength,
+    signature.data(), signature.size()
+  );
 }
 
 bool SignatureVerificationKey::verify(

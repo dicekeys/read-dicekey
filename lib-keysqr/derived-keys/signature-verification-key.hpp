@@ -24,6 +24,24 @@ public:
   ) const;
 
 
+private:
+  static bool verify(
+    const unsigned char* signatureVerificationKey,
+    const unsigned char* message,
+    const size_t messageLength,
+    const unsigned char* signature
+  );
+
+public:
+  static bool verify(
+    const unsigned char* signatureVerificationKey,
+    const size_t signatureVerificationKeyLength,
+    const unsigned char* message,
+    const size_t messageLength,
+    const unsigned char* signature,
+    const size_t signatureLength
+  );
+
   static bool verify(
     const std::vector<unsigned char>& signatureVerificationKey,
     const unsigned char* message,
