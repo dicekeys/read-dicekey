@@ -58,7 +58,7 @@ const std::vector<unsigned char> SigningKey::generateSignature(
   return signature;
 }
 
-const const std::vector<unsigned char> SigningKey::generateSignature(
+const std::vector<unsigned char> SigningKey::generateSignature(
   const std::vector<unsigned char>& message
 ) const {
   return generateSignature(message.data(), message.size());

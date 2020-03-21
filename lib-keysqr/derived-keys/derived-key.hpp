@@ -4,6 +4,14 @@
 #include "sodium-buffer.hpp"
 #include "key-derivation-options.hpp"
 
+
+class CryptographicVerificationFailure: public std::invalid_argument
+{
+	public:
+	CryptographicVerificationFailure(const char* what) :
+		std::invalid_argument(what) {};
+};
+
 class KeySqrDerivedKey {
 protected:
   const SodiumBuffer derivedKey;

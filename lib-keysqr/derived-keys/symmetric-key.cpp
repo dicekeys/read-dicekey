@@ -90,7 +90,7 @@ const SodiumBuffer SymmetricKey::unsealMessageContents(
         derivedKey.data
       );
    if (result != 0) {
-     throw std::invalid_argument("Failed to unseal data because either the message or post-decryption instructions were modified or corrupted.");
+     throw CryptographicVerificationFailure("Symmetric key unseal failed: the key or post-decryption instructions must be different from those used to seal the message, or the ciphertext was modified/corrupted.");
    }
 
   // Recalculate nonce to validate that the provided
@@ -101,7 +101,7 @@ const SodiumBuffer SymmetricKey::unsealMessageContents(
     postDecryptionInstructionsJson.c_str(), postDecryptionInstructionsJson.length()
   );
   if (memcmp(recalculatedNonce, noncePtr, crypto_secretbox_NONCEBYTES) != 0) {
-     throw std::invalid_argument("Failed to unseal data because either the message or post-decryption instructions were modified or corrupted.");
+     throw CryptographicVerificationFailure("Symmetric key unseal failed: the key or post-decryption instructions must be different from those used to seal the message, or the ciphertext was modified/corrupted.");
   }
 
   return plaintextBuffer;

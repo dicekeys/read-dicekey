@@ -67,7 +67,7 @@ const SodiumBuffer PublicPrivateKeyPair::unseal(
     postDecryptionInstructionsJson.length()
   );
   if (result != 0) {
-    throw std::invalid_argument("crypto_box_seal_open failed.  message forged or corrupted.");
+    throw CryptographicVerificationFailure("Sealed message forged or corrupted.");
   }
   return plaintext;
 }
