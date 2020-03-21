@@ -67,7 +67,7 @@ const SodiumBuffer PublicPrivateKeyPair::unseal(
     postDecryptionInstructionsJson.length()
   );
   if (result != 0) {
-    throw CryptographicVerificationFailure("Sealed message forged or corrupted.");
+    throw CryptographicVerificationFailure("Public/Private unseal failed: the private key doesn't match the public key used to seal the message, the post-decryption instructions do not match those used to seal the message, or the ciphertext was modified/corrupted.");
   }
   return plaintext;
 }
