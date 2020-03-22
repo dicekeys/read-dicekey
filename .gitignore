@@ -62,7 +62,6 @@ Browse.VC.db
 .DS_Store
 *.xcuserdatad
 
-tesseract.log
 dice-scanner.xcodeproj/project.xcworkspace/xcuserdata/stuart.xcuserdatad/UserInterfaceState.xcuserstate
 extern/*/**
 !extern/*.cmake
