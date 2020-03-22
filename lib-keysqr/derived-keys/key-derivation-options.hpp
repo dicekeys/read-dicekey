@@ -18,10 +18,10 @@ class ClientNotAuthorizedException: public std::invalid_argument
   ): std::invalid_argument(what) {};
 };
 
-class InvalidJsonKeyDerivationOptionsException: public std::invalid_argument
+class InvalidKeyDerivationOptionsJsonException: public std::invalid_argument
 {
 	public:
-	InvalidJsonKeyDerivationOptionsException(const char* what =
+	InvalidKeyDerivationOptionsJsonException(const char* what =
 		"Invalid JSON key derivation options"
 	):
 		std::invalid_argument(what) {};
@@ -74,7 +74,7 @@ public:
 	}
 
 
-	const std::string jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(
+	const std::string keyDerivationOptionsJsonWithAllOptionalParametersSpecified(
 		int indent = -1,
 	  const char indent_char = ' '
 	) const;

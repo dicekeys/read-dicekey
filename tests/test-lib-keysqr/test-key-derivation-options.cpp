@@ -9,7 +9,7 @@ TEST(KeyDerivationOptions, GeneratesDefaults) {
 	KeyDerivationOptionsJson::KeyType::Public
 );
 	ASSERT_EQ(
-		kgo.jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(1, '\t'),
+		kgo.keyDerivationOptionsJsonWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({
 	"algorithm": "X25519",
 	"hashFunction": "SHA256",
@@ -30,7 +30,7 @@ TEST(KeyDerivationOptions, FidoUseCase) {
 	KeyDerivationOptionsJson::KeyType::Seed
 );
 	ASSERT_EQ(
-		kgo.jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(1, '\t'),
+		kgo.keyDerivationOptionsJsonWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({
 	"hashFunction": {
 		"algorithm": "Argon2id",
@@ -56,7 +56,7 @@ TEST(KeyDerivationOptions, InitsWithClientPrefixes) {
 	KeyDerivationOptionsJson::KeyType::Public
 );
 	ASSERT_EQ(
-		kgo.jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(1, '\t'),
+		kgo.keyDerivationOptionsJsonWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({
 	"algorithm": "X25519",
 	"hashFunction": "SHA256",

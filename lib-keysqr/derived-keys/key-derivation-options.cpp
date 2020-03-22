@@ -37,9 +37,9 @@ KeyDerivationOptions::KeyDerivationOptions(
       keyDerivationOptionsObject = nlohmann::json::parse("{}");
     }
   } catch (nlohmann::json::exception e) {
-    throw InvalidJsonKeyDerivationOptionsException(e.what());
+    throw InvalidKeyDerivationOptionsJsonException(e.what());
   } catch (...) {
-    throw InvalidJsonKeyDerivationOptionsException();
+    throw InvalidKeyDerivationOptionsJsonException();
   }
 
   //
@@ -263,7 +263,7 @@ const void KeyDerivationOptions::validate(
 
 
 
-const std::string KeyDerivationOptions::jsonKeyDerivationOptionsWithAllOptionalParametersSpecified(
+const std::string KeyDerivationOptions::keyDerivationOptionsJsonWithAllOptionalParametersSpecified(
   int indent,
   const char indent_char
 ) const {
