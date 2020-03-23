@@ -102,6 +102,9 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
   const std::string &clientsApplicationId,
   size_t keyLengthInBytes
 ) {
+  std::string clientsApplicationIdWithTerminalDot = clientsApplicationId + std::string(
+          (clientsApplicationId.length() > 0 && clientsApplicationId[clientsApplicationId.length()-1] == '.') ?
+          "" : ".");
   const KeyDerivationOptions keyDerivationOptions(keyDerivationOptionsJson, keyTypeExpected);
   // Ensure that the purpose in the key derivation options matches
   // the actual purpose
@@ -117,7 +120,10 @@ const SodiumBuffer KeySqrDerivedKey::validateAndGenerateKey(
   if (keyDerivationOptions.restrictToClientApplicationsIdPrefixes.size() > 0) {
     bool prefixFound = false;
     for (const std::string prefix : keyDerivationOptions.restrictToClientApplicationsIdPrefixes) {
-      if (clientsApplicationId.substr(0, prefix.size()) == prefix) {
+      const std::string prefixWithTerminalDot = prefix + std::string(
+              (prefix.length() > 0 && prefix[prefix.length()-1] == '.') ?
+              "" : ".");
+      if (clientsApplicationIdWithTerminalDot.substr(0, prefixWithTerminalDot.size()) == prefix) {
         prefixFound = true;
         break;
       }
