@@ -3,7 +3,6 @@
 #include "sodium.h"
 #pragma warning( disable : 26812 )
 
-#include "../keysqr.hpp"
 #include "hash-functions.hpp"
 
 #include "../../includes/json.hpp"
@@ -161,11 +160,14 @@ KeyDerivationOptions::KeyDerivationOptions(
 		keyDerivationOptionsExplicit[KeyDerivationOptionsJson::FieldNames::keyLengthInBytes] = keyLengthInBytes;
 	}
 
+  //
+  // restrictToClientApplicationsIdPrefixes
+  //
   restrictToClientApplicationsIdPrefixes =
     keyDerivationOptionsObject.value<const std::vector<std::string>>(
       KeyDerivationOptionsJson::FieldNames::restrictToClientApplicationsIdPrefixes,
-      // Default to empty list containing the empty string, which is a prefix of all strings
-      {""}
+      // Default to empty list
+      {}
     );
 
 	if (keyDerivationOptionsObject.contains(KeyDerivationOptionsJson::FieldNames::restrictToClientApplicationsIdPrefixes)) {
@@ -255,7 +257,7 @@ const void KeyDerivationOptions::validate(
       }
     }
     if (!prefixFound) {
-      throw ClientNotAuthorizedException("The client application is not allowed to use this key");
+      throw ClientNotAuthorizedException();
     }
     bool noneMatched = true;
   }

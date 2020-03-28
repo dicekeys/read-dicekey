@@ -18,10 +18,10 @@ SigningKey::SigningKey(
   {}
 
 SigningKey::SigningKey(
-  const KeySqr<Face>& keySqr,
+  const std::string& seed,
   const std::string& keyDerivationOptionsJson,
   const std::string clientsApplicationId
-) : SigningKey(SigningKey::create(keySqr, keyDerivationOptionsJson, clientsApplicationId))
+) : SigningKey(SigningKey::create(seed, keyDerivationOptionsJson, clientsApplicationId))
   {}
 
 const SignatureVerificationKey SigningKey::getSignatureVerificationKey() const {
@@ -31,12 +31,12 @@ const SignatureVerificationKey SigningKey::getSignatureVerificationKey() const {
 }
 
 SigningKey SigningKey::create(
-  const KeySqr<Face> &keySqr,
+  const std::string& seed,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId
 ) {
   const SodiumBuffer derivedKey = KeySqrDerivedKey::validateAndGenerateKey(
-    keySqr,
+    seed,
     keyDerivationOptionsJson,
     KeyDerivationOptionsJson::KeyType::Signing,
     clientsApplicationId,

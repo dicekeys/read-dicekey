@@ -19,21 +19,21 @@ PublicPrivateKeyPair::PublicPrivateKeyPair(
   {}
 
 PublicPrivateKeyPair::PublicPrivateKeyPair(
-  const KeySqr<Face> &keySqr,
+  const std::string& seed,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId
 ) : PublicPrivateKeyPair(
-  PublicPrivateKeyPair::create(keySqr, keyDerivationOptionsJson, clientsApplicationId)
+  PublicPrivateKeyPair::create(seed, keyDerivationOptionsJson, clientsApplicationId)
 ) {}
 
 
 PublicPrivateKeyPair PublicPrivateKeyPair::create(
-  const KeySqr<Face> &keySqr,
+  const std::string& seed,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId
 ) {
   const SodiumBuffer derivedKey = KeySqrDerivedKey::validateAndGenerateKey(
-    keySqr,
+    seed,
     keyDerivationOptionsJson,
     KeyDerivationOptionsJson::KeyType::Public,
     clientsApplicationId,

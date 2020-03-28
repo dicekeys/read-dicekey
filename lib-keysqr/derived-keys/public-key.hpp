@@ -3,7 +3,6 @@
 #include <cassert>
 #include <sodium.h>
 
-#include "../keysqr.hpp"
 #include "derived-key.hpp"
 
 class PublicKey {

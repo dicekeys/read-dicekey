@@ -2,9 +2,10 @@
 
 #include <cassert>
 #include <sodium.h>
+#include <vector>
+#include <string>
 
 #include "sodium-buffer.hpp"
-#include "../keysqr.hpp"
 
 class SignatureVerificationKey {
 public:

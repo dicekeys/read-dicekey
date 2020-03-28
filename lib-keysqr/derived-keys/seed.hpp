@@ -5,11 +5,11 @@
 class Seed : KeySqrDerivedKey {
   public:
   Seed(
-    const KeySqr<Face> &keySqr,
+    const std::string& seed,
     const std::string &keyDerivationOptionsJson,
     const std::string &clientsApplicationId = ""
   ) : KeySqrDerivedKey(
-    keySqr,
+    seed,
     keyDerivationOptionsJson,
     KeyDerivationOptionsJson::KeyType::Seed,
     clientsApplicationId

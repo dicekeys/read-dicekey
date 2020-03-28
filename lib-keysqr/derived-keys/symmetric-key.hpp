@@ -4,7 +4,7 @@
 class SymmetricKey : KeySqrDerivedKey {
   public:
   SymmetricKey(
-    const KeySqr<Face> &keySqr,
+    const std::string& seed,
     const std::string &keyDerivationOptionsJson,
     const std::string &clientsApplicationId = ""
   );

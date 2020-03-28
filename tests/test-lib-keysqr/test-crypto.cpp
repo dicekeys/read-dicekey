@@ -4,9 +4,10 @@
 #include "lib-keysqr.hpp"
 #include "../lib-keysqr/derived-keys/convert.hpp"
 
-const std::string orderedKeySqrHrf =
-	"A1tB2rC3bD4lE5tF6bG1tH1tI1tJ1tK1tL1tM1tN1tO1tP1tR1tS1tT1tU1tV1tW1tX1tY1tZ1t";
-KeySqrFromString orderedTestKey = KeySqrFromString(orderedKeySqrHrf);
+//const std::string orderedKeySqrHrf =
+//	"A1tB2rC3bD4lE5tF6bG1tH1tI1tJ1tK1tL1tM1tN1tO1tP1tR1tS1tT1tU1tV1tW1tX1tY1tZ1t";
+// KeySqrFromString orderedTestKey = KeySqrFromString(orderedKeySqrHrf);
+const std::string orderedTestKey = "A1tB2rC3bD4lE5tF6bG1tH1tI1tJ1tK1tL1tM1tN1tO1tP1tR1tS1tT1tU1tV1tW1tX1tY1tZ1t";
 std::string defaultTestPublicKeyDerivationOptionsJson = R"KGO({
 	"keyType": "Public",
 	"additionalSalt": "1"
@@ -36,7 +37,7 @@ TEST(SeedGeneration, FidoUseCase) {
 	const std::string seedAsHex = toHexStr(seed.reveal().toVector());
 	ASSERT_EQ(
 		seedAsHex,
-		"a3f8dc26cd89f0376560bddb99af39f3705aa65137fa9e7323ce4c70cea8bbd4a4079f8d864c66ea35cb44bdec8b5f0dac91c1cde9b7be9b33a92c51406083345d6ee274adba947dd0a09532aee9ed36d36b47fc2b4d9807f63282129b93b447"
+		"83ef9982e73e98028397dca77b4d9bd92568af1c5b645896c88e6519a3abfd789d10b5c51df1b592a1bb205aceb579d9e07643f3da14e4c0fbafe9a485299a2b19d7bc33ebc20ea7025b5580dee2d7013239486fce04e97684ebf12dd70ed81e"
 	);
 }
 

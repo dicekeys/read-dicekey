@@ -20,11 +20,11 @@ void _crypto_secretbox_nonce_salted(
 }
 
 SymmetricKey::SymmetricKey(
-  const KeySqr<Face> &keySqr,
+  const std::string& seed,
   const std::string &keyDerivationOptionsJson,
   const std::string &clientsApplicationId
 ) : KeySqrDerivedKey(
-  keySqr,
+  seed,
   keyDerivationOptionsJson,
   KeyDerivationOptionsJson::KeyType::Symmetric,
   clientsApplicationId,

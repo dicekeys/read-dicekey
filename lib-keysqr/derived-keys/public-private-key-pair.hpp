@@ -20,7 +20,7 @@ protected:
 
 public:
   PublicPrivateKeyPair(
-    const KeySqr<Face> &keySqr,
+    const std::string& seed,
     const std::string &keyDerivationOptionsJson,
     const std::string &clientsApplicationId = ""
   );
@@ -42,7 +42,7 @@ public:
  
 private:
   static PublicPrivateKeyPair create(
-    const KeySqr<Face> &keySqr,
+    const std::string& seed,
     const std::string &keyDerivationOptionsJson,
     const std::string &clientsApplicationId
   );
