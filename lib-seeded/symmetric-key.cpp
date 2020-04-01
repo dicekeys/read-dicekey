@@ -1,5 +1,6 @@
 #include <exception>
 #include "symmetric-key.hpp"
+#include "generate-seed.hpp"
 
 void _crypto_secretbox_nonce_salted(
   unsigned char *nonce,
@@ -19,16 +20,19 @@ void _crypto_secretbox_nonce_salted(
     crypto_generichash_final(&st, nonce, crypto_box_NONCEBYTES);
 }
 
+SymmetricKey::  SymmetricKey(
+  const SodiumBuffer& _key
+) : key(_key) {
+  if (key.length != crypto_secretbox_KEYBYTES) {
+    throw std::invalid_argument("Invalid key length");
+  }
+}
+
 SymmetricKey::SymmetricKey(
-  const std::string& seed,
-  const std::string &keyDerivationOptionsJson,
-  const std::string &clientsApplicationId
-) : KeySqrDerivedKey(
-  seed,
-  keyDerivationOptionsJson,
-  KeyDerivationOptionsJson::KeyType::Symmetric,
-  clientsApplicationId,
-  crypto_secretbox_KEYBYTES
+  const std::string& seedString,
+  const std::string& _keyDerivationOptionsJson
+) : SymmetricKey(
+  generateSeed(seedString, _keyDerivationOptionsJson, KeyDerivationOptionsJson::KeyType::Symmetric,crypto_secretbox_KEYBYTES)
 ) {}
 
 const std::vector<unsigned char> SymmetricKey::seal(
@@ -47,7 +51,7 @@ const std::vector<unsigned char> SymmetricKey::seal(
 
   // Write a nonce derived from the message and symmeetric key
   _crypto_secretbox_nonce_salted(
-    noncePtr, derivedKey.data, message, messageLength,
+    noncePtr, key.data, message, messageLength,
     postDecryptionInstructionsJson.c_str(), postDecryptionInstructionsJson.length());
   
   // Create the ciphertext as a secret box
@@ -56,7 +60,7 @@ const std::vector<unsigned char> SymmetricKey::seal(
     message,
     messageLength,
     noncePtr,
-    derivedKey.data
+    key.data
   );
 
   return ciphertext;
@@ -87,7 +91,7 @@ const SodiumBuffer SymmetricKey::unsealMessageContents(
         secretBoxStartPtr,
         ciphertextLength - crypto_secretbox_NONCEBYTES,
         noncePtr,
-        derivedKey.data
+        key.data
       );
    if (result != 0) {
      throw CryptographicVerificationFailure("Symmetric key unseal failed: the key or post-decryption instructions must be different from those used to seal the message, or the ciphertext was modified/corrupted.");
@@ -97,7 +101,7 @@ const SodiumBuffer SymmetricKey::unsealMessageContents(
   // postDecryptionInstructionsJson is valid 
   unsigned char recalculatedNonce[crypto_secretbox_NONCEBYTES];
   _crypto_secretbox_nonce_salted(
-    recalculatedNonce, derivedKey.data, plaintextBuffer.data, plaintextBuffer.length,
+    recalculatedNonce, key.data, plaintextBuffer.data, plaintextBuffer.length,
     postDecryptionInstructionsJson.c_str(), postDecryptionInstructionsJson.length()
   );
   if (memcmp(recalculatedNonce, noncePtr, crypto_secretbox_NONCEBYTES) != 0) {

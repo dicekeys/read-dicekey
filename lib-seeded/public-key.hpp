@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cassert>
+#include <vector>
+#include <string>
 #include <sodium.h>
-
-#include "derived-key.hpp"
+#include "sodium-buffer.hpp"
 
 class PublicKey {
 protected:

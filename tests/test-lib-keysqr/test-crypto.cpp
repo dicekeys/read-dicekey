@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 #include <string>
 #include <iostream>
-#include "lib-keysqr.hpp"
-#include "../lib-keysqr/derived-keys/convert.hpp"
+#include "lib-seeded.hpp"
+#include "../lib-seeded/convert.hpp"
 
 //const std::string orderedKeySqrHrf =
 //	"A1tB2rC3bD4lE5tF6bG1tH1tI1tJ1tK1tL1tM1tN1tO1tP1tR1tS1tT1tU1tV1tW1tX1tY1tZ1t";
@@ -25,19 +25,17 @@ std::string defaultTestSigningKeyDerivationOptionsJson = R"KGO({
 TEST(SeedGeneration, FidoUseCase) {
 	std::string kdo = R"KDO({
 	"keyType": "Seed",
-	"keyLengthInBytes": 96,
-	"hashFunction": {"algorithm": "Argon2id"},
-	"restrictToClientApplicationsIdPrefixes": ["com.dicekeys.fido"]
+	"hashFunction": "Argon2id",
+	"keyLengthInBytes": 96
 })KDO";
 	Seed seed(
 		orderedTestKey,
-		kdo,
-		"com.dicekeys.fido"
+		kdo
 	);
 	const std::string seedAsHex = toHexStr(seed.reveal().toVector());
 	ASSERT_EQ(
 		seedAsHex,
-		"83ef9982e73e98028397dca77b4d9bd92568af1c5b645896c88e6519a3abfd789d10b5c51df1b592a1bb205aceb579d9e07643f3da14e4c0fbafe9a485299a2b19d7bc33ebc20ea7025b5580dee2d7013239486fce04e97684ebf12dd70ed81e"
+		"6a7c4bf1355de9689f1c7148c304eda43d5b92dabdf00d83b488ed1d3f054f55a7ff32bf05c2a8e030aa66780f983b989b29d376498a1100865c0ebc095c1982b3079645ad9329f80248a69880c74c9bf087ef39ccbbc0cd1cdf587f8a79c6a5"
 	);
 }
 
@@ -62,21 +60,21 @@ TEST(PostDecryptionInstructions, HandlesEmptyJsonObject) {
 	);
 }
 
-TEST(PostDecryptionInstructions, HandlesRestrictions) {
-	std::string postDecryptionInstructionsJson =
-		R"MYJSON(
-			{
-				"userMustAcknowledgeThisMessage": "yolo",
-				"clientApplicationIdMustHavePrefix": ["myprefix"]
-			}
-		)MYJSON";
-	const auto dr = PostDecryptionInstructions(postDecryptionInstructionsJson);
-	ASSERT_STREQ(dr.userMustAcknowledgeThisMessage.c_str(), "yolo");
-	ASSERT_STREQ(dr.clientApplicationIdMustHavePrefix[0].c_str(), "myprefix");
-	ASSERT_FALSE(dr.isApplicationIdAllowed("doesnotstartwithmyprefix"));
-	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefixisthestartofthisid"));
-	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefix"));
-}
+//TEST(PostDecryptionInstructions, HandlesRestrictions) {
+//	std::string postDecryptionInstructionsJson =
+//		R"MYJSON(
+//			{
+//				"userMustAcknowledgeThisMessage": "yolo",
+//				"clientApplicationIdMustHavePrefix": ["myprefix"]
+//			}
+//		)MYJSON";
+//	const auto dr = PostDecryptionInstructions(postDecryptionInstructionsJson);
+//	ASSERT_STREQ(dr.userMustAcknowledgeThisMessage.c_str(), "yolo");
+//	ASSERT_STREQ(dr.clientApplicationIdMustHavePrefix[0].c_str(), "myprefix");
+//	ASSERT_FALSE(dr.isApplicationIdAllowed("doesnotstartwithmyprefix"));
+//	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefixisthestartofthisid"));
+//	ASSERT_TRUE(dr.isApplicationIdAllowed("myprefix"));
+//}
 
 TEST(PublicKey, GetsPublicKey) {
 	const PublicPrivateKeyPair testPublicPrivateKeyPair(orderedTestKey, defaultTestPublicKeyDerivationOptionsJson);

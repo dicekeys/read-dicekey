@@ -1,5 +1,5 @@
 #include "public-key.hpp"
-#include "../../includes/json.hpp"
+#include "../includes/json.hpp"
 #include "crypto_box_seal_salted.h"
 #include "convert.hpp"
 

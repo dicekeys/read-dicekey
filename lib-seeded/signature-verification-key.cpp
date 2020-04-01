@@ -1,6 +1,7 @@
+#include "../includes/json.hpp"
 #include "signature-verification-key.hpp"
-#include "../../includes/json.hpp"
 #include "convert.hpp"
+#include <stdexcept>
 
 namespace SignatureVerificationKeyJsonFieldName {
   const std::string verificationKeyBytesAsHexDigits = "verificationKeyBytesAsHexDigits";

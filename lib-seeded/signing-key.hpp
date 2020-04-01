@@ -8,20 +8,19 @@ protected:
   const SodiumBuffer signingKey;
   const std::string keyDerivationOptionsJson;
 
+public:
+  SigningKey(
+    const SigningKey& other
+  );
+
   SigningKey(
     const SodiumBuffer &signingKey,
     const std::string &KeyDerivationOptionsJson
   );
 
   SigningKey(
-    const SigningKey& other
-  );
-
-public:
-  SigningKey(
-    const std::string& seed,
-    const std::string &keyDerivationOptionsJson,
-    const std::string clientsApplicationId = ""
+    const std::string& seedString,
+    const std::string& keyDerivationOptionsJson
   );
 
   const SignatureVerificationKey getSignatureVerificationKey() const;
@@ -34,14 +33,5 @@ public:
   const std::vector<unsigned char> generateSignature(
     const std::vector<unsigned char> &message
   ) const;
-
-
- 
-private:
-  static SigningKey create(
-    const std::string& seed,
-    const std::string &keyDerivationOptionsJson,
-    const std::string &clientsApplicationId
-  );
 
 };

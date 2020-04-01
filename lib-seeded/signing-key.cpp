@@ -1,6 +1,7 @@
 #include "signing-key.hpp"
 #include "key-derivation-options.hpp"
-#include "derived-key.hpp"
+#include "sodium-buffer.hpp"
+#include "generate-seed.hpp"
 
 SigningKey::SigningKey(
   const SodiumBuffer& _signingKey,
@@ -18,11 +19,15 @@ SigningKey::SigningKey(
   {}
 
 SigningKey::SigningKey(
-  const std::string& seed,
-  const std::string& keyDerivationOptionsJson,
-  const std::string clientsApplicationId
-) : SigningKey(SigningKey::create(seed, keyDerivationOptionsJson, clientsApplicationId))
-  {}
+  const std::string& seedString,
+  const std::string& _keyDerivationOptionsJson
+) : signingKey(crypto_sign_SECRETKEYBYTES), keyDerivationOptionsJson(_keyDerivationOptionsJson) {
+  // Turn the seed string into a seed of the appropriate length
+  SodiumBuffer seed = generateSeed(seedString, keyDerivationOptionsJson, KeyDerivationOptionsJson::KeyType::Signing, crypto_sign_SEEDBYTES);
+  // We're not going to keep the signature-verification key, but the sodium API requires we provide a buffer for it.
+  std::vector<unsigned char> signatureVerificationKeyBytes(crypto_sign_PUBLICKEYBYTES);
+  crypto_sign_seed_keypair(signatureVerificationKeyBytes.data(), signingKey.data, seed.data);
+}
 
 const SignatureVerificationKey SigningKey::getSignatureVerificationKey() const {
   std::vector<unsigned char> pk(crypto_sign_PUBLICKEYBYTES);
@@ -30,23 +35,6 @@ const SignatureVerificationKey SigningKey::getSignatureVerificationKey() const {
   return SignatureVerificationKey(pk, keyDerivationOptionsJson);
 }
 
-SigningKey SigningKey::create(
-  const std::string& seed,
-  const std::string &keyDerivationOptionsJson,
-  const std::string &clientsApplicationId
-) {
-  const SodiumBuffer derivedKey = KeySqrDerivedKey::validateAndGenerateKey(
-    seed,
-    keyDerivationOptionsJson,
-    KeyDerivationOptionsJson::KeyType::Signing,
-    clientsApplicationId,
-    crypto_sign_SEEDBYTES
-  );
-  SodiumBuffer signingKey(crypto_sign_SECRETKEYBYTES);
-  std::vector<unsigned char> signatureVerificationKeyBytes(crypto_sign_PUBLICKEYBYTES);
-  crypto_sign_seed_keypair(signatureVerificationKeyBytes.data(), signingKey.data, derivedKey.data);
-  return SigningKey(signingKey, keyDerivationOptionsJson);
-}
 
 const std::vector<unsigned char> SigningKey::generateSignature(
   const unsigned char* message,

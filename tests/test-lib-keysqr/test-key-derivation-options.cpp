@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "lib-keysqr.hpp"
+#include "lib-seeded.hpp"
 
 
 TEST(KeyDerivationOptions, GeneratesDefaults) {
@@ -13,7 +13,6 @@ TEST(KeyDerivationOptions, GeneratesDefaults) {
 		R"KGO({
 	"algorithm": "X25519",
 	"hashFunction": "SHA256",
-	"includeOrientationOfFacesInKey": true,
 	"keyType": "Public"
 })KGO"
 	);
@@ -24,29 +23,33 @@ TEST(KeyDerivationOptions, FidoUseCase) {
 	KeyDerivationOptions kgo = KeyDerivationOptions(R"KGO({
 	"keyType": "Seed",
 	"keyLengthInBytes": 96,
-	"hashFunction": {"algorithm": "Argon2id"},
-	"restrictToClientApplicationsIdPrefixes": ["com.dicekeys.fido"]
+	"hashFunction": "Argon2id",
+	"restrictions": {
+		"androidPackagePrefixesAllowed": ["com.dicekeys.fido"]
+	}
 })KGO",
 	KeyDerivationOptionsJson::KeyType::Seed
 );
 	ASSERT_EQ(
 		kgo.keyDerivationOptionsJsonWithAllOptionalParametersSpecified(1, '\t'),
 		R"KGO({
-	"hashFunction": {
-		"algorithm": "Argon2id",
-		"memLimit": 67108864,
-		"opsLimit": 2
-	},
-	"includeOrientationOfFacesInKey": true,
+	"hashFunction": "Argon2id",
+	"hashFunctionIterations": 2,
+	"hashFunctionMemoryLimit": 67108864,
 	"keyLengthInBytes": 96,
-	"keyType": "Seed",
-	"restrictToClientApplicationsIdPrefixes": [
-		"com.dicekeys.fido"
-	]
+	"keyType": "Seed"
 })KGO"
 );
 }
-
+/*
+,
+	"restrictions": {
+		"androidPackagePrefixesAllowed": [
+			"com.dicekeys.fido"
+		],
+		"urlPrefixesAllowed": []
+	}
+*/
 
 TEST(KeyDerivationOptions, InitsWithClientPrefixes) {
 	KeyDerivationOptions kgo = KeyDerivationOptions(R"KGO({
@@ -60,12 +63,7 @@ TEST(KeyDerivationOptions, InitsWithClientPrefixes) {
 		R"KGO({
 	"algorithm": "X25519",
 	"hashFunction": "SHA256",
-	"includeOrientationOfFacesInKey": true,
-	"keyType": "Public",
-	"restrictToClientApplicationsIdPrefixes": [
-		"com.dicekeys.client",
-		"com.dicekeys.another"
-	]
+	"keyType": "Public"
 })KGO"
 );
 }

@@ -1,12 +1,20 @@
 #pragma once
-#include "derived-key.hpp"
 
-class SymmetricKey : KeySqrDerivedKey {
+#include <string>
+#include "sodium-buffer.hpp"
+
+class SymmetricKey {
+  SodiumBuffer key;
+
   public:
+
+  SymmetricKey(
+    const SodiumBuffer& _key
+  );
+
   SymmetricKey(
     const std::string& seed,
-    const std::string &keyDerivationOptionsJson,
-    const std::string &clientsApplicationId = ""
+    const std::string &keyDerivationOptionsJson
   );
 
   /**

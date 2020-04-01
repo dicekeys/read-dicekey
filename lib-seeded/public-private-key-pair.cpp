@@ -1,51 +1,44 @@
 #include "public-private-key-pair.hpp"
 #include "crypto_box_seal_salted.h"
 #include "key-derivation-options.hpp"
+#include "generate-seed.hpp"
 
-PublicPrivateKeyPair:: PublicPrivateKeyPair(
-  const SodiumBuffer &_secretKey,
-  const std::vector<unsigned char> &_publicKeyBytes,
+PublicPrivateKeyPair::PublicPrivateKeyPair(
+    const SodiumBuffer _secretKey,
+    const std::vector<unsigned char> _publicKeyBytes,
+    const std::string _keyDerivationOptionsJson
+  ) :
+    secretKey(_secretKey),
+    publicKeyBytes(_publicKeyBytes),
+    keyDerivationOptionsJson(_keyDerivationOptionsJson)
+    {}
+
+
+PublicPrivateKeyPair::PublicPrivateKeyPair(
+  const SodiumBuffer &seedBuffer,
   const std::string &_keyDerivationOptionsJson
-) :
-  PublicKey(_publicKeyBytes, _keyDerivationOptionsJson),
-  secretKey(_secretKey)
-  {}
+) : keyDerivationOptionsJson(_keyDerivationOptionsJson), publicKeyBytes(crypto_box_PUBLICKEYBYTES), secretKey(crypto_box_SECRETKEYBYTES) {
+  if (seedBuffer.length < crypto_box_SEEDBYTES){
+    throw std::invalid_argument("Insufficient seed length");
+  }
+  crypto_box_seed_keypair((unsigned char *) publicKeyBytes.data(), secretKey.data, seedBuffer.data);
+}
+
+  PublicPrivateKeyPair::PublicPrivateKeyPair(
+    const std::string& _seedString,
+    const std::string& _keyDerivationOptionsJson
+  ) : PublicPrivateKeyPair(
+      generateSeed(_seedString, _keyDerivationOptionsJson, KeyDerivationOptionsJson::KeyType::Public, crypto_box_SEEDBYTES),
+      _keyDerivationOptionsJson
+  ) {}
 
 PublicPrivateKeyPair::PublicPrivateKeyPair(
   const PublicPrivateKeyPair &other
 ):
-  PublicKey(other.publicKeyBytes, other.keyDerivationOptionsJson),
+  publicKeyBytes(other.publicKeyBytes), 
+  keyDerivationOptionsJson(other.keyDerivationOptionsJson),
   secretKey(other.secretKey)
   {}
-
-PublicPrivateKeyPair::PublicPrivateKeyPair(
-  const std::string& seed,
-  const std::string &keyDerivationOptionsJson,
-  const std::string &clientsApplicationId
-) : PublicPrivateKeyPair(
-  PublicPrivateKeyPair::create(seed, keyDerivationOptionsJson, clientsApplicationId)
-) {}
-
-
-PublicPrivateKeyPair PublicPrivateKeyPair::create(
-  const std::string& seed,
-  const std::string &keyDerivationOptionsJson,
-  const std::string &clientsApplicationId
-) {
-  const SodiumBuffer derivedKey = KeySqrDerivedKey::validateAndGenerateKey(
-    seed,
-    keyDerivationOptionsJson,
-    KeyDerivationOptionsJson::KeyType::Public,
-    clientsApplicationId,
-    crypto_box_SEEDBYTES
-  );
-  SodiumBuffer secretKey(crypto_box_SECRETKEYBYTES);
-  std::vector<unsigned char> publicKey(crypto_box_PUBLICKEYBYTES);
-  crypto_box_seed_keypair(publicKey.data(), secretKey.data, derivedKey.data);
-  return PublicPrivateKeyPair(secretKey, publicKey, keyDerivationOptionsJson);
-}
-
-
 
 const SodiumBuffer PublicPrivateKeyPair::unseal(
   const unsigned char* ciphertext,
@@ -79,7 +72,6 @@ const SodiumBuffer PublicPrivateKeyPair::unseal(
   return unseal(ciphertext.data(), ciphertext.size(), postDecryptionInstructionsJson
   );
 };
-
 
 const PublicKey PublicPrivateKeyPair::getPublicKey() const {
   return PublicKey(publicKeyBytes, keyDerivationOptionsJson);

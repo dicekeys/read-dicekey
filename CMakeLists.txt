@@ -93,6 +93,7 @@ include("extern/libsodium.cmake")
 ####################################################
 # Libraries to build
 ####################################################
+add_subdirectory("lib-seeded")
 add_subdirectory("lib-keysqr")
 add_subdirectory("lib-read-keysqr")
 

@@ -1,9 +1,6 @@
+
 #include <cassert>
 #include <exception>
-#include "../../includes/json.hpp"
-// Must come after json.hpp
-#include "../externally-generated/key-derivation-parameters.hpp"
-
 #include "post-decryption-instructions.hpp"
 
 PostDecryptionInstructions::PostDecryptionInstructions(
@@ -20,7 +17,7 @@ PostDecryptionInstructions::PostDecryptionInstructions(
 
   clientApplicationIdMustHavePrefix =
     decryptionOptionsObject.value<const std::vector<std::string>>(
-      DecryptionRestrictionsJson::FieldNames::clientApplicationIdMustHavePrefix,
+      DecryptionRestrictionsJson::FieldNames::androidPackagePrefixesAllowed,
       // Default to empty list containing the empty string, which is a prefix of all strings
       {""}
     );
@@ -47,7 +44,7 @@ std::string	PostDecryptionInstructions::toJson(int indent,
 	nlohmann::json asJson;  
   asJson[DecryptionRestrictionsJson::FieldNames::userMustAcknowledgeThisMessage] =
     userMustAcknowledgeThisMessage;
-  asJson[DecryptionRestrictionsJson::FieldNames::clientApplicationIdMustHavePrefix] =
+  asJson[DecryptionRestrictionsJson::FieldNames::androidPackagePrefixesAllowed] =
     clientApplicationIdMustHavePrefix;
   return asJson.dump(indent, indent_char);
 }

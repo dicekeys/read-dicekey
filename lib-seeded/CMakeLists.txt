@@ -1,4 +1,4 @@
-file(GLOB LIB_KEYSQR_SRCS
+file(GLOB SRCS
     "*.h"
     "*/*.h"
     "*.cpp"
@@ -8,18 +8,23 @@ file(GLOB LIB_KEYSQR_SRCS
 # This if statement is a hack until Stuart figures out
 # how to get builds with shared libs working on windows
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    add_library(lib-keysqr
+    add_library(lib-seeded
         STATIC
-        ${LIB_KEYSQR_SRCS}
+        ${SRCS}
     )
 else()
-    add_library(lib-keysqr
+    add_library(lib-seeded
         SHARED
-        ${LIB_KEYSQR_SRCS}
+        ${SRCS}
     )
 endif()
 
+target_link_libraries(lib-seeded
+    PRIVATE
+        sodium
+)
+
 # Use C++ 11
-set_target_properties(lib-keysqr PROPERTIES
+set_target_properties(lib-seeded PROPERTIES
 	CXX_STANDARD 11
 )
