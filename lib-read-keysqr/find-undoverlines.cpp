@@ -37,7 +37,7 @@ float findTighestModalAreaOfRects(const std::vector<RectangleDetected> &rects, s
 	float tightestModeRange = std::numeric_limits<float>::max();
 	float areaAtTigghtestMode = NAN;
 	int maxPossibleIndex = int(areas.size() - (halfModeSize + 2));
-	for (int i = halfModeSize; i < maxPossibleIndex; i++) {
+	for (size_t i = halfModeSize; i < maxPossibleIndex; i++) {
 		const float modeRange = areas[i + halfModeSize] / areas[i - halfModeSize];
 
 		if (modeRange < tightestModeRange ||
