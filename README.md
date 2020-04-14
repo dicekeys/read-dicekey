@@ -5,7 +5,7 @@
 
 ## Clone the repository with the ``--recursive`` option
 
-Since we include GoogleTest and opencv as submodules, you will need to clone this repository using the ``--recursive`` directory so that the submodule will be downloaded. (If you forgot, use ``git submodule update --init --recursive``.)
+Since we include GoogleTest as a submoulde, you will need to clone this repository using the ``--recursive`` directory so that the submodule will be downloaded. (If you forgot, use ``git submodule update --init --recursive``.)
 
 ```
 git clone --recursive https://github.com/dicekeys/read-keysqr.git
