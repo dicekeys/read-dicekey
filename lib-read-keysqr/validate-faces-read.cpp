@@ -25,6 +25,7 @@ void validateFacesRead(
 		const auto letter = faceAsString[0];
 		const char digit = faceAsString[1];
 		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationAsLowercaseLetterTRBLToClockwiseTurnsFromUpright(faceAsString[2]);
+		// FIXME -- invalid exception types
 		if (face.letter() == '?' && face.digit() == '?') {
 			throw std::string("Face ") + std::to_string(faceIndex) + " letter and digit could not be read";
 		} else if (face.letter() == '?') {

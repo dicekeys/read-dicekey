@@ -19,11 +19,6 @@ else()
     )
 endif()
 
-target_link_libraries(lib-keysqr
-    PRIVATE
-        sodium
-)
-
 # Use C++ 11
 set_target_properties(lib-keysqr PROPERTIES
 	CXX_STANDARD 11

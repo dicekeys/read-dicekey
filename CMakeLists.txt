@@ -7,7 +7,10 @@
 #    go to Visual Studio's debug menu or tool menu,
 #    choose the "options" item, and then
 #    go to the "Test Adapter For GoogleTest" tab.
-#    Clear the "Working Directory" field to an empty string.
+#
+#  Set 'Working Directory' to '$(SolutionDir)'
+#  (note, those are parens around SolutionDir, and not braces
+#   as one might become accustomed to seeing in CMake).
 #
 #######################################################################
 message("
@@ -61,17 +64,6 @@ get_filename_component(KEYSQR_LIBRARIES_PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}
 # set(ANDROID_ABI "x86_64" CACHE STRING "Default architecture to x86_64")
 
 # Paths
-#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-#set(CMAKE_PROJECT_BINARY_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-#set(CMAKE_BINARY_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-#set(CMAKE_LIBRARY_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/build/lib" CACHE PATH FORCE)
-#set(CMAKE_CURRENT_BINARY_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/build/bin" CACHE PATH FORCE)
-#set(CMAKE_CURRENT_LIBRARY_DIR "${KEYSQR_LIBRARIES_PROJECT_DIR}/build/lib" CACHE PATH FORCE)
-#set(BIN_DIR ${KEYSQR_LIBRARIES_PROJECT_DIR}/bin)
-#set(LIB_DIR ${KEYSQR_LIBRARIES_PROJECT_DIR}/lib)
 
 message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
@@ -85,10 +77,6 @@ message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR
 ####################################################
 # Ensure OpenCV is installed
 include("extern/opencv.cmake")
-
-####################################################
-# Ensure libSodium is installed
-include("extern/libsodium.cmake")
 
 ####################################################
 # Libraries to build

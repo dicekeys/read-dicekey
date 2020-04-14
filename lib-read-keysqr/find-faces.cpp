@@ -37,7 +37,7 @@ FaceAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 		// Search for overline with inferred face center near that of underline.
 		int bestMatchIndex = -1;
 		float bestMatchErrorDistance = maxErrorDistance;
-		for (size_t i = 0; i < overlines.size(); i++) {
+		for (int i = 0; i < overlines.size(); i++) {
 			const Undoverline& overline = overlines[i];
 			const float errorDistance =
 				distance2f(underline.center, overline.inferredOpposingUndoverlineCenter) +
