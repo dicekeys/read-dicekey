@@ -10,26 +10,16 @@
 #include "keysqr.hpp"
 #include "read-faces.h"
 
-// KeySqr facesReadToKeySqr(
-// 	const std::vector<FaceRead> facesRead,
-// 	bool reportErrsToStdErr = false
+// std::string readKeySqrJson(
+// 	const cv::Mat &grayscaleImage
 // );
 
-// KeySqr readKeySqr(
-// 	const cv::Mat &grayscaleImage,
-// 	bool outputErrors = false
+// std::string readKeySqrJson (
+// 	int width,
+// 	int height,
+// 	size_t bytesPerRow,
+// 	void* data
 // );
-
-std::string readKeySqrJson(
-	const cv::Mat &grayscaleImage
-);
-
-std::string readKeySqrJson (
-	int width,
-	int height,
-	size_t bytesPerRow,
-	void* data
-);
 
 static const std::chrono::time_point<std::chrono::system_clock> minTimePoint =
 	std::chrono::time_point<std::chrono::system_clock>::min();
@@ -58,15 +48,19 @@ private:
 	// The KeySqr that has been read is stored in this field, which also
 	// keeps track of any errors that you have to be resolved during reading.
 	KeySqr<FaceRead> keySqr = KeySqr<FaceRead>();
-	// After each call, the image passed to scanAndAugmentKeySqrImage
-	// is augmented with the scan results and copied here. 
-	cv::Mat augmentedColorImage_BGR_CV_8UC3 = cv::Mat();
 	// This field is set to true if we've reached the termination condition
 	// for the scanning loop.  This is the same value returned as the
 	// result of the scanAndAugmentKeySqrImage function.
 	bool terminate = false;
 
 public:
+	bool processRGBAImage (
+			int width,
+			int height,
+			size_t bytesPerRow,
+			void* pointerToRGBAByteArray
+	);
+
 	bool processImage(
 		int width,
 		int height,

@@ -5,7 +5,7 @@
 #include "graphics/cv.h"
 #include "keysqr.hpp"
 #include "read-faces.h"
-#include "read-keysqr.h"
+#include "read-keysqr.hpp"
 #include "validate-faces-read.h"
 
 /*

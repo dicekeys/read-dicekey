@@ -9,55 +9,10 @@
 #include "graphics/cv.h"
 #include "keysqr.hpp"
 #include "read-faces.h"
-#include "read-keysqr.h"
+#include "read-keysqr.hpp"
 #include "visualize-read-results.h"
+#include <opencv2/imgproc/imgproc.hpp>
 
-
-
-KeySqr<FaceRead> facesReadToKeySqr(
-	const std::vector<FaceRead> &facesRead //,
-//	bool reportErrsToStdErr
-) {
-	if (facesRead.size() != 25) {
-		throw std::string("A KeySqr must contain 25 faces but only has " + std::to_string(facesRead.size()));
-	}
-	return KeySqr<FaceRead>(facesRead);
-}
-
-
-KeySqr<FaceRead> readKeySqr(
-	const cv::Mat &grayscaleImage,
-	bool outputErrors
-) {
-  const ReadFaceResult facesRead = readFaces(grayscaleImage, outputErrors);
-  if (!facesRead.success || facesRead.faces.size() != NumberOfFaces) {
-    return KeySqr<FaceRead>();
-  } else {
-    return KeySqr<FaceRead>(facesRead.faces);
-  }
-}
-
-std::string readKeySqrJson(
-	const cv::Mat &grayscaleImage
-) {
-	try {
-	  KeySqr<FaceRead> keySqr = readKeySqr(grayscaleImage, false);
-	  return keySqr.toJson();
-	} catch (...) {
-		return "null";
-	}
-}
-
-
-std::string readKeySqrJson (
-	int width,
-	int height,
-	size_t bytesPerRow,
-	void* data
-) {
-  const cv::Mat grayscaleImage(cv::Size(width, height), CV_8UC1, data, bytesPerRow);
-  return readKeySqrJson(grayscaleImage);
-}
 
 const unsigned int maxCorrectableError = 2;
 const int millisecondsToTryToRemoveCorrectableErrors = 4000;
@@ -147,6 +102,24 @@ bool KeySqrImageReader::processImage(
 	return terminate;
 }
 
+bool KeySqrImageReader::processRGBAImage (
+		int width,
+		int height,
+		size_t bytesPerRow,
+		void* pointerToRGBAByteArray
+) {
+	// Create an OpenCV Matrix (Mat) representation of the RGBA data input
+  	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, pointerToRGBAByteArray, bytesPerRow);
+	// Create a grayscale matrix for the analysis
+	cv::Mat grayscale(width, height, CV_8UC1);
+	// Convert the RGBA image into a grayscale image
+	cv::cvtColor(colorImage, grayscale, cv::COLOR_RGBA2GRAY);
+	// Process the grayscale image.
+	return processImage(width, height, grayscale.step, grayscale.data);
+}
+
+
+
 /*
 ByteBuffer = buffer = ByteBuffer.allocateDirect( 4 * width * height );
 // call my API using the bytebuffer, which can later be replaced with an API that
@@ -174,7 +147,7 @@ void KeySqrImageReader::renderAugmentationOverlay(
 	}
 	if (keySqr.isInitialized() && keySqr.faces.size() == NumberOfFaces) {
 		cv::Mat overlayImage_RGBA_CV(cv::Size(width, height), CV_8UC4, rgbaArrayPtr);
-		augmentedColorImage_BGR_CV_8UC3 = visualizeReadResults(
+		visualizeReadResults(
 			overlayImage_RGBA_CV,
 			keySqr.faces,
 			angleInRadiansNonCanonicalForm,
