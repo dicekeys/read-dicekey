@@ -17,3 +17,8 @@ void validateFacesRead(
 	const std::vector<FaceRead> &facesRead,
 	std::string keySqrInHumanReadableForm
 );
+
+void validateFacesRead(
+	const KeySqr<FaceRead>& keySqrNonCanonical,
+	std::string keySqrInHumanReadableForm
+);

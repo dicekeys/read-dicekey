@@ -8,18 +8,24 @@
 #include "read-keysqr.hpp"
 #include "validate-faces-read.h"
 
+void validateFacesRead(
+	const std::vector<FaceRead>& facesRead,
+	std::string keySqrInHumanReadableForm
+) {
+	validateFacesRead(KeySqr<FaceRead>(facesRead), keySqrInHumanReadableForm);
+}
+
 /*
 Compare the faces read during a test to a 75 character specifiation string that contains
 three-character triples of letter, digit ('0'-'6'), and orientation (as number of turns from upright,
 '0'-'3').
 */
 void validateFacesRead(
-	const std::vector<FaceRead> &facesRead,
+	const KeySqr<FaceRead> &keySqrNonCanonical,
 	std::string keySqrInHumanReadableForm
 ) {
-	const KeySqr<FaceRead> keySqrNonCanonical = KeySqr<FaceRead>(facesRead);
 	const KeySqr<FaceRead> keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
-	for (size_t faceIndex = 0; faceIndex < facesRead.size(); faceIndex++) {
+	for (size_t faceIndex = 0; faceIndex < keySqr.faces.size(); faceIndex++) {
 		const auto face = keySqr.faces[faceIndex];
 		const std::string faceAsString = keySqrInHumanReadableForm.substr(faceIndex * 3, 3);
 		const auto letter = faceAsString[0];

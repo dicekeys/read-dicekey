@@ -2,6 +2,32 @@
 #include "read-keysqr.hpp"
 #include "validate-faces-read.h"
 
+void testFileWithObj(
+  std::string filePath = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".jpg"
+) {
+  cv::Mat bgraImage = cv::imread("tests/test-lib-read-keysqr/img/" + filePath, cv::IMREAD_COLOR);
+  ASSERT_FALSE(bgraImage.empty()) << "No such file at " << filePath;
+  cv::Mat rgbaImage;
+  cv::cvtColor(bgraImage, rgbaImage, cv::COLOR_BGRA2RGBA);
+
+  const size_t indexOfLastSlash = filePath.find_last_of("/") + 1;
+  const std::string filename = filePath.substr(indexOfLastSlash);
+  const std::string fileBase = filename.substr(0, filename.find_last_of("."));
+
+  try {
+    KeySqrImageReader reader;
+    reader.processRGBAImage(rgbaImage.cols, rgbaImage.rows, rgbaImage.step, rgbaImage.data);
+    auto keySqr = reader.keySqrRead();
+    validateFacesRead(keySqr, filename.substr(0, 75));
+  } catch (std::string errStr) {
+    std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
+    ASSERT_TRUE(false) << filename << "\n  " << errStr;
+  }
+}
+
+TEST(KeySqrImageReaderFileTests, B21U11Z30O62W51C10D22T22F61X52I11R30L21H52A22K11P40J33V51Y41M33S20N63E60G32) {
+  testFileWithObj("B21U11Z30O62W51C10D22T22F61X52I11R30L21H52A22K11P40J33V51Y41M33S20N63E60G32.jpg");
+}
 
 void testFile(
   std::string filePath = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".jpg",
