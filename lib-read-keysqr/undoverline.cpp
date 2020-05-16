@@ -15,7 +15,7 @@ Undoverline::Undoverline(
 	cv::RotatedRect _fromRotatedRect,
 	const Line &undoverlineStartingAtImageLeft,
 	unsigned char _whiteBlackThreshold,
-	const uint binaryCodingReadForwardOrBackward
+	const unsigned int binaryCodingReadForwardOrBackward
 ) {
 	fromRotatedRect = _fromRotatedRect;
 	whiteBlackThreshold = _whiteBlackThreshold;

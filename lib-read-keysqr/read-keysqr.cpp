@@ -42,7 +42,7 @@ const int millisecondsToTryToRemoveCorrectableErrors = 4000;
  * std::string in JSON format that can be returned back to any
  * consumer that can parse JSON format.
  **/
-bool KeySqrImageReader::processImage(
+bool DiceKeyImageProcessor::processImage(
 		int width,
 		int height,
 		size_t bytesPerRow,
@@ -102,14 +102,14 @@ bool KeySqrImageReader::processImage(
 	return terminate;
 }
 
-bool KeySqrImageReader::processRGBAImage (
+bool DiceKeyImageProcessor::processRGBAImage (
 		int width,
 		int height,
 		size_t bytesPerRow,
-		void* pointerToRGBAByteArray
+		const uint32_t* pointerToRGBAByteArray
 ) {
 	// Create an OpenCV Matrix (Mat) representation of the RGBA data input
-  	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, pointerToRGBAByteArray, bytesPerRow);
+  	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, (void*) pointerToRGBAByteArray, bytesPerRow);
 	// Create a grayscale matrix for the analysis
 	cv::Mat grayscale(width, height, CV_8UC1);
 	// Convert the RGBA image into a grayscale image
@@ -133,7 +133,7 @@ Bitmap bitmap = createArray( buffer.asIntBuffer().array(), width, height, Bitmap
 /*
  * Note that the rgba array from android will be inbig endian format
  */
-void KeySqrImageReader::renderAugmentationOverlay(	
+void DiceKeyImageProcessor::renderAugmentationOverlay(	
 		const int width,
 		const int height,
 		uint32_t* rgbaArrayPtr
@@ -156,10 +156,10 @@ void KeySqrImageReader::renderAugmentationOverlay(
 	}
 }
 
-std::string KeySqrImageReader::jsonKeySqrRead() {
+std::string DiceKeyImageProcessor::jsonKeySqrRead() {
 	return keySqr.toJson();
 }
 
-bool KeySqrImageReader::isFinished() {
+bool DiceKeyImageProcessor::isFinished() {
 	return terminate;
 }

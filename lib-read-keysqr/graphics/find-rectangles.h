@@ -14,6 +14,6 @@ std::vector<RectangleDetected> removeOverlappingRectangles(
 // returns sequence of squares detected on the image.
 std::vector<RectangleDetected> findRectangles(
 	const cv::Mat &gray,
-	uint N = 13,
+	unsigned int N = 13,
 	double minPerimeter = 50
 );

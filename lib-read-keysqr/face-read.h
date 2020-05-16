@@ -9,8 +9,8 @@
 #include "graphics/geometry.h"
 
 #include "undoverline.h"
-#include "keysqr.hpp"
-#include "face.hpp"
+#include "../lib-keysqr/keysqr.hpp"
+#include "../lib-keysqr/face.hpp"
 #include "simple-ocr.h"
 
 class FaceUndoverlines {
@@ -110,7 +110,7 @@ namespace FaceErrors {
   extern const FaceError None;
 }
 
-class FaceRead: public FaceUndoverlines, public IFace, public Rotateable<FaceRead> {
+class FaceRead final: public FaceUndoverlines, public IFace, public Rotateable<FaceRead> {
 private:
 	char _orientationAs0to3ClockwiseTurnsFromUpright;
   std::string ocrLetterFromMostToLeastLikely;

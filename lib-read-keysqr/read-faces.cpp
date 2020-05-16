@@ -40,7 +40,7 @@ ReadFaceResult readFaces(
 			// is absent, we use the threshold from the line that is present.
 			const uchar whiteBlackThreshold =
 				(face.underline.found && face.overline.found) ?
-				uchar((uint(face.underline.whiteBlackThreshold) + uint(face.overline.whiteBlackThreshold)) / 2) :
+				uchar(((unsigned int)(face.underline.whiteBlackThreshold) + (unsigned int)(face.overline.whiteBlackThreshold)) / 2) :
 				face.underline.found ?
 				face.underline.whiteBlackThreshold :
 				face.overline.whiteBlackThreshold;

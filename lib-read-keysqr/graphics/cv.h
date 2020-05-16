@@ -10,5 +10,3 @@
 #include <opencv2/core/matx.hpp>
 // for findContours and polylines
 #include <opencv2/imgproc.hpp>
-// for imread in tests files, imwrite if needed
-#include <opencv2/imgcodecs.hpp>

@@ -29,7 +29,7 @@ static const std::chrono::time_point<std::chrono::system_clock> minTimePoint =
  * and is used both to input the result of the prior call and to return results
  * from the current call.
  **/
-class KeySqrImageReader {
+class DiceKeyImageProcessor {
 private:
 	// This value is true if the result was returned from a call to readKeySqr and
 	// is false when a default result is constructed by the caller and a pointer is
@@ -58,7 +58,7 @@ public:
 			int width,
 			int height,
 			size_t bytesPerRow,
-			uint32_t* pointerToRGBAByteArray
+			const uint32_t* pointerToRGBAByteArray
 	);
 
 	bool processJsImageData (
@@ -70,8 +70,8 @@ public:
 			width,
 			height,
 			width * 4,
-			dataFieldWhichIsUint8ClampedArrayInJsButEmbindTreatsAsStdString.data()
-		)
+			(const uint32_t*) dataFieldWhichIsUint8ClampedArrayInJsButEmbindTreatsAsStdString.data()
+		);
 	}
 
 	bool processImage(

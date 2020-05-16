@@ -20,7 +20,7 @@ file(GLOB ALL_SRC_FILES
 
 # This if statement is a hack until Stuart figures out
 # how to get builds with shared libs working on windows
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     add_library(${KEYSQR_LIBRARIES_PROJECT_NAME}
         STATIC
         ${ALL_SRC_FILES}
@@ -39,7 +39,6 @@ target_include_directories( ${KEYSQR_LIBRARIES_PROJECT_NAME} PUBLIC
         ${PROJECT_SOURCE_DIR}/lib-keysqr
         ${OpenCV_INCLUDE_DIRS}
 )
-
 
 
 # Link OpenCV and lib-keysqr so that they're both accessible as part of this add_library

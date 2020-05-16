@@ -34,7 +34,7 @@ public:
     cv::RotatedRect _fromRotatedRect,
     const Line &undoverlineStartingAtImageLeft,
     unsigned char _whiteBlackThreshold,
-    const uint binaryCodingReadForwardOrBackward
+    const unsigned int binaryCodingReadForwardOrBackward
   );
 
 	const cv::RotatedRect rederiveBoundaryRect() const;

@@ -21,8 +21,8 @@ static NUMBER percentile(const std::vector<NUMBER>& numbers, float percentileOf1
 	if (numbers.size() == 0) return 0;
 
 	std::vector<NUMBER> sorted = numbers;
-	uint lower = (uint) floor(numbers.size() * percentileOf100 / 100);
-	uint upper = std::min<uint>((uint) ceil(numbers.size() * percentileOf100 / 100), ((uint)numbers.size())-1);
+	unsigned int lower = (unsigned int) floor(numbers.size() * percentileOf100 / 100);
+	unsigned int upper = std::min<unsigned int>((unsigned int) ceil(numbers.size() * percentileOf100 / 100), ((unsigned int)numbers.size())-1);
 	std::sort(sorted.begin(), sorted.end(), [](NUMBER a, NUMBER b) { return a < b; });
 	return (sorted[lower] + sorted[upper]) / 2;
 }
@@ -251,7 +251,7 @@ static NUMBER bimodalThresholdWithFractionalDensities(
 }
 
 
-static float findAndValidateMeanDifference(const std::vector<float> &sortedValues, float minBoundEdgeRange = NAN)
+inline float findAndValidateMeanDifference(const std::vector<float> &sortedValues, float minBoundEdgeRange = NAN)
 {
 	if (sortedValues.size() < 2) {
 		return NAN;
@@ -350,7 +350,7 @@ reduced to the range.
 Useful for taking a range of angles and finding the average deviation from
 a right angle (in range -45 to 45 degrees)
 */
-static float findPointOnCircularSignedNumberLineClosestToCenterOfMass(const std::vector<float> points, const float R) {
+inline float findPointOnCircularSignedNumberLineClosestToCenterOfMass(const std::vector<float> points, const float R) {
 	if (points.size() == 0)
 		return NAN;
 	std::vector<float> pointsInRange = vmap<float, float>(points, [R](const float *point) {

@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "read-keysqr.hpp"
 #include "validate-faces-read.h"
+// for imread in tests files, imwrite if needed
+#include <opencv2/imgcodecs.hpp>
 
 void testFileWithObj(
   std::string filePath = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".jpg"
@@ -15,7 +17,7 @@ void testFileWithObj(
   const std::string fileBase = filename.substr(0, filename.find_last_of("."));
 
   try {
-    KeySqrImageReader reader;
+    DiceKeyImageProcessor reader;
     reader.processRGBAImage(rgbaImage.cols, rgbaImage.rows, rgbaImage.step, rgbaImage.data);
     auto keySqr = reader.keySqrRead();
     validateFacesRead(keySqr, filename.substr(0, 75));

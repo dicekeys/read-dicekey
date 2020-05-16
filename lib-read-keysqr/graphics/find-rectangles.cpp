@@ -16,7 +16,7 @@ std::vector<RectangleDetected> removeOverlappingRectangles(
 	std::vector<RectangleDetected> non_overlapping_rectangles;
 	for (auto& rect : rectangles) {
 		int overlaps_with_index = -1;
-		for (uint i = 0; i < non_overlapping_rectangles.size(); i++) {
+		for (unsigned int i = 0; i < non_overlapping_rectangles.size(); i++) {
 			if (rect.overlaps(non_overlapping_rectangles[i])) {
 				overlaps_with_index = i;
 				break;
@@ -47,7 +47,7 @@ std::vector<RectangleDetected> removeOverlappingRectangles(
 // returns sequence of squares detected on the image.
 std::vector<RectangleDetected> findRectangles(
 	const cv::Mat &gray,
-	uint N,
+	unsigned int N,
 	double minPerimeter
 ) {
 	std::vector<RectangleDetected> rectanglesFound;
@@ -59,7 +59,7 @@ std::vector<RectangleDetected> findRectangles(
 	cv::medianBlur(gray, grayBlur, 3); // was 3
 
 	// try several threshold levels
-	for (uint l = 0; l < N; l++)
+	for (unsigned int l = 0; l < N; l++)
 	{
 		// hack: use Canny instead of zero threshold level.
 		// Canny helps to catch squares with gradient shading
