@@ -61,19 +61,6 @@ public:
 			const uint32_t* pointerToRGBAByteArray
 	);
 
-	bool processJsImageData (
-		int width,
-		int height,
-		const std::string &dataFieldWhichIsUint8ClampedArrayInJsButEmbindTreatsAsStdString
-	) {
-		return processRGBAImage(
-			width,
-			height,
-			width * 4,
-			(const uint32_t*) dataFieldWhichIsUint8ClampedArrayInJsButEmbindTreatsAsStdString.data()
-		);
-	}
-
 	bool processImage(
 		int width,
 		int height,
