@@ -105,11 +105,10 @@ bool DiceKeyImageProcessor::processImage(
 bool DiceKeyImageProcessor::processRGBAImage (
 		int width,
 		int height,
-		size_t bytesPerRow,
 		const uint32_t* pointerToRGBAByteArray
 ) {
 	// Create an OpenCV Matrix (Mat) representation of the RGBA data input
-  	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, (void*) pointerToRGBAByteArray, bytesPerRow);
+  	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, (void*) pointerToRGBAByteArray, 4 * width);
 	// Create a grayscale matrix for the analysis
 	cv::Mat grayscale(width, height, CV_8UC1);
 	// Convert the RGBA image into a grayscale image

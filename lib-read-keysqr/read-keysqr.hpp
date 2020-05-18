@@ -57,7 +57,6 @@ public:
 	bool processRGBAImage (
 			int width,
 			int height,
-			size_t bytesPerRow,
 			const uint32_t* pointerToRGBAByteArray
 	);
 
