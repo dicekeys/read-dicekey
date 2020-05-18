@@ -88,7 +88,7 @@ bool DiceKeyImageProcessor::processImage(
 	//   2. the errors observed are correctable with high probability AND
 	//      we haven't been able to process an image that corrects them for the
 	//      period of time defined by millisecondsToTryToRemoveCorrectableErrors.
-	const bool terminate = (
+	terminate = (
 			// We have an error free scan, or...
 			keySqr.totalError() == 0
 		) || (
