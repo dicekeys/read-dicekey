@@ -130,7 +130,7 @@ Bitmap bitmap = createArray( buffer.asIntBuffer().array(), width, height, Bitmap
 // Later, we can repace the image augmentation code with code that writes directly into the canvas.
 */
 /*
- * Note that the rgba array from android will be inbig endian format
+ * Note that the rgba array from android will be in big endian format
  */
 void DiceKeyImageProcessor::renderAugmentationOverlay(	
 		const int width,
@@ -144,6 +144,16 @@ void DiceKeyImageProcessor::renderAugmentationOverlay(
 		// 100% transparent (black with opacity 0)
 		(*pixelPtr++) = 0;
 	}
+	// Then augment the transparent image with the rendering of DiceKeys
+	augmentRGBAImage(width, height, rgbaArrayPtr);
+}
+
+void DiceKeyImageProcessor::augmentRGBAImage(	
+		const int width,
+		const int height,
+		uint32_t* rgbaArrayPtr
+) {
+	// Make all pixels transparent
 	if (keySqr.isInitialized() && keySqr.faces.size() == NumberOfFaces) {
 		cv::Mat overlayImage_RGBA_CV(cv::Size(width, height), CV_8UC4, rgbaArrayPtr);
 		visualizeReadResults(
@@ -154,6 +164,7 @@ void DiceKeyImageProcessor::renderAugmentationOverlay(
 		);
 	}
 }
+
 
 std::string DiceKeyImageProcessor::jsonKeySqrRead() {
 	return keySqr.toJson();

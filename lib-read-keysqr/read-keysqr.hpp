@@ -54,6 +54,15 @@ private:
 	bool terminate = false;
 
 public:
+	/**
+	 * @brief Search for DiceKeys in an RGBA image
+	 * 
+	 * @param width the width of the RGBA buffer
+	 * @param height the height of the RGBA buffer
+	 * @param pointerToRGBAByteArray the buffer itself
+	 * @return true The full DiceKey was successfully read
+	 * @return false otherwise
+	 */
 	bool processRGBAImage (
 			int width,
 			int height,
@@ -67,14 +76,46 @@ public:
 		void* pointerToByteArray
 	);
 
+	/**
+	 * @brief Render a translucent overlay to display what the algorithm
+	 * has been able to read.  (the entire buffer is overwritten)
+	 * 
+	 * @param width the width of the overlay to create
+	 * @param height the height of the overlay to create
+	 * @param rgbaArrayPtr an RBBA data buffer to entirely overwrite
+	 */
 	void renderAugmentationOverlay(	
 		int width,
 		int height,
 		uint32_t* rgbaArrayPtr
 	);
 
+	/**
+	 * @brief Render a representation of what the algorithm
+	 * has been able top of an existing image
+	 * 
+	 * @param width the width of the overlay to create
+	 * @param height the height of the overlay to create
+	 * @param rgbaArrayPtr an RBBA data buffer to augment (partially write over)
+	 */
+	void augmentRGBAImage(	
+		const int width,
+		const int height,
+		uint32_t* rgbaArrayPtr
+	); 
+
+	/**
+	 * @brief Return a 
+	 * 
+	 * @return KeySqr<FaceRead> 
+	 */
 	KeySqr<FaceRead> keySqrRead() { return keySqr; }
 
+	/**
+	 * @brief Return a JSON representation of the DiceKey read.
+	 * 
+	 * @return std::string 
+	 */
 	std::string jsonKeySqrRead();
 
 	bool isFinished();
