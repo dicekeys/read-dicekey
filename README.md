@@ -8,8 +8,8 @@
 Since we include GoogleTest as a submoulde, you will need to clone this repository using the ``--recursive`` directory so that the submodule will be downloaded. (If you forgot, use ``git submodule update --init --recursive``.)
 
 ```
-git clone --recursive https://github.com/dicekeys/read-keysqr.git
-cd read-keysqr
+git clone --recursive https://github.com/dicekeys/read-dicekey.git
+cd read-dicekey
 ```
 
 #### Prerequisite installs
