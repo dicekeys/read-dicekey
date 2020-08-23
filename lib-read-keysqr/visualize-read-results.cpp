@@ -24,6 +24,16 @@ Color errorMagnitudeToColor(unsigned errorMagnitude) {
       colorBigErrorRed;
 }
 
+/**
+ * @brief Create an image overlay on top of an existing image
+ * be it the image analzyed or a tranparent overlay.
+ * 
+ * @param overlayImage Must be a CV_8UC4 RGBA image
+ * @param faces An array of the 25 faces
+ * @param angleInRadiansNonCanonicalForm 
+ * @param pixelsPerFaceEdgeWidth 
+ * @return cv::Mat 
+ */
 cv::Mat visualizeReadResults(
 	cv::Mat &overlayImage,
 	const std::vector<FaceRead> &faces,

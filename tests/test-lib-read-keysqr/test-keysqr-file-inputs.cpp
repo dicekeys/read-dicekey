@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "read-keysqr.hpp"
 #include "validate-faces-read.h"
+#include "visualize-read-results.h"
 // for imread in tests files, imwrite if needed
 #include <opencv2/imgcodecs.hpp>
 
@@ -18,7 +19,7 @@ void testFileWithObj(
 
   try {
     DiceKeyImageProcessor reader;
-    reader.processRGBAImage(rgbaImage.cols, rgbaImage.rows, rgbaImage.step, rgbaImage.data);
+    reader.processRGBAImage(rgbaImage.cols, rgbaImage.rows, (uint32_t*) rgbaImage.data);
     auto keySqr = reader.keySqrRead();
     validateFacesRead(keySqr, filename.substr(0, 75));
   } catch (std::string errStr) {
@@ -54,8 +55,9 @@ void testFile(
 
 	cv::Mat colorImage = cv::imread("tests/test-lib-read-keysqr/img/" + filePath, cv::IMREAD_COLOR);
   ASSERT_FALSE(colorImage.empty()) << "No such file at " << filePath;
-	cv::Mat grayscaleImage;
-	cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
+	cv::Mat grayscaleImage, rgbaImage;
+  cv::cvtColor(colorImage, grayscaleImage, cv::COLOR_BGR2GRAY);
+  cv::cvtColor(colorImage, rgbaImage, cv::COLOR_BGR2RGBA);
 
   
   const size_t indexOfLastSlash = filePath.find_last_of("/") + 1;
@@ -65,8 +67,15 @@ void testFile(
   int totalError;
   try {
     const auto facesRead = readFaces(grayscaleImage, true);
-    //const cv::Mat faceReadOutput = visualizeReadResults(image, facesRead, true);
-    //cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", faceReadOutput);
+
+    if (facesRead.faces.size() == 25) {
+      const auto angleInRadiansNonCanonicalForm = facesRead.angleInRadiansNonCanonicalForm;
+      const auto pixelsPerFaceEdgeWidth = facesRead.pixelsPerFaceEdgeWidth;
+      const cv::Mat faceReadOutput = visualizeReadResults(rgbaImage, facesRead.faces, angleInRadiansNonCanonicalForm, pixelsPerFaceEdgeWidth);
+      cv::Mat faceReadOutputBGR;
+      cv::cvtColor(faceReadOutput, faceReadOutputBGR, cv::COLOR_RGBA2BGR);
+      cv::imwrite("out/" + filename.substr(0, filename.length() - 4) + "-results.png", faceReadOutputBGR);
+    }
 
     // Uncomment for debugging
     // cv::Mat colorImage;
