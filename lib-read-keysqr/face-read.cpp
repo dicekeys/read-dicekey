@@ -13,12 +13,6 @@
 #include "simple-ocr.h"
 #include "decode-face.h"
 #include "face-read.h"
-// #include "find-undoverlines.h"
-// #include "keysqr.hpp"
-// #include "face-read.h"
-// #include "assemble-keysqr.h"
-// #include "read-face-characters.h"
-// #include "visualize-read-results.h"
 #include "json.h"
 
 namespace FaceErrors {
