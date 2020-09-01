@@ -16,7 +16,7 @@ void validateFacesRead(
 }
 
 /*
-Compare the faces read during a test to a 75 character specifiation string that contains
+Compare the faces read during a test to a 75 character specification string that contains
 three-character triples of letter, digit ('0'-'6'), and orientation (as number of turns from upright,
 '0'-'3').
 */
@@ -30,7 +30,7 @@ void validateFacesRead(
 		const std::string faceAsString = keySqrInHumanReadableForm.substr(faceIndex * 3, 3);
 		const auto letter = faceAsString[0];
 		const char digit = faceAsString[1];
-		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationAsLowercaseLetterTRBLToClockwiseTurnsFromUpright(faceAsString[2]);
+		const int orientationAs0to3ClockwiseTurnsFromUpright = orientationAsLowercaseLetterTrblToClockwiseTurnsFromUpright(faceAsString[2]);
 		// FIXME -- invalid exception types
 		if (face.letter() == '?' && face.digit() == '?') {
 			throw std::string("Face ") + std::to_string(faceIndex) + " letter and digit could not be read";

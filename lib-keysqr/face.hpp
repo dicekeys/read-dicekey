@@ -18,7 +18,7 @@ inline char trbl(int clockwiseTurnsToRight) {
 }
 
 
-inline char orientationAsLowercaseLetterTRBLToClockwiseTurnsFromUpright(char orientationAsLowercaseLetterTRBL) {
+inline char orientationAsLowercaseLetterTrblToClockwiseTurnsFromUpright(char orientationAsLowercaseLetterTRBL) {
   switch (orientationAsLowercaseLetterTRBL) {
     case 't':
     case 'T':
@@ -47,7 +47,7 @@ inline char orientationAsLowercaseLetterTRBLToClockwiseTurnsFromUpright(char ori
 
 inline char rotateOrientationAsLowercaseLetterTRBL(char orientationAsLowercaseLetterTRBL, int clockwiseTurns) {
   const char orientationAs0to3ClockwiseTurnsFromUprightBeforeRotation = 
-    orientationAsLowercaseLetterTRBLToClockwiseTurnsFromUpright(orientationAsLowercaseLetterTRBL);
+    orientationAsLowercaseLetterTrblToClockwiseTurnsFromUpright(orientationAsLowercaseLetterTRBL);
   if (orientationAsLowercaseLetterTRBL == '?') {
     return '?';
   }

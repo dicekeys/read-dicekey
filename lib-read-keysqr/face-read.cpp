@@ -77,7 +77,7 @@ std::string FaceRead::toJson() const {
 			"\"" << JsonKeys::FaceRead::underline << "\": " << underline.toJson() << ", " <<
 			"\"" << JsonKeys::FaceRead::overline << "\": " << overline.toJson() << ", " <<
 			"\"" << JsonKeys::FaceRead::center << "\": " << pointToJson(center()) << ", " <<
-			"\"" << JsonKeys::FaceRead::orientationAsLowercaseLetterTRBL << "\": \"" << std::string(1, orientationAsLowercaseLetterTRBL()) << "\"," <<
+			"\"" << JsonKeys::FaceRead::orientationAsLowercaseLetterTrbl << "\": \"" << std::string(1, orientationAsLowercaseLetterTRBL()) << "\"," <<
 			"\"" << JsonKeys::FaceRead::ocrLetterCharsFromMostToLeastLikely << "\": \"" <<
 				ocrLetterFromMostToLeastLikely << "\", " <<
 			"\"" << JsonKeys::FaceRead::ocrDigitCharsFromMostToLeastLikely << "\": \"" <<
@@ -132,7 +132,7 @@ FaceError FaceRead::error() const {
 					overline.found ?
 						// The magnitude of the error is the hamming distance error in overline
 						(unsigned char)hammingDistance(underlineFaceInferred.overlineCode, overline.letterDigitEncoding) :
-						// Since the overline was not found, the magntidue is specified via a constant
+						// Since the overline was not found, the magnitude is specified via a constant
 						FaceErrors::Magnitude::UnderlineOrOverlineMissing,
 					FaceErrors::Location::Overline
 				};
@@ -143,7 +143,7 @@ FaceError FaceRead::error() const {
 				underline.found ?
 					// The magnitude of the error is the hamming distance error in underline
 					(unsigned char)hammingDistance(overlineFaceInferred.underlineCode, underline.letterDigitEncoding) :				
-					// Since the underline was not found, the magntidue is specified via a constant
+					// Since the underline was not found, the magnitude is specified via a constant
 					FaceErrors::Magnitude::UnderlineOrOverlineMissing,
 					FaceErrors::Location::Underline
 			};

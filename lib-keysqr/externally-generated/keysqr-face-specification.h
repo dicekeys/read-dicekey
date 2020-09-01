@@ -92,7 +92,7 @@ namespace JsonKeys {
 	namespace FaceRead {
 		const std::string underline = "underline";
 		const std::string overline = "overline";
-		const std::string orientationAsLowercaseLetterTRBL = "orientationAsLowercaseLetterTRBL";
+		const std::string orientationAsLowercaseLetterTrbl = "orientationAsLowercaseLetterTrbl";
 		const std::string ocrLetterCharsFromMostToLeastLikely = "ocrLetterCharsFromMostToLeastLikely";
 		const std::string ocrDigitCharsFromMostToLeastLikely = "ocrDigitCharsFromMostToLeastLikely";
 		const std::string center = "center";

@@ -28,7 +28,7 @@ Face::Face(
   _orientationAs0to3ClockwiseTurnsFromUpright(
     letterDigitOrientationTriple.length() < 3 ?
     '?' :
-    orientationAsLowercaseLetterTRBLToClockwiseTurnsFromUpright(
+    orientationAsLowercaseLetterTrblToClockwiseTurnsFromUpright(
       letterDigitOrientationTriple[2]
     )
   )
