@@ -109,8 +109,8 @@ const OcrResult findClosestMatchingCharacter(
         const uchar pixel = bwImageOfCharacter.at<uchar>(imageY, imageX); // cv::Point2i(imageX, imageY));
         unsigned char penaltyEntry = *(penaltyPtrAtModelYX + charIndex);
         const bool isImagePixelBlack = pixel < 128;
-        // The high nible has the penalty if the pixel is white,
-        // and the low nible has the penalty if the pixel is black
+        // The high nibble has the penalty if the pixel is white,
+        // and the low nibble has the penalty if the pixel is black
         unsigned char penalty = isImagePixelBlack ?
           (penaltyEntry & 0xf) : (penaltyEntry >> 4);
         result[charIndex].errorScore += penalty;

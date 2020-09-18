@@ -67,15 +67,19 @@ void writeFaceCharacters(
 		for (auto p : letterRecord->outlinePoints) {
 			const int x = int(round(letterTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
 			const int y = int(round(letterTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
-			imageColor.at<cv::Vec4b>(y, x) = letterColor.scalarRGBA;
-		}
+			if (x >= 0 || y >= 0 || x < imageColor.cols || y < imageColor.rows) {
+				imageColor.at<cv::Vec4b>(y, x) = letterColor.scalarRGBA;
+			}
+	}
 	}
 
 	if (digitRecord) {
 		for (auto p : digitRecord->outlinePoints) {
 			const int x = int(round(digitTopLeftX + deltaXFromSourceChangeInX * p.x + deltaXFromSourceChangeInY * p.y));
 			const int y = int(round(digitTopLeftY + deltaYFromSourceChangeInX * p.x + deltaYFromSourceChangeInY * p.y));
-			imageColor.at<cv::Vec4b>(y, x) = digitColor.scalarRGBA;
+			if (x >= 0 || y >= 0 || x < imageColor.cols || y < imageColor.rows) {
+				imageColor.at<cv::Vec4b>(y, x) = digitColor.scalarRGBA;
+			}
 		}
 	}
 }

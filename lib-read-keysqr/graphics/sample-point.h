@@ -143,7 +143,7 @@ std::vector<uchar> samplePointsAlongLine(
 }
 
 /*
-Convert anvector of sampled points, stored as unsigned bytes represented scales of gray,
+Convert a vector of sampled points, stored as unsigned bytes represented scales of gray,
 into bits where the most-significant bit in the number is the first vector in the vector
 and the least-significant is the last entry in the vector.
 
