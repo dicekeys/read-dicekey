@@ -69,6 +69,11 @@ public:
 			const uint32_t* pointerToRGBAByteArray
 	);
 
+
+	const std::vector<unsigned char>& getImageOfFace(
+		size_t faceIndex
+	);
+
 	bool processImage(
 		int width,
 		int height,
@@ -82,7 +87,7 @@ public:
 	 * 
 	 * @param width the width of the overlay to create
 	 * @param height the height of the overlay to create
-	 * @param rgbaArrayPtr an RBBA data buffer to entirely overwrite
+	 * @param rgbaArrayPtr an RGBA data buffer to entirely overwrite
 	 */
 	void renderAugmentationOverlay(	
 		int width,
@@ -96,7 +101,7 @@ public:
 	 * 
 	 * @param width the width of the overlay to create
 	 * @param height the height of the overlay to create
-	 * @param rgbaArrayPtr an RBBA data buffer to augment (partially write over)
+	 * @param rgbaArrayPtr an RGBA data buffer to augment (partially write over)
 	 */
 	void augmentRGBAImage(	
 		const int width,

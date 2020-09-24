@@ -26,7 +26,7 @@ Color errorMagnitudeToColor(unsigned errorMagnitude) {
 
 /**
  * @brief Create an image overlay on top of an existing image
- * be it the image analzyed or a tranparent overlay.
+ * be it the image analyzed or a tranparent overlay.
  * 
  * @param overlayImage Must be a CV_8UC4 RGBA image
  * @param faces An array of the 25 faces
@@ -58,14 +58,14 @@ cv::Mat visualizeReadResults(
         error.magnitude == 0 ? thinLineThickness : thickLineThickness
       );
     }
-    // Draw a rectangle arond the underline
+    // Draw a rectangle around the underline
     if (face.underline.found) {
       bool underlineError = (error.location & FaceErrors::Location::Underline);
       drawRotatedRect(overlayImage, face.underline.fromRotatedRect,
         errorMagnitudeToColor( underlineError ? error.magnitude : 0 ).scalarRGBA,
         underlineError ? thickLineThickness : thinLineThickness );
     }
-    // Draw a rectangle arond the overline
+    // Draw a rectangle around the overline
     if (face.overline.found) {
       bool overlineError = (error.location & FaceErrors::Location::Overline);
       drawRotatedRect(overlayImage, face.overline.fromRotatedRect,

@@ -7,12 +7,12 @@
 
 #include "utilities/bit-operations.h"
 #include "graphics/cv.h"
+#include "graphics/rotate.h"
 #include "keysqr.hpp"
 #include "read-faces.h"
 #include "read-keysqr.hpp"
 #include "visualize-read-results.h"
 #include <opencv2/imgproc/imgproc.hpp>
-
 
 const unsigned int maxCorrectableError = 2;
 const int millisecondsToTryToRemoveCorrectableErrors = 4000;
@@ -108,16 +108,32 @@ bool DiceKeyImageProcessor::processRGBAImage (
 		const uint32_t* pointerToRGBAByteArray
 ) {
 	// Create an OpenCV Matrix (Mat) representation of the RGBA data input
-  	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, (void*) pointerToRGBAByteArray, 4 * width);
+	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, (void*) pointerToRGBAByteArray, 4 * width);
 	// Create a grayscale matrix for the analysis
 	cv::Mat grayscale(width, height, CV_8UC1);
 	// Convert the RGBA image into a grayscale image
 	cv::cvtColor(colorImage, grayscale, cv::COLOR_RGBA2GRAY);
 	// Process the grayscale image.
-	return processImage(width, height, grayscale.step, grayscale.data);
+	bool processImageResult = processImage(width, height, grayscale.step, grayscale.data);
+
+	for (auto &face : this->keySqr.faces) {
+		if (face.errorSize() > 0 && face.imageData.size() == 0) {
+			// We need to capture an error image
+			const int faceSize = face.inferredSizeInPixels();
+			face.imageData.resize(faceSize* faceSize);
+			const cv::Mat faceImage(cv::Size(faceSize, faceSize), CV_8UC4, (void*) face.imageData.data());
+			copyRotatedRectangle(faceImage, colorImage, face.center(), face.inferredAngleInRadians() * 180.0f / M_PI );
+		}
+	}
+
+	return processImageResult;
 }
 
-
+const std::vector<unsigned char>& DiceKeyImageProcessor::getImageOfFace(
+	size_t faceIndex
+) {
+	return this->keySqr.faces[faceIndex].imageData;
+}
 
 /*
 ByteBuffer = buffer = ByteBuffer.allocateDirect( 4 * width * height );

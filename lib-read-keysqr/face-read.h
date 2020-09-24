@@ -68,6 +68,18 @@ class FaceUndoverlines {
       return 0;
     }
   }
+
+    float inferredSizeInPixels() const {
+    if (underline.found && overline.found) {
+      return (lineLength(underline.line) + lineLength(overline.line) / 2) / FaceDimensionsFractional::undoverlineLength;
+    } else if (underline.found) {
+      return lineLength(underline.line) / FaceDimensionsFractional::undoverlineLength;
+    } else if (overline.found) {
+      return lineLength(overline.line) / FaceDimensionsFractional::undoverlineLength;
+    } else {
+      return 0;
+    }
+  }
 };
 
 
@@ -174,6 +186,8 @@ public:
   // If the underline and overline match but matched with the OCR's second choice of
   // letter or digit, we return 2.
 	FaceError error() const;
+
+  std::vector<unsigned char>imageData;
 
 	unsigned int errorSize() const;
 };

@@ -21,7 +21,6 @@ CharactersReadFromFaces readCharactersOnFace(
 	// Rotate to remove the angle of the face
 	const float degreesToRotateToRemoveAngleOfFace = radiansToDegrees(angleRadians);
 	const int textHeightPixels = int(ceil(FaceDimensionsFractional::textRegionHeight * pixelsPerFaceEdgeWidth));
-	// FIXME -- constant in next line is a hack
 	int textWidthPixels = int(ceil(FaceDimensionsFractional::textRegionWidth * pixelsPerFaceEdgeWidth));
 	// Use an even text region width so we can even split it in two at the center;
 	if ((textWidthPixels % 2) == 1) {
