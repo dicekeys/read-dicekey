@@ -72,7 +72,7 @@ public:
 
 	const std::vector<unsigned char>& getImageOfFace(
 		size_t faceIndex
-	);
+	) const;
 
 	bool processImage(
 		int width,

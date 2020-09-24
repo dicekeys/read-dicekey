@@ -120,7 +120,7 @@ bool DiceKeyImageProcessor::processRGBAImage (
 		if (face.errorSize() > 0 && face.imageData.size() == 0) {
 			// We need to capture an error image
 			const int faceSize = face.inferredSizeInPixels();
-			face.imageData.resize(faceSize* faceSize);
+			face.imageData.resize(faceSize* faceSize * 4);
 			const cv::Mat faceImage(cv::Size(faceSize, faceSize), CV_8UC4, (void*) face.imageData.data());
 			copyRotatedRectangle(faceImage, colorImage, face.center(), face.inferredAngleInRadians() * 180.0f / M_PI );
 		}
@@ -129,10 +129,16 @@ bool DiceKeyImageProcessor::processRGBAImage (
 	return processImageResult;
 }
 
+static std::vector<unsigned char> nullVector;
+
 const std::vector<unsigned char>& DiceKeyImageProcessor::getImageOfFace(
 	size_t faceIndex
-) {
-	return this->keySqr.faces[faceIndex].imageData;
+) const {	
+	if (faceIndex < 0 || faceIndex > keySqr.faces.size()) {
+		return nullVector;
+	} else {
+		return this->keySqr.faces[faceIndex].imageData;
+	}
 }
 
 /*
