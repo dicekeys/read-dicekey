@@ -93,7 +93,7 @@ public:
 		int width,
 		int height,
 		uint32_t* rgbaArrayPtr
-	);
+	) const ;
 
 	/**
 	 * @brief Render a representation of what the algorithm
@@ -107,23 +107,23 @@ public:
 		const int width,
 		const int height,
 		uint32_t* rgbaArrayPtr
-	); 
+	) const; 
 
 	/**
 	 * @brief Return a 
 	 * 
 	 * @return KeySqr<FaceRead> 
 	 */
-	KeySqr<FaceRead> keySqrRead() { return keySqr; }
+	KeySqr<FaceRead> keySqrRead() const { return keySqr; }
 
 	/**
 	 * @brief Return a JSON representation of the DiceKey read.
 	 * 
 	 * @return std::string 
-	 */
-	std::string jsonKeySqrRead();
+	 **/
+	std::string jsonKeySqrRead() const;
 
-	bool isFinished();
+	bool isFinished() const;
 
 };
 

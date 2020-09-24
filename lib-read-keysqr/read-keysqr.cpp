@@ -108,7 +108,7 @@ bool DiceKeyImageProcessor::processRGBAImage (
 		const uint32_t* pointerToRGBAByteArray
 ) {
 	// Create an OpenCV Matrix (Mat) representation of the RGBA data input
-	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, (void*) pointerToRGBAByteArray, 4 * width);
+	const cv::Mat colorImage(cv::Size(width, height), CV_8UC4, (void*) pointerToRGBAByteArray, 4 * size_t(width));
 	// Create a grayscale matrix for the analysis
 	cv::Mat grayscale(width, height, CV_8UC1);
 	// Convert the RGBA image into a grayscale image
@@ -119,10 +119,10 @@ bool DiceKeyImageProcessor::processRGBAImage (
 	for (auto &face : this->keySqr.faces) {
 		if (face.errorSize() > 0 && face.imageData.size() == 0) {
 			// We need to capture an error image
-			const int faceSize = face.inferredSizeInPixels();
+			const size_t faceSize = size_t(face.inferredSizeInPixels());
 			face.imageData.resize(faceSize * faceSize * 4);
 			const cv::Mat faceImage(cv::Size(faceSize, faceSize), CV_8UC4, (void*) face.imageData.data());
-			copyRotatedRectangle(faceImage, colorImage, face.center(), face.inferredAngleInRadians() * 180.0f / M_PI );
+			copyRotatedRectangle(faceImage, colorImage, face.center(), face.inferredAngleInRadians() * float(180.0F) / float(M_PI) );
 		}
 	}
 
@@ -158,7 +158,7 @@ void DiceKeyImageProcessor::renderAugmentationOverlay(
 		const int width,
 		const int height,
 		uint32_t* rgbaArrayPtr
-) {
+) const {
 	// Make all pixels transparent
 	uint32_t* pixelPtr = rgbaArrayPtr; 
 	uint32_t* end = pixelPtr + ((size_t) width) * ((size_t) height);
@@ -174,7 +174,7 @@ void DiceKeyImageProcessor::augmentRGBAImage(
 		const int width,
 		const int height,
 		uint32_t* rgbaArrayPtr
-) {
+) const {
 	// Make all pixels transparent
 	if (keySqr.isInitialized() && keySqr.faces.size() == NumberOfFaces) {
 		cv::Mat overlayImage_RGBA_CV(cv::Size(width, height), CV_8UC4, rgbaArrayPtr);
@@ -188,10 +188,10 @@ void DiceKeyImageProcessor::augmentRGBAImage(
 }
 
 
-std::string DiceKeyImageProcessor::jsonKeySqrRead() {
+std::string DiceKeyImageProcessor::jsonKeySqrRead() const {
 	return keySqr.toJson();
 }
 
-bool DiceKeyImageProcessor::isFinished() {
+bool DiceKeyImageProcessor::isFinished() const {
 	return terminate;
 }

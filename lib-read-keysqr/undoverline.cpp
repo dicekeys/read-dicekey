@@ -72,7 +72,7 @@ Undoverline::Undoverline(
 	);
 	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfFace;
 
-	// center = midpointOfLine(undoverlineStartingAtImageLeft);
+	this->center = midpointOfLine(undoverlineStartingAtImageLeft);
 	inferredCenterOfFace = cv::Point2f(
 		center.x + pixelsFromCenterOfUndoverlineToCenterOfFace * cosUpAngleInRadians,
 		center.y + pixelsFromCenterOfUndoverlineToCenterOfFace * sinUpAngleInRadians

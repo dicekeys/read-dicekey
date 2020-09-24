@@ -37,7 +37,6 @@ class KeySqr {
           "A KeySqr must contain " + std::to_string(NumberOfFaces) + " faces but only has " + std::to_string(_faces.size())
         ).c_str() );
 	    }
-      // faces = _faces;
     }
 
     bool isInitialized() const {
