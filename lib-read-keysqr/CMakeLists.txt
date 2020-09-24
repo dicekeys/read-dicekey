@@ -32,6 +32,20 @@ else()
     )
 endif()
 
+target_compile_options(${KEYSQR_LIBRARIES_PROJECT_NAME}
+    PRIVATE
+    -std=c++1z
+    -Wall
+    -Werror
+    "SHELL:-s MODULARIZE=1"
+    "SHELL:-s ASSERTIONS=2"
+    "SHELL:-s DISABLE_EXCEPTION_CATCHING=2"
+    "SHELL:-s EXCEPTION_DEBUG=1"
+    -O3
+    -g4
+    --bind
+)
+
 # See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
 
 message("${KEYSQR_LIBRARIES_PROJECT_NAME}: Target OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")

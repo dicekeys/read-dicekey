@@ -72,7 +72,7 @@ Undoverline::Undoverline(
 	);
 	float pixelsBetweenCentersOfUndoverlines = 2 * pixelsFromCenterOfUndoverlineToCenterOfFace;
 
-	center = midpointOfLine(undoverlineStartingAtImageLeft);
+	// center = midpointOfLine(undoverlineStartingAtImageLeft);
 	inferredCenterOfFace = cv::Point2f(
 		center.x + pixelsFromCenterOfUndoverlineToCenterOfFace * cosUpAngleInRadians,
 		center.y + pixelsFromCenterOfUndoverlineToCenterOfFace * sinUpAngleInRadians
@@ -94,7 +94,7 @@ const std::string Undoverline::toJson() const {
 	if (!found || !determinedIfUnderlineOrOverline) {
 		return "null";
 	}
-	const cv::Point2f center = midpointOfLine(line);
+	// const cv::Point2f center = midpointOfLine(line);
 	std::ostringstream jsonStream;
 	jsonStream <<
 	"{" <<

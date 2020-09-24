@@ -93,7 +93,7 @@ KeySqrGridModel calculateKeySqrGrid(
 	float maxFractionOffaceWithromRowOrColumnLine = 0.1f // 1 mm
 ) {
 	const std::vector<FaceUndoverlines> &facesFound = faceAndStrayUndoverlinesFound.facesFound;
-	const std::vector<Undoverline> &strayUndoverlines = faceAndStrayUndoverlinesFound.strayUndoverlines;
+	// const std::vector<Undoverline> &strayUndoverlines = faceAndStrayUndoverlinesFound.strayUndoverlines;
 	const	float maxPixelsFromRowOrColumnLine = maxFractionOffaceWithromRowOrColumnLine * faceAndStrayUndoverlinesFound.pixelsPerFaceEdgeWidth;
 
 	for (int i = 0; i < facesFound.size(); i++) {

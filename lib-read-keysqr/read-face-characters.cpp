@@ -63,7 +63,7 @@ CharactersReadFromFaces readCharactersOnFace(
 	const char digit0 = digitsMostLikelyFirst[0].character;
 
 	// FIXME -- remove after development debugging
-	static int error = 1;
+	// static int error = 1;
 	if (writeErrorUnlessThisLetterIsRead.length() != 0 && writeErrorUnlessThisLetterIsRead != "--" && writeErrorUnlessThisLetterIsRead.find_first_of( letter0 ) == -1) {
 		// cv::imwrite(
 		// 	"out/tests/test-lib-read-keysqr/ocr-errors/error-" + std::to_string(error++) + "-read-" + writeErrorUnlessThisLetterIsRead +

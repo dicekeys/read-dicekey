@@ -120,7 +120,7 @@ bool DiceKeyImageProcessor::processRGBAImage (
 		if (face.errorSize() > 0 && face.imageData.size() == 0) {
 			// We need to capture an error image
 			const int faceSize = face.inferredSizeInPixels();
-			face.imageData.resize(faceSize* faceSize * 4);
+			face.imageData.resize(faceSize * faceSize * 4);
 			const cv::Mat faceImage(cv::Size(faceSize, faceSize), CV_8UC4, (void*) face.imageData.data());
 			copyRotatedRectangle(faceImage, colorImage, face.center(), face.inferredAngleInRadians() * 180.0f / M_PI );
 		}

@@ -27,9 +27,9 @@ cv::Mat ocrErrorHeatMap(
   // Black out the rectangle so that lines between images are black.
   rectangle(errorImage, cv::Rect(0, 0, cols, rows), cv::Scalar(0, 0, 0), cv::FILLED);
 
-  const OcrChar* charRecord = vreduce<OcrChar, const OcrChar*>( alphabet.characters,
-    [characterRead](const OcrChar* r, const OcrChar* c) -> const OcrChar* {return c->character == characterRead ? c : r; },
-    (const OcrChar*)(NULL));
+  // const OcrChar* charRecord = vreduce<OcrChar, const OcrChar*>( alphabet.characters,
+  //   [characterRead](const OcrChar* r, const OcrChar* c) -> const OcrChar* {return c->character == characterRead ? c : r; },
+  //   (const OcrChar*)(NULL));
 
   for (int y=0; y < charRows; y++) {
     for (int x=0; x < charCols; x++) {
