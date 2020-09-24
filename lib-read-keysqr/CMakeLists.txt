@@ -34,7 +34,7 @@ endif()
 
 target_compile_options(${KEYSQR_LIBRARIES_PROJECT_NAME}
     PRIVATE
-    DISABLE_EXCEPTION_CATCHING=2
+    "SHELL:-s DISABLE_EXCEPTION_CATCHING=2"
 )
 
 # See https://docs.opencv.org/4.1.1/d0/d76/tutorial_arm_crosscompile_with_cmake.html
