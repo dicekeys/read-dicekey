@@ -65,14 +65,17 @@ bool DiceKeyImageProcessor::processImage(
 		angleInRadiansNonCanonicalForm = facesRead.angleInRadiansNonCanonicalForm;
 		pixelsPerFaceEdgeWidth = facesRead.pixelsPerFaceEdgeWidth;
 
-		const KeySqr<FaceRead> previousKeySqr = keySqr;
-		
-		if (previousKeySqr.isInitialized()) {
+		if (keySqr.isInitialized()) {
+			// 
+			this->previousKeySqr = keySqr;
+		}
+
+		if (this->previousKeySqr.isInitialized()) {
 			// There may be useful data from the previous read to carry in,
 			// as it could have read something this read missed.
 			// Merge the old into the new
-			keySqr = KeySqr<FaceRead>(facesRead.faces).mergePrevious(keySqr);
-			if (keySqr.totalError() > previousKeySqr.totalError()) {
+			keySqr = KeySqr<FaceRead>(facesRead.faces).mergePrevious(this->previousKeySqr);
+			if (keySqr.totalError() > this->previousKeySqr.totalError()) {
 				//The new read reduces the magnitude of the read errors to resolve
 				whenLastImproved = whenLastRead;
 			}
@@ -81,6 +84,8 @@ bool DiceKeyImageProcessor::processImage(
 			keySqr = KeySqr<FaceRead>(facesRead.faces);
 			whenLastImproved = whenLastRead;
 		}
+	} else {
+		keySqr = KeySqr<FaceRead>();
 	}
 
 	// The process of repeatedly processing camera images should stop when either

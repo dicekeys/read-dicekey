@@ -48,6 +48,7 @@ private:
 	// The KeySqr that has been read is stored in this field, which also
 	// keeps track of any errors that you have to be resolved during reading.
 	KeySqr<FaceRead> keySqr = KeySqr<FaceRead>();
+	KeySqr<FaceRead> previousKeySqr = KeySqr<FaceRead>();
 	// This field is set to true if we've reached the termination condition
 	// for the scanning loop.  This is the same value returned as the
 	// result of the scanAndAugmentKeySqrImage function.
