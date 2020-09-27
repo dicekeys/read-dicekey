@@ -15,10 +15,12 @@ three-character triples of letter, digit ('0'-'6'), and orientation (as number o
 */
 void validateFacesRead(
 	const std::vector<FaceRead> &facesRead,
-	std::string keySqrInHumanReadableForm
+	std::string keySqrInHumanReadableForm,
+	bool rotateToCanonicalOrientation = true
 );
 
 void validateFacesRead(
 	const KeySqr<FaceRead>& keySqrNonCanonical,
-	std::string keySqrInHumanReadableForm
+	std::string keySqrInHumanReadableForm,
+	bool rotateToCanonicalOrientation = true
 );

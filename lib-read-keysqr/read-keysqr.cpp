@@ -124,7 +124,7 @@ bool DiceKeyImageProcessor::processRGBAImage (
 	for (auto &face : this->keySqr.faces) {
 		if (face.errorSize() > 0 && face.imageData.size() == 0) {
 			// We need to capture an error image
-			const size_t faceSize = size_t(face.inferredSizeInPixels());
+			const int faceSize = size_t(face.inferredSizeInPixels());
 			if (faceSize > 0) {
 				face.imageData.resize(faceSize * faceSize * 4);
 				const cv::Mat faceImage(cv::Size(faceSize, faceSize), CV_8UC4, (void*) face.imageData.data());

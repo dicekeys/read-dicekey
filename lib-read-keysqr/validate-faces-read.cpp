@@ -10,9 +10,10 @@
 
 void validateFacesRead(
 	const std::vector<FaceRead>& facesRead,
-	std::string keySqrInHumanReadableForm
+	std::string keySqrInHumanReadableForm,
+	bool rotateToCanonicalOrientation
 ) {
-	validateFacesRead(KeySqr<FaceRead>(facesRead), keySqrInHumanReadableForm);
+	validateFacesRead(KeySqr<FaceRead>(facesRead), keySqrInHumanReadableForm, rotateToCanonicalOrientation);
 }
 
 /*
@@ -21,10 +22,13 @@ three-character triples of letter, digit ('0'-'6'), and orientation (as number o
 '0'-'3').
 */
 void validateFacesRead(
-	const KeySqr<FaceRead> &keySqrNonCanonical,
-	std::string keySqrInHumanReadableForm
+	const KeySqr<FaceRead>& keySqrNonCanonical,
+	std::string keySqrInHumanReadableForm,
+	bool rotateToCanonicalOrientation
 ) {
-	const KeySqr<FaceRead> keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
+	const KeySqr<FaceRead> keySqr = rotateToCanonicalOrientation ?
+		keySqrNonCanonical.rotateToCanonicalOrientation() :
+		keySqrNonCanonical;
 	for (size_t faceIndex = 0; faceIndex < keySqr.faces.size(); faceIndex++) {
 		const auto face = keySqr.faces[faceIndex];
 		const std::string faceAsString = keySqrInHumanReadableForm.substr(faceIndex * 3, 3);
