@@ -1,7 +1,7 @@
 #######################################################################
 # IMPORTANT SHORTCOMINGS OF THIS CMAKE CONFIG FOR VISUAL STUDIO USERS
 #
-# Visual Studio unfortunatly defaults to overriding the working directory
+# Visual Studio unfortunately defaults to overriding the working directory
 # for Google Test set by CMAKE.
 # To fix this
 #    go to Visual Studio's debug menu or tool menu,
@@ -9,7 +9,7 @@
 #    go to the "Test Adapter For GoogleTest" tab.
 #
 #  Set 'Working Directory' to '$(SolutionDir)'
-#  (note, those are parens around SolutionDir, and not braces
+#  (note, those are parenthesis around SolutionDir, and not braces
 #   as one might become accustomed to seeing in CMake).
 #
 #######################################################################
@@ -25,7 +25,7 @@ choose the 'options' item, and then go to the
 
 'TestAdapterForGoogleTest' tab.
 Set 'Working Directory' to '$(SolutionDir)'
-(note, those are parens around SolutionDir, and not braces
+(note, those are parenthesis around SolutionDir, and not braces
  as one might become accustomed to seeing in CMake).
 
  *********************************************************************
@@ -48,10 +48,10 @@ endif()
 ################# CMake Project ############################
 # The main options of project                              #
 ############################################################
-set(KEYSQR_LIBRARIES_PROJECT_NAME lib-read-keysqr)
-project(${KEYSQR_LIBRARIES_PROJECT_NAME}
+set(DICEKEY_LIBRARIES_PROJECT_NAME lib-read-dicekey)
+project(${DICEKEY_LIBRARIES_PROJECT_NAME}
     VERSION 0.10
-    DESCRIPTION "Libraries for working with KeySqrs and scanning images of them."
+    DESCRIPTION "Libraries for working with DiceKeys and scanning images of them."
     LANGUAGES CXX
 )
 # Define Release by default.
@@ -59,16 +59,16 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
   message(STATUS "Build type not specified: Use Release by default.")
 endif(NOT CMAKE_BUILD_TYPE)
-get_filename_component(KEYSQR_LIBRARIES_PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
+get_filename_component(DICEKEY_LIBRARIES_PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 
 # set(ANDROID_ABI "x86_64" CACHE STRING "Default architecture to x86_64")
 
 # Paths
 
-message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
-message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
-message("${KEYSQR_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
+message("${DICEKEY_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+message("${DICEKEY_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message("${DICEKEY_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
+message("${DICEKEY_LIBRARIES_PROJECT_NAME}: MAIN PROJECT CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 
 
 ####################################################
@@ -81,8 +81,8 @@ include("extern/opencv.cmake")
 ####################################################
 # Libraries to build
 ####################################################
-add_subdirectory("lib-keysqr")
-add_subdirectory("lib-read-keysqr")
+add_subdirectory("lib-dicekey")
+add_subdirectory("lib-read-dicekey")
 
 #############################################################
 # Testing
@@ -92,9 +92,9 @@ add_subdirectory("lib-read-keysqr")
 #
 #############################################################
 
-option(KEYSQR_CREATE_AND_RUN_TESTS "Create and run tests" False)
-message("KEYSQR_CREATE_AND_RUN_TESTS=${KEYSQR_CREATE_AND_RUN_TESTS}")
-if ("${KEYSQR_CREATE_AND_RUN_TESTS}" STREQUAL "True")
+option(DICEKEY_CREATE_AND_RUN_TESTS "Create and run tests" False)
+message("DICEKEY_CREATE_AND_RUN_TESTS=${DICEKEY_CREATE_AND_RUN_TESTS}")
+if ("${DICEKEY_CREATE_AND_RUN_TESTS}" STREQUAL "True")
     include(CTest)
     enable_testing()
     add_subdirectory(tests)
@@ -114,23 +114,23 @@ endif(NOT MSVC)
 
 # Preprocessor definitions
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE 
+    target_compile_definitions(${DICEKEY_LIBRARIES_PROJECT_NAME} PRIVATE 
    -D_DEBUG 
    -D_CONSOLE
     )
     if(MSVC)
-        target_compile_options(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE /W3 /Od /EHsc) # / Zi /MD
+        target_compile_options(${DICEKEY_LIBRARIES_PROJECT_NAME} PRIVATE /W3 /Od /EHsc) # / Zi /MD
 		message("*************************************")
     endif()
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_compile_definitions(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE 
+    target_compile_definitions(${DICEKEY_LIBRARIES_PROJECT_NAME} PRIVATE 
    -DNDEBUG 
    -D_CONSOLE 
     )
     if(MSVC)
-        target_compile_options(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE /W3 /GL /Oi /Gy /EHsc) # /Zi
+        target_compile_options(${DICEKEY_LIBRARIES_PROJECT_NAME} PRIVATE /W3 /GL /Oi /Gy /EHsc) # /Zi
     endif()
 endif()
 
@@ -139,5 +139,5 @@ endif()
 ############################################################
 
 if(MSVC)
-#   target_link_libraries(${KEYSQR_LIBRARIES_PROJECT_NAME} PRIVATE Ws2_32.lib )
+#   target_link_libraries(${DICEKEY_LIBRARIES_PROJECT_NAME} PRIVATE Ws2_32.lib )
 endif(MSVC)
