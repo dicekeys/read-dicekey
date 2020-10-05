@@ -20,8 +20,8 @@ void testFileWithObj(
   try {
     DiceKeyImageProcessor reader;
     reader.processRGBAImage(rgbaImage.cols, rgbaImage.rows, (uint32_t*) rgbaImage.data);
-    auto keySqr = reader.diceKeyRead();
-    validateFacesRead(keySqr, filename.substr(0, 75));
+    auto diceKey = reader.diceKeyRead();
+    validateFacesRead(diceKey, filename.substr(0, 75));
   } catch (std::string errStr) {
     std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
     ASSERT_TRUE(false) << filename << "\n  " << errStr;
@@ -96,9 +96,9 @@ void testFile(
 		ASSERT_GE(facesExpectedToBeRead, facesRead.faces.size());
 
 		if (facesRead.faces.size() >= NumberOfFaces) {
-			const DiceKey<FaceRead> keySqrNonCanonical = DiceKey<FaceRead>(facesRead.faces);
-			const DiceKey<FaceRead> keySqr = keySqrNonCanonical.rotateToCanonicalOrientation();
-			totalError = keySqr.totalError();
+			const DiceKey<FaceRead> diceKeyNonCanonical = DiceKey<FaceRead>(facesRead.faces);
+			const DiceKey<FaceRead> diceKey = diceKeyNonCanonical.rotateToCanonicalOrientation();
+			totalError = diceKey.totalError();
 		}
   } catch (std::string errStr) {
     std::cerr << "Exception in " << filename << "\n  " << errStr << "\n";
