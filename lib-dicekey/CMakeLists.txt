@@ -6,8 +6,8 @@ file(GLOB LIB_DICEKEY_SRCS
 )
 
 # This if statement is a hack until Stuart figures out
-# how to get builds with shared libs working on windows
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+# how to get builds with shared libs working on windows and Android
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     add_library(lib-dicekey
         STATIC
         ${LIB_DICEKEY_SRCS}
