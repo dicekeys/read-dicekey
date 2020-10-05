@@ -15,7 +15,7 @@ std::string rotateHumanReadableForm(const std::string humanReadableForm, int clo
 const int rotationsToCanonicalForm(std::string humanReadableForm);
 
  /*
- * This class represents a DiceKey of 25 faces
+* This class represents a DiceKey of 25 faces
  */
 template<typename F, typename std::enable_if<std::is_base_of<Rotateable<F>, F>::value>::type* = nullptr>
 class DiceKey {
