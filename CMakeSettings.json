@@ -12,7 +12,7 @@
       "ctestCommandArgs": "",
       "variables": [
         {
-          "name": "KEYSQR_CREATE_AND_RUN_TESTS",
+          "name": "DICEKEY_CREATE_AND_RUN_TESTS",
           "value": "True",
           "type": "BOOL"
         }
