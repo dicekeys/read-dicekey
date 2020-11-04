@@ -1,6 +1,6 @@
  © 2019 Stuart Edward Schechter (Github: @uppajung)
  
-# DiceKes scanning algorithm
+# DiceKeys scanning algorithm
 
 
 ## Clone the repository with the ``--recursive`` option
