@@ -14,7 +14,7 @@
 #include "decode-face.h"
 #include "find-undoverlines.h"
 #include "find-faces.h"
-#include "assemble-dicekey.h"
+#include "assemble-dicekey.hpp"
 #include "read-face-characters.h"
 #include "visualize-read-results.h"
 #include "json.h"

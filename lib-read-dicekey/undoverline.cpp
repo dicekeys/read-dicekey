@@ -6,7 +6,7 @@
 #include "utilities/vfunctional.h"
 #include "graphics/cv.h"
 #include "graphics/geometry.h"
-#include "dicekey-face-specification.h"
+#include "../lib-dicekey/externally-generated/dicekey-face-specification.h"
 #include "decode-face.h"
 #include "undoverline.h"
 #include "json.h"

@@ -6,7 +6,7 @@
 #include "find-undoverlines.h"
 #include "read-faces.h"
 #include "find-faces.h"
-#include "dicekey-face-specification.h"
+#include "../lib-dicekey/externally-generated/dicekey-face-specification.h"
 
 FaceAndStrayUndoverlinesFound findFacesAndStrayUndoverlines(
 	const cv::Mat &grayscaleImage

@@ -7,10 +7,10 @@
 #include "graphics/cv.h"
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
-#include "dicekey-face-specification.h"
+#include "../lib-dicekey/externally-generated/dicekey-face-specification.h"
 #include "find-undoverlines.h"
 #include "find-faces.h"
-#include "assemble-dicekey.h"
+#include "assemble-dicekey.hpp"
 
 
 class DiceKeyGridModel {

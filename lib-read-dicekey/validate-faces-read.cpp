@@ -3,7 +3,7 @@
 #include <iostream>
 #include "utilities/vfunctional.h"
 #include "graphics/cv.h"
-#include "dicekey.hpp"
+#include "assemble-dicekey.hpp"
 #include "read-faces.h"
 #include "read-dicekey.hpp"
 #include "validate-faces-read.h"

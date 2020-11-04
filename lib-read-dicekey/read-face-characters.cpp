@@ -5,7 +5,7 @@
 #include "graphics/geometry.h"
 #include "graphics/color.h"
 #include "graphics/rotate.h"
-#include "dicekey-face-specification.h"
+#include "../lib-dicekey/externally-generated/dicekey-face-specification.h"
 #include "simple-ocr.h"
 #include "read-face-characters.h"
 

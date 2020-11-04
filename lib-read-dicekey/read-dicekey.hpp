@@ -7,7 +7,7 @@
 #include <limits>
 #include <chrono>
 
-#include "dicekey.hpp"
+#include "assemble-dicekey.hpp"
 #include "read-faces.h"
 
 // std::string readDiceKeyJson(
