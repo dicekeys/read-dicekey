@@ -1,7 +1,7 @@
 //  © 2019 Stuart Edward Schechter (Github: @uppajung)
 #include <string>
 #include <vector>
-#include "dicekey-face-specification.h"
+#include "../lib-dicekey/externally-generated/dicekey-face-specification.h"
 #include "utilities/bit-operations.h"
 #include "decode-face.h"
 

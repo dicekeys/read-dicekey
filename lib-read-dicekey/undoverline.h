@@ -5,7 +5,7 @@
 #include <float.h>
 #include "graphics/cv.h"
 #include "graphics/geometry.h"
-#include "dicekey-face-specification.h"
+#include "../lib-dicekey/externally-generated/dicekey-face-specification.h"
 
 const float undoverlineWidthAsFractionOfLength = FaceDimensionsFractional::undoverlineThickness / FaceDimensionsFractional::undoverlineLength;
 

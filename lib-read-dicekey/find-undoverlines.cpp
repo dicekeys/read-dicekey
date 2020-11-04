@@ -12,7 +12,7 @@
 #include "graphics/rotate.h"
 #include "graphics/sample-point.h"
 #include "graphics/draw-rotated-rect.h"
-#include "dicekey-face-specification.h"
+#include "../lib-dicekey/externally-generated/dicekey-face-specification.h"
 #include "decode-face.h"
 #include "undoverline.h"
 #include "find-undoverlines.h"

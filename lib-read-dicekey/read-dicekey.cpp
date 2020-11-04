@@ -8,7 +8,7 @@
 #include "utilities/bit-operations.h"
 #include "graphics/cv.h"
 #include "graphics/rotate.h"
-#include "dicekey.hpp"
+#include "assemble-dicekey.hpp"
 #include "read-faces.h"
 #include "read-dicekey.hpp"
 #include "visualize-read-results.h"

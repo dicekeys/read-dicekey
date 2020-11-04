@@ -6,7 +6,7 @@
 #include "graphics/cv.h"
 #include "graphics/geometry.h"
 #include "graphics/draw-rotated-rect.h"
-#include "dicekey.hpp"
+#include "assemble-dicekey.hpp"
 #include "read-faces.h"
 #include "visualize-read-results.h"
 #include "write-face-characters.h"
