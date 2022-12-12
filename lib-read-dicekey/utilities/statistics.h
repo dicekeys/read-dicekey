@@ -4,6 +4,7 @@
 
 #include <math.h>
 #include <algorithm>
+#include <limits>
 #include "../utilities/vfunctional.h"
 
 /*
