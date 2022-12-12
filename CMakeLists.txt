@@ -92,9 +92,9 @@ add_subdirectory("lib-read-dicekey")
 #
 #############################################################
 
-option(DICEKEY_CREATE_AND_RUN_TESTS "Create and run tests" False)
+option(DICEKEY_CREATE_AND_RUN_TESTS "Create and run tests" OFF)
 message("DICEKEY_CREATE_AND_RUN_TESTS=${DICEKEY_CREATE_AND_RUN_TESTS}")
-if ("${DICEKEY_CREATE_AND_RUN_TESTS}" STREQUAL "True")
+if (${DICEKEY_CREATE_AND_RUN_TESTS})
     include(CTest)
     enable_testing()
     add_subdirectory(tests)
