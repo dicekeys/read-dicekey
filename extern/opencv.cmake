@@ -3,6 +3,8 @@ include(FetchContent)
 set (OPENCV_VERSION "4.3.0" CACHE STRING "OpenCV Version to Use")
 message("CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}")
 
+find_package(OpenCV ${OPENCV_VERSION} REQUIRED COMPONENTS core imgproc imgcodecs)
+if(NOT OpenCV_FOUND)
 message("Downloading OpenCV. This may take many minutes and could TIMEOUT cmake")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
@@ -65,6 +67,7 @@ else()
     # https://github.com/opencv/opencv/blob/65573784c488f6548770381e2786fbf15e0f1e32/cmake/OpenCVInstallLayout.cmake#L68
 endif()
 message("OpenCV downloaded.")
+endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     SET(OpenCV_DIR "C:/Users/stuar/git/opencv/build/install/lib/cmake/opencv4") # FIXME
