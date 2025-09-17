@@ -6,6 +6,8 @@
 #include <type_traits>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
+#include <limits>
 #include "face.hpp"
 
 const int NumberOfFaces = 25;

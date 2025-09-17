@@ -1,8 +1,10 @@
 include(FetchContent)
 
-set (OPENCV_VERSION "4.3.0" CACHE STRING "OpenCV Version to Use")
+set (OPENCV_VERSION "4.12.0" CACHE STRING "OpenCV Version to Use")
 message("CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}")
 
+find_package(OpenCV ${OPENCV_VERSION} REQUIRED COMPONENTS core imgproc imgcodecs)
+if(NOT OpenCV_FOUND)
 message("Downloading OpenCV. This may take many minutes and could TIMEOUT cmake")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
@@ -34,7 +36,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message("Using Windows distribution")
     FetchContent_Declare(
         opencv
-        URL https://github.com/opencv/opencv/releases/download/${OPENCV_VERSION}/opencv-${OPENCV_VERSION}-vc14_vc15.exe
+        URL https://github.com/opencv/opencv/releases/download/${OPENCV_VERSION}/opencv-${OPENCV_VERSION}-windows.exe
         UPDATE_DISCONNECTED # since we're using a fixed version, only download once
     )
 	FetchContent_MakeAvailable(opencv)
@@ -65,6 +67,7 @@ else()
     # https://github.com/opencv/opencv/blob/65573784c488f6548770381e2786fbf15e0f1e32/cmake/OpenCVInstallLayout.cmake#L68
 endif()
 message("OpenCV downloaded.")
+endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     SET(OpenCV_DIR "C:/Users/stuar/git/opencv/build/install/lib/cmake/opencv4") # FIXME
