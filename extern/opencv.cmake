@@ -1,6 +1,6 @@
 include(FetchContent)
 
-set (OPENCV_VERSION "4.3.0" CACHE STRING "OpenCV Version to Use")
+set (OPENCV_VERSION "4.12.0" CACHE STRING "OpenCV Version to Use")
 message("CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}")
 
 message("Downloading OpenCV. This may take many minutes and could TIMEOUT cmake")
@@ -34,7 +34,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message("Using Windows distribution")
     FetchContent_Declare(
         opencv
-        URL https://github.com/opencv/opencv/releases/download/${OPENCV_VERSION}/opencv-${OPENCV_VERSION}-vc14_vc15.exe
+        URL https://github.com/opencv/opencv/releases/download/${OPENCV_VERSION}/opencv-${OPENCV_VERSION}-windows.exe
         UPDATE_DISCONNECTED # since we're using a fixed version, only download once
     )
 	FetchContent_MakeAvailable(opencv)
