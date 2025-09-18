@@ -3,7 +3,6 @@ include(FetchContent)
 set (OPENCV_VERSION "4.12.0" CACHE STRING "OpenCV Version to Use")
 message("CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}")
 
-find_package(OpenCV ${OPENCV_VERSION} REQUIRED COMPONENTS core imgproc imgcodecs)
 if(NOT OpenCV_FOUND)
 message("Downloading OpenCV. This may take many minutes and could TIMEOUT cmake")
 
